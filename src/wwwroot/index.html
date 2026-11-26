@@ -397,9 +397,12 @@ body.preview #offline,body.preview #gear{display:none!important}
     box.classList.add('deck');
     var items = cfg.buttons.filter(function(b){ return b.group === d.ref; });
     var cols = Math.max(1, Math.min(items.length || 1, Math.round((cfg.columns || 4) * d.w / 12) || 1));
+    // Nhieu nut qua thi tang so cot cho vua khung, khong de hang cuoi bi cat
+    var maxRows = Math.max(1, Math.floor(d.h * 0.75)), cap = Math.max(cols, Math.round(10 * d.w / 12));
+    while (cols < cap && Math.ceil(items.length / cols) > maxRows) cols++;
     var rows = Math.max(1, Math.ceil(items.length / cols));
     box.style.gridTemplateColumns = 'repeat(' + cols + ',minmax(0,1fr))';
-    box.style.gridAutoRows = rows <= Math.max(1, d.h * 0.75) ? '1fr' : 'minmax(76px,auto)';
+    box.style.gridAutoRows = rows <= maxRows ? '1fr' : 'minmax(76px,auto)';
     items.forEach(function(b){ box.appendChild(makeButton(b)); });
     if (!items.length) { box.classList.add('card', 'empty'); box.textContent = 'Nhóm "' + (d.ref || '') + '" chưa có nút'; }
     return {};

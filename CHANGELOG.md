@@ -1,0 +1,33 @@
+# Nhật ký thay đổi
+
+## 0.6.2 (26/11/2026)
+- Nhóm nhiều nút (ví dụ 17 nút AutoCAD) tự tăng số cột cho vừa trang, không còn hàng cuối bị cắt.
+- README mới có ảnh chụp, logo và nhật ký thay đổi.
+
+## 0.6.1 (26/11/2026)
+- Cập nhật được từ repo private: dán token GitHub chỉ đọc vào Cài đặt → Chung, lưu mã hóa bằng DPAPI.
+
+## 0.6.0 (26/11/2026)
+- Nút cập nhật trong Cài đặt → Chung: tải file zip lên, hoặc tự kiểm tra và cài bản mới từ GitHub Releases.
+- GitHub Actions tự build bản Windows và phát hành khi tăng số phiên bản.
+
+## 0.5.2 (26/11/2026)
+- Thời tiết có nguồn dự phòng MET Norway và wttr.in khi Open-Meteo báo lỗi 429.
+
+## 0.5.1 (26/11/2026)
+- Thời tiết: tọa độ sẵn cho 20 thành phố Việt Nam, nhận "vĩ độ,kinh độ", ưu tiên IPv4, thử lại sau 1/2/5/10 phút, hiện lý do lỗi.
+
+## 0.5.0 (25/11/2026)
+- Trang cài đặt mới kiểu PhoneBox: nhiều trang, kéo thả và đổi cỡ widget trên lưới 12 × 6, 16 loại widget, mẫu trang, xem trước trực tiếp, Ctrl+Z.
+- Thẻ Giao diện: màu nhấn, nền, kiểu thẻ, bo góc, khoảng cách, cỡ chữ.
+
+## 0.4.0 (25/11/2026)
+- Trang Tổng quan: đồng hồ lớn, thời tiết, thẻ nhạc đang phát, 4 ô có đồ thị.
+
+## 0.3.x (25/11/2026)
+- Tách trang Tổng quan, Hệ thống, Ổ cứng và mỗi nhóm nút một trang; vuốt và chấm trang.
+- update.cmd: cập nhật không cần gỡ cài đặt. Điện thoại tự tải lại khi có bản mới.
+- Sửa đọc SMART ổ cứng, chọn đúng GPU rời.
+
+## 0.1–0.2 (25/11/2026)
+- Bản đầu: thông số PC, sức khỏe ổ cứng, nút AutoCAD, phím tắt, nối qua USB.

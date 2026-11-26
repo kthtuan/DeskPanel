@@ -1,4 +1,4 @@
-# DeskPanel 0.6.1: hướng dẫn cài
+# DeskPanel 0.6: hướng dẫn cài
 
 DeskPanel biến điện thoại Android thành màn hình phụ cho PC Windows. Màn hình hiển thị CPU, GPU, RAM, nhiệt độ và sức khỏe ổ cứng, kèm các nút bấm (lệnh AutoCAD, Calculator, phím tắt). Điện thoại nối với PC qua cáp USB và không mở cổng nào ra mạng LAN.
 
