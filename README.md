@@ -11,7 +11,7 @@ Biến điện thoại Android thành màn hình phụ cho PC Windows qua cáp U
 - `src/`: chương trình chạy trên PC (C# .NET 8, ASP.NET Core). Đọc cảm biến bằng LibreHardwareMonitorLib, SMART ổ cứng bằng DiskInfoToolkit, nối điện thoại bằng `adb reverse`.
 - `src/wwwroot/index.html`: giao diện trên điện thoại. `settings.html`: trang cài đặt.
 - `pkg/`: script cài, cập nhật, gỡ và hướng dẫn.
-- `.github/workflows/release.yml`: đẩy tag `vX.Y.Z` là GitHub tự build bản Windows và tạo Release.
+- `.github/workflows/release.yml`: mỗi lần tăng `<Version>` trong `src/DeskPanel.csproj` và đẩy lên `main`, GitHub tự build bản Windows và tạo Release `vX.Y.Z`.
 
 ## Build
 

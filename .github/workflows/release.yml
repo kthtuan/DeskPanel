@@ -1,10 +1,12 @@
-# Day tag dang v1.2.3 len GitHub -> tu build ban Windows va tao Release kem file zip.
+# Moi lan doi <Version> trong src/DeskPanel.csproj va day len nhanh main:
+# GitHub tu build ban Windows, tao tag vX.Y.Z va Release kem file zip.
 # DeskPanel tren may nguoi dung doc Release moi nhat de hien nut "Cai ban ...".
 name: Release
 
 on:
   push:
-    tags: ['v*.*.*']
+    branches: [main]
+    paths: ['src/**', 'pkg/**', '.github/workflows/release.yml']
   workflow_dispatch:
 
 permissions:
@@ -16,34 +18,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Doc so phien ban
+        id: ver
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = (Select-Xml -Path src/DeskPanel.csproj -XPath '//Version').Node.InnerText
+          "version=$v" >> $env:GITHUB_OUTPUT
+          gh release view "v$v" --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) { "exists=true" >> $env:GITHUB_OUTPUT; Write-Host "Da co Release v$v, bo qua." }
+          else { "exists=false" >> $env:GITHUB_OUTPUT }
+          exit 0
+
       - uses: actions/setup-dotnet@v4
+        if: steps.ver.outputs.exists == 'false'
         with:
           dotnet-version: '8.0.x'
 
-      - name: Lay so phien ban tu tag
-        id: ver
-        shell: pwsh
-        run: |
-          $v = "${{ github.ref_name }}".TrimStart('v')
-          if ($v -notmatch '^\d+\.\d+\.\d+$') { $v = (Select-Xml -Path src/DeskPanel.csproj -XPath '//Version').Node.InnerText }
-          "version=$v" >> $env:GITHUB_OUTPUT
-
       - name: Build
+        if: steps.ver.outputs.exists == 'false'
         shell: pwsh
-        run: dotnet publish src/DeskPanel.csproj -c Release -r win-x64 -o out/DeskPanel -p:Version=${{ steps.ver.outputs.version }}
+        run: dotnet publish src/DeskPanel.csproj -c Release -r win-x64 -o out/DeskPanel
 
       - name: Dong goi
+        if: steps.ver.outputs.exists == 'false'
         shell: pwsh
         run: |
-          Copy-Item pkg/* out/DeskPanel/
+          Copy-Item pkg/*.cmd, pkg/*.ps1, pkg/HUONG-DAN.md out/DeskPanel/
           Remove-Item out/DeskPanel/*.pdb -ErrorAction SilentlyContinue
           Compress-Archive -Path out/DeskPanel -DestinationPath "out/DeskPanel-${{ steps.ver.outputs.version }}-win-x64.zip"
 
       - name: Tao Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.ver.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release create "${{ github.ref_name }}" "out/DeskPanel-${{ steps.ver.outputs.version }}-win-x64.zip" `
+          gh release create "v${{ steps.ver.outputs.version }}" "out/DeskPanel-${{ steps.ver.outputs.version }}-win-x64.zip" `
+            --repo "${{ github.repository }}" --target "${{ github.sha }}" `
             --title "DeskPanel ${{ steps.ver.outputs.version }}" --notes-file pkg/CHANGELOG-latest.md
