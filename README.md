@@ -111,7 +111,7 @@ Build thủ công:
 dotnet publish src/DeskPanel.csproj -c Release -r win-x64 -o out/DeskPanel
 ```
 
-## Ghi công
+## Nguồn
 
 Bố cục giao diện lấy cảm hứng từ [PhoneBox](https://github.com/ersinkoc/phonebox) (MIT, © 2026 Ersin KOÇ). DeskPanel không chép mã của PhoneBox; toàn bộ được viết lại.
 Cảm biến: [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) (MPL-2.0). Thời tiết: [Open-Meteo](https://open-meteo.com), [MET Norway](https://api.met.no), [wttr.in](https://wttr.in).
