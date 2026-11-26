@@ -5,8 +5,12 @@ public static class Defaults
     static ButtonDef B(string id, string group, string label, string icon, string type, string value, string? color = null, string? focus = null, string? args = null)
         => new() { Id = id, Group = group, Label = label, Icon = icon, Type = type, Value = value, Color = color, Focus = focus, Args = args };
 
+    /// <summary>Ngon ngu mac dinh cho may moi cai: Windows tieng Viet thi "vi", con lai "en".</summary>
+    public static string SystemLang => System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "vi" ? "vi" : "en";
+
     public static PanelConfig Create() => new()
     {
+        Lang = SystemLang,
         Buttons = new()
         {
             B("calc", "Chung", "Máy tính", "🧮", "run", @"%SystemRoot%\System32\calc.exe", "#2f6fdf"),

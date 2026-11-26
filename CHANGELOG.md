@@ -1,5 +1,9 @@
 # Nhật ký thay đổi
 
+## 0.13.0 (26/11/2026)
+- **Tiếng Anh**: chọn 🌐 Tiếng Việt / English ở góc trên trang Cài đặt. Điện thoại đổi theo. Máy cài mới dùng ngôn ngữ của Windows; máy đang dùng giữ tiếng Việt. Hộp thoại cài/gỡ, app Android (theo ngôn ngữ điện thoại) và tiện ích trình duyệt cũng có tiếng Anh.
+- **Trang Bảo mật & quyền riêng tư** (⚙ → Chung, và `SECURITY.md` trên GitHub): DeskPanel đọc gì, lưu gì, kết nối tới đâu, cách báo lỗi bảo mật.
+
 ## 0.12.2 (26/11/2026)
 - App Android: tự xin quyền Camera trước khi mở máy quét QR; nếu app bị lỗi, lần mở sau hiện chi tiết lỗi để gửi lại. Màn hình đầu ghi số phiên bản app.
 

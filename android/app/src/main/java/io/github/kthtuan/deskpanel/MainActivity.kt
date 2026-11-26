@@ -51,6 +51,9 @@ class MainActivity : Activity() {
         const val PREFS = "deskpanel"
         const val KEY_URL = "url"
         const val RETRY_MS = 3000L
+        /** Chu tren man hinh cua app theo ngon ngu dien thoai: tieng Viet hoac tieng Anh. */
+        val VI: Boolean get() = java.util.Locale.getDefault().language == "vi"
+        fun tr(vi: String, en: String) = if (VI) vi else en
     }
 
     private lateinit var root: FrameLayout
@@ -90,8 +93,8 @@ class MainActivity : Activity() {
         if (crash != null) {
             prefs.edit().remove("crash").apply()
             showSetup(null)
-            AlertDialog.Builder(this).setTitle("Lần trước DeskPanel bị lỗi")
-                .setMessage("Chụp màn hình này gửi lại để được sửa:\n\n$crash")
+            AlertDialog.Builder(this).setTitle(tr("Lần trước DeskPanel bị lỗi", "DeskPanel crashed last time"))
+                .setMessage(tr("Chụp màn hình này gửi lại để được sửa:\n\n$crash", "Send a screenshot of this to get it fixed:\n\n$crash"))
                 .setPositiveButton("OK", null).show()
             return
         }
@@ -141,8 +144,8 @@ class MainActivity : Activity() {
                 if (!req.isForMainFrame) return
                 if (resp.statusCode == 401) {
                     mainError = true
-                    ui.post { showSetup("PC chưa nhận điện thoại này hoặc mã ghép nối đã đổi. Hãy quét lại mã QR trong trang cài đặt DeskPanel trên PC.") }
-                } else if (resp.statusCode >= 500) failed("Lỗi máy chủ " + resp.statusCode)
+                    ui.post { showSetup(tr("PC chưa nhận điện thoại này hoặc mã ghép nối đã đổi. Hãy quét lại mã QR trong trang cài đặt DeskPanel trên PC.", "The PC does not recognise this phone or the pairing key changed. Scan the QR code again in DeskPanel settings on the PC.")) }
+                } else if (resp.statusCode >= 500) failed(tr("Lỗi máy chủ ", "Server error ") + resp.statusCode)
             }
 
             override fun shouldOverrideUrlLoading(view: WebView, req: WebResourceRequest): Boolean {
@@ -169,11 +172,11 @@ class MainActivity : Activity() {
         val where = url?.let { Uri.parse(it).let { p -> p.host + (if (p.port > 0) ":" + p.port else "") } } ?: ""
         val usb = url?.startsWith(USB_URL) == true
         overlayText.text = buildString {
-            append("Chưa kết nối được DeskPanel ($where)\n")
+            append(tr("Chưa kết nối được DeskPanel ($where)\n", "Cannot connect to DeskPanel ($where)\n"))
             if (!reason.isNullOrBlank()) append(reason).append('\n')
-            append(if (usb) "\nKiểm tra: cáp USB đã cắm, DeskPanel trên PC đang chạy và đã bật USB debugging."
-                   else "\nKiểm tra: PC đang bật DeskPanel, điện thoại và PC cùng mạng Wi-Fi.")
-            append("\nĐang thử lại…")
+            append(if (usb) tr("\nKiểm tra: cáp USB đã cắm, DeskPanel trên PC đang chạy và đã bật USB debugging.", "\nCheck: the USB cable is plugged in, DeskPanel is running on the PC and USB debugging is on.")
+                   else tr("\nKiểm tra: PC đang bật DeskPanel, điện thoại và PC cùng mạng Wi-Fi.", "\nCheck: DeskPanel is running on the PC and the phone is on the same Wi-Fi."))
+            append(tr("\nĐang thử lại…", "\nRetrying…"))
         }
         overlay.visibility = View.VISIBLE
         ui.removeCallbacks(retry)
@@ -206,12 +209,12 @@ class MainActivity : Activity() {
         }
         overlayText = TextView(this).apply {
             setTextColor(Color.parseColor("#C9D1D9")); textSize = 16f; gravity = Gravity.CENTER
-            text = "Đang kết nối…"
+            text = tr("Đang kết nối…", "Connecting…")
         }
         box.addView(overlayText)
         val row = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(dp(280), -2).apply { topMargin = dp(16) } }
-        row.addView(button("Thử lại ngay", true) { load() })
-        row.addView(button("Đổi kết nối") { showSetup(null) })
+        row.addView(button(tr("Thử lại ngay", "Retry now"), true) { load() })
+        row.addView(button(tr("Đổi kết nối", "Change connection")) { showSetup(null) })
         box.addView(row)
         return box
     }
@@ -228,7 +231,7 @@ class MainActivity : Activity() {
             text = "DeskPanel"; textSize = 28f; setTypeface(typeface, Typeface.BOLD); setTextColor(Color.WHITE); gravity = Gravity.CENTER
         })
         col.addView(TextView(this).apply {
-            text = "Biến điện thoại thành màn hình phụ cho PC. Bản " + appVersion()
+            text = tr("Biến điện thoại thành màn hình phụ cho PC. Bản ", "Turn your phone into a side screen for your PC. Version ") + appVersion()
             textSize = 15f; setTextColor(Color.parseColor("#8B949E")); gravity = Gravity.CENTER
             setPadding(0, dp(4), 0, dp(8))
         })
@@ -237,14 +240,14 @@ class MainActivity : Activity() {
             setPadding(0, dp(8), 0, dp(8))
         })
         val btns = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(dp(300), -2) }
-        btns.addView(button("Quét mã QR (Wi-Fi)", true) { scan() })
-        btns.addView(button("Nhập địa chỉ") { askUrl() })
-        btns.addView(button("Dùng cáp USB") { use(USB_URL) })
-        if (url != null && message == null) btns.addView(button("Quay lại") { closeSetup(); load() })
+        btns.addView(button(tr("Quét mã QR (Wi-Fi)", "Scan QR code (Wi-Fi)"), true) { scan() })
+        btns.addView(button(tr("Nhập địa chỉ", "Enter address")) { askUrl() })
+        btns.addView(button(tr("Dùng cáp USB", "Use USB cable")) { use(USB_URL) })
+        if (url != null && message == null) btns.addView(button(tr("Quay lại", "Back")) { closeSetup(); load() })
         col.addView(btns)
         col.addView(TextView(this).apply {
-            text = "Wi-Fi: trên PC mở trang cài đặt DeskPanel → tab Chung → bật \"Kết nối qua Wi-Fi\" rồi quét mã QR hiện ra.\n\n" +
-                "Cáp USB: cắm cáp, bật USB debugging trên điện thoại. DeskPanel trên PC tự nối."
+            text = tr("Wi-Fi: trên PC mở trang cài đặt DeskPanel → tab Chung → bật \"Kết nối qua Wi-Fi\" rồi quét mã QR hiện ra.\n\n", "Wi-Fi: on the PC open DeskPanel settings → General tab → turn on \"Connect over Wi-Fi\" and scan the QR code shown.\n\n") +
+                tr("Cáp USB: cắm cáp, bật USB debugging trên điện thoại. DeskPanel trên PC tự nối.", "USB cable: plug it in and turn on USB debugging on the phone. DeskPanel on the PC connects by itself.")
             textSize = 13f; setTextColor(Color.parseColor("#8B949E"))
             setPadding(0, dp(20), 0, 0)
             layoutParams = LinearLayout.LayoutParams(dp(300), -2)
@@ -264,7 +267,7 @@ class MainActivity : Activity() {
     private fun use(u: String) {
         url = u
         closeSetup()
-        overlayText.text = "Đang kết nối…"
+        overlayText.text = tr("Đang kết nối…", "Connecting…")
         overlay.visibility = View.VISIBLE
         load()
     }
@@ -277,11 +280,11 @@ class MainActivity : Activity() {
         }
         val wrap = FrameLayout(this).apply { setPadding(dp(20), dp(8), dp(20), 0); addView(input) }
         AlertDialog.Builder(this)
-            .setTitle("Địa chỉ DeskPanel")
-            .setMessage("Nhập đúng địa chỉ hiện dưới mã QR trong trang cài đặt trên PC (có cả phần ?key=…).")
+            .setTitle(tr("Địa chỉ DeskPanel", "DeskPanel address"))
+            .setMessage(tr("Nhập đúng địa chỉ hiện dưới mã QR trong trang cài đặt trên PC (có cả phần ?key=…).", "Enter the address shown under the QR code in settings on the PC (including ?key=…)."))
             .setView(wrap)
-            .setPositiveButton("Kết nối") { _, _ -> normalize(input.text.toString())?.let { use(it) } }
-            .setNegativeButton("Hủy", null)
+            .setPositiveButton(tr("Kết nối", "Connect")) { _, _ -> normalize(input.text.toString())?.let { use(it) } }
+            .setNegativeButton(tr("Hủy", "Cancel"), null)
             .show()
     }
 
@@ -305,13 +308,13 @@ class MainActivity : Activity() {
         try {
             IntentIntegrator(this).apply {
                 setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
-                setPrompt("Quét mã QR trong trang cài đặt DeskPanel trên PC")
+                setPrompt(tr("Quét mã QR trong trang cài đặt DeskPanel trên PC", "Scan the QR code in DeskPanel settings on the PC"))
                 setBeepEnabled(false)
                 setOrientationLocked(false)
             }.initiateScan()
         } catch (e: Throwable) {
-            AlertDialog.Builder(this).setTitle("Không mở được máy quét")
-                .setMessage("${e.javaClass.simpleName}: ${e.message}\n\nDùng \"Nhập địa chỉ\" thay thế, và chụp màn hình này gửi lại.")
+            AlertDialog.Builder(this).setTitle(tr("Không mở được máy quét", "Cannot open the scanner"))
+                .setMessage(tr("${e.javaClass.simpleName}: ${e.message}\n\nDùng \"Nhập địa chỉ\" thay thế, và chụp màn hình này gửi lại.", "${e.javaClass.simpleName}: ${e.message}\n\nUse \"Enter address\" instead, and send a screenshot of this."))
                 .setPositiveButton("OK", null).show()
         }
     }
@@ -320,7 +323,7 @@ class MainActivity : Activity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode != 7) return
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) scan()
-        else AlertDialog.Builder(this).setMessage("Cần quyền Camera để quét mã QR. Bạn có thể dùng \"Nhập địa chỉ\" thay thế.").setPositiveButton("OK", null).show()
+        else AlertDialog.Builder(this).setMessage(tr("Cần quyền Camera để quét mã QR. Bạn có thể dùng \"Nhập địa chỉ\" thay thế.", "Camera permission is needed to scan the QR code. You can use \"Enter address\" instead.")).setPositiveButton("OK", null).show()
     }
 
     @Deprecated("Deprecated in Java")
@@ -330,7 +333,7 @@ class MainActivity : Activity() {
         val text = r.contents ?: return
         val u = Uri.parse(text.trim())
         if (u.scheme?.lowercase() !in setOf("http", "https") || u.host.isNullOrEmpty()) {
-            AlertDialog.Builder(this).setMessage("Mã QR này không phải của DeskPanel:\n$text").setPositiveButton("OK", null).show()
+            AlertDialog.Builder(this).setMessage(tr("Mã QR này không phải của DeskPanel:\n$text", "This QR code is not from DeskPanel:\n$text")).setPositiveButton("OK", null).show()
             return
         }
         // Dang nhap moi: xoa cookie cu de dung ma vua quet
@@ -373,7 +376,7 @@ class MainActivity : Activity() {
         if (setup != null && url != null) { closeSetup(); load(); return }
         AlertDialog.Builder(this)
             .setTitle("DeskPanel")
-            .setItems(arrayOf("Tải lại", "Đổi kết nối", "Thoát")) { _, i ->
+            .setItems(arrayOf(tr("Tải lại", "Reload"), tr("Đổi kết nối", "Change connection"), tr("Thoát", "Exit"))) { _, i ->
                 when (i) {
                     0 -> load()
                     1 -> showSetup(null)

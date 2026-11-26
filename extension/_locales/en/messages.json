@@ -1,0 +1,4 @@
+{
+  "name": { "message": "DeskPanel – AI usage limits" },
+  "description": { "message": "Sends your Claude and ChatGPT limit % (from the sessions already signed in to this browser) to DeskPanel on this PC only." }
+}

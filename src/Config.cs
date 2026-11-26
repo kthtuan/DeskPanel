@@ -21,6 +21,8 @@ public sealed class PanelConfig
     /// <summary>Da dang nhap Claude / ChatGPT tren web trong DeskPanel (cua so WebView2). Chi doi qua /api/ai/login.</summary>
     public bool AiWebClaude { get; set; }
     public bool AiWebChatGpt { get; set; }
+    /// <summary>Ngon ngu giao dien: "vi" hoac "en". Dien thoai va trang cai dat dung chung.</summary>
+    public string Lang { get; set; } = "vi";
     public List<ButtonDef> Buttons { get; set; } = new();
     /// <summary>Cac trang tren dien thoai, moi trang la luoi 12 cot x 6 hang chua widget.</summary>
     public List<PageDef>? Pages { get; set; }
@@ -249,6 +251,7 @@ public sealed class ConfigStore
     public static string? Validate(PanelConfig? c)
     {
         if (c == null) return "Cấu hình rỗng";
+        c.Lang = c.Lang == "en" ? "en" : "vi";
         if (c.Port < 1024 || c.Port > 65535) return "Cổng (port) phải từ 1024 đến 65535";
         if (c.Columns < 2 || c.Columns > 8) return "Số cột phải từ 2 đến 8";
         if (c.AdbPath != null && c.AdbPath.Length > 260) return "Đường dẫn adb quá dài";

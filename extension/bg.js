@@ -1,3 +1,4 @@
+const VI = /^vi/i.test(chrome.i18n.getUILanguage());
 // DeskPanel AI: 3 phut mot lan doc % gioi han tu claude.ai va chatgpt.com (bang phien dang nhap san co
 // cua trinh duyet) roi gui ve DeskPanel tren chinh may nay (http://localhost:<cong>). Khong gui di dau khac.
 const PERIOD_MIN = 3;
@@ -35,8 +36,8 @@ async function sync() {
     const r = await fetch('http://localhost:' + port + '/api/ai/push', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'X-DeskPanel': '1' }, body: JSON.stringify(data),
     });
-    sent = r.ok; if (!r.ok) err = 'DeskPanel trả lỗi ' + r.status;
-  } catch (e) { err = 'Không thấy DeskPanel ở cổng ' + port; }
+    sent = r.ok; if (!r.ok) err = (VI ? 'DeskPanel trả lỗi ' : 'DeskPanel returned error ') + r.status;
+  } catch (e) { err = (VI ? 'Không thấy DeskPanel ở cổng ' : 'DeskPanel not found on port ') + port; }
   await chrome.storage.local.set({ last: { at: Date.now(), claude: data.claude.status, chatgpt: data.chatgpt.status, sent, err } });
   return { sent, err, claude: data.claude.status, chatgpt: data.chatgpt.status };
 }

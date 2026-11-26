@@ -82,7 +82,7 @@ public static partial class WebAgent
     }
 
     /// <summary>Mo cua so dang nhap; tra ve true khi dang nhap xong (cua so tu dong).</summary>
-    public static async Task<bool> LoginAsync(string site)
+    public static async Task<bool> LoginAsync(string site, bool en = false)
     {
         await _gate.WaitAsync();
         Busy = site;
@@ -90,7 +90,8 @@ public static partial class WebAgent
         {
             return await Win.OnUi(async () =>
             {
-                var title = (site == "claude" ? "Đăng nhập Claude" : "Đăng nhập ChatGPT") + " · DeskPanel (cửa sổ tự đóng khi xong)";
+                var title = en ? (site == "claude" ? "Sign in to Claude" : "Sign in to ChatGPT") + " · DeskPanel (closes by itself when done)"
+                              : (site == "claude" ? "Đăng nhập Claude" : "Đăng nhập ChatGPT") + " · DeskPanel (cửa sổ tự đóng khi xong)";
                 var closed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var hwnd = Win.CreateWindow(title, 1040, 820, true, () => closed.TrySetResult(true));
                 Microsoft.Web.WebView2.Core.CoreWebView2Controller? ctl = null;
@@ -298,7 +299,7 @@ public static partial class WebAgent
 {
     public static volatile string? Busy;
     public static bool Available => false;
-    public static Task<bool> LoginAsync(string site) => Task.FromResult(false);
+    public static Task<bool> LoginAsync(string site, bool en = false) => Task.FromResult(false);
     public static Task<string?> FetchAsync(string site) => Task.FromResult<string?>(Environment.GetEnvironmentVariable("DESKPANEL_FAKE_WEB_" + site.ToUpperInvariant()));
     public static Task LogoutAsync(string site) => Task.CompletedTask;
 }

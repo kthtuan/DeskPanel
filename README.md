@@ -35,6 +35,7 @@ DeskPanel gồm một **chương trình nhỏ chạy ngầm trên PC** và một
 | **Phím tắt, chương trình** | Tổ hợp phím (`Ctrl+S`, `Win+Shift+S`), mở chương trình, thư mục, trang web, gõ sẵn đoạn chữ |
 | **Theo dõi AI** | % giới hạn gói Claude (5 giờ, tuần, theo model) và ChatGPT/Codex, giờ làm mới, dự báo theo nhịp dùng, token hôm nay / 7 ngày, phiên đang chạy |
 | **Không dây** | App Android quét QR, toàn màn hình, giữ màn hình sáng, tự kết nối lại khi PC khởi động lại |
+| **Hai ngôn ngữ** | Tiếng Việt và tiếng Anh, đổi ở góc trên trang Cài đặt (English UI available) |
 | **Hằng ngày** | Đồng hồ lớn, thời tiết (Open-Meteo, dự phòng MET Norway và wttr.in), nhạc đang phát kèm ảnh bìa và nút điều khiển |
 
 ## Ảnh chụp
@@ -95,6 +96,8 @@ Từ bản 0.6, vào **⚙ → Chung → Cập nhật DeskPanel**: điền repo 
 - Trang web lạ mở trên PC không gọi được DeskPanel: yêu cầu thay đổi phải kèm header riêng và đúng tên máy `localhost`.
 - Token GitHub (nếu có) được mã hóa theo tài khoản Windows (DPAPI), không nằm trong `config.json`.
 
+Chi tiết DeskPanel đọc gì, lưu gì, gửi đi đâu: [SECURITY.md](SECURITY.md) (tiếng Việt và English). Xem ngay trong app ở ⚙ → Chung → **Bảo mật & quyền riêng tư**.
+
 ## Cấu trúc mã nguồn
 
 ```
@@ -109,7 +112,7 @@ src/                 Chương trình PC (C# .NET 8, ASP.NET Core minimal API)
   WebAgent.cs        Cửa sổ đăng nhập claude.ai / chatgpt.com (WebView2)
   Setup.cs           File cài một exe: cài, cập nhật, gỡ
   Lan.cs             Chế độ Wi-Fi: mã ghép nối, mã QR, tường lửa
-  wwwroot/           index.html (điện thoại), settings.html (cài đặt)
+  wwwroot/           index.html (điện thoại), settings.html (cài đặt), i18n.js (song ngữ Việt/Anh), privacy.html
 extension/           Tiện ích Chrome/Edge gửi % giới hạn Claude/ChatGPT về DeskPanel
 android/             App Android (Kotlin, một WebView toàn màn hình, quét QR bằng ZXing)
 pkg/                 Hướng dẫn tiếng Việt, ghi chú phát hành

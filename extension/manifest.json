@@ -1,17 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "DeskPanel – Theo dõi giới hạn AI",
+  "name": "__MSG_name__",
   "short_name": "DeskPanel AI",
-  "version": "1.0.0",
-  "description": "Gửi % giới hạn Claude và ChatGPT (từ phiên đăng nhập sẵn có trong trình duyệt) về DeskPanel trên chính máy này.",
-  "permissions": ["alarms", "storage"],
+  "version": "1.1.0",
+  "description": "__MSG_description__",
+  "permissions": [
+    "alarms",
+    "storage"
+  ],
   "host_permissions": [
     "https://claude.ai/*",
     "https://chatgpt.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*"
   ],
-  "background": { "service_worker": "bg.js" },
-  "action": { "default_title": "DeskPanel AI", "default_popup": "popup.html" },
-  "icons": { "128": "icon128.png" }
+  "background": {
+    "service_worker": "bg.js"
+  },
+  "action": {
+    "default_title": "DeskPanel AI",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "128": "icon128.png"
+  },
+  "default_locale": "en"
 }

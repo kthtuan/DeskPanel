@@ -9,12 +9,12 @@ button{margin-top:10px;width:100%;padding:7px;border:0;border-radius:8px;backgro
 input{width:70px;background:#1b1f27;border:1px solid #30363d;color:#e8ecf2;border-radius:6px;padding:3px 6px}
 </style></head>
 <body>
-<h1>DeskPanel · Theo dõi giới hạn AI</h1>
+<h1 id="t1">DeskPanel · Theo dõi giới hạn AI</h1>
 <div class="r"><span>Claude</span><span id="c">…</span></div>
 <div class="r"><span>ChatGPT</span><span id="g">…</span></div>
 <div class="r"><span>DeskPanel</span><span id="d">…</span></div>
 <button id="now">Gửi ngay</button>
-<div class="r" style="margin-top:10px"><span>Cổng DeskPanel</span><input id="port" type="number" min="1024" max="65535"></div>
-<div class="mu">Tiện ích dùng phiên claude.ai / chatgpt.com bạn đã đăng nhập trong trình duyệt này, 3 phút một lần lấy % giới hạn và chỉ gửi về DeskPanel trên máy này (localhost). Không đọc trò chuyện, không gửi đi nơi khác.</div>
+<div class="r" style="margin-top:10px"><span id="t2">Cổng DeskPanel</span><input id="port" type="number" min="1024" max="65535"></div>
+<div class="mu" id="t3">Tiện ích dùng phiên claude.ai / chatgpt.com bạn đã đăng nhập trong trình duyệt này, 3 phút một lần lấy % giới hạn và chỉ gửi về DeskPanel trên máy này (localhost). Không đọc trò chuyện, không gửi đi nơi khác.</div>
 <script src="popup.js"></script>
 </body></html>

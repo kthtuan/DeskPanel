@@ -1,5 +1,11 @@
-**Sửa trong 0.12.2**
+**Mới trong 0.13.0**
 
-- App Android: xin quyền Camera trước khi quét QR, hiện chi tiết lỗi nếu app bị đóng. Cài lại app bằng mã QR số 1 trong Cài đặt → Chung → Wi-Fi (cài đè, không cần gỡ).
+- Giao diện tiếng Anh: chọn 🌐 Tiếng Việt / English ở góc trên trang Cài đặt, điện thoại đổi theo. App Android và tiện ích trình duyệt theo ngôn ngữ máy.
+- Trang **Bảo mật & quyền riêng tư** (⚙ → Chung): DeskPanel đọc gì, lưu gì, gửi đi đâu.
 
-Cập nhật PC: Cài đặt → Chung → **Cài bản 0.12.2**.
+**New in 0.13.0**
+
+- English UI: pick 🌐 English at the top of the Settings page; the phone follows. The Android app and browser extension follow the device language.
+- **Security & privacy** page (⚙ → General): what DeskPanel reads, stores and sends.
+
+Cập nhật PC / Update: Cài đặt → Chung → **Cài bản 0.13.0**. App Android: cài lại bằng mã QR số 1 (cài đè) để có tiếng Anh.

@@ -38,6 +38,7 @@ h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute
 
 /* Thanh trên cùng */
 header{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+#lang{width:auto;padding:5px 8px;font-size:13px}
 .brand{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text)}
 .brand i{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#58a6ff,#a855f7);display:inline-block}
 nav.tabs{display:flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
@@ -156,6 +157,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
   header{gap:8px} #msg{text-align:left}
 }
 </style>
+<script src="i18n.js"></script>
 </head>
 <body>
 <header>
@@ -168,6 +170,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
   </nav>
   <div class="chips" id="chips"></div>
   <div class="spacer"></div>
+  <select id="lang" translate="no" title="Ngôn ngữ / Language"><option value="vi">🌐 Tiếng Việt</option><option value="en">🌐 English</option></select>
   <div class="save">
     <span id="msg">Đang tải…</span>
     <button id="undo" title="Ctrl+Z">↶</button>
@@ -219,8 +222,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
   <section class="view hide" id="vButtons">
     <div class="narrow">
       <div class="row" style="margin-bottom:12px">
-        <div class="help" style="flex:1;margin:0">Thư viện nút. Mỗi nhóm hiện trên điện thoại qua widget <b>Nhóm nút</b>; từng nút lẻ có thể đặt riêng bằng widget <b>Một nút</b>.
-          Trong AutoCAD, dấu cách tương đương Enter, nên lệnh <code>Z E</code> = ZOOM rồi Extents.</div>
+        <div class="help" style="flex:1;margin:0">Thư viện nút. Mỗi nhóm hiện trên điện thoại qua widget <b>Nhóm nút</b>; từng nút lẻ có thể đặt riêng bằng widget <b>Một nút</b>. Trong AutoCAD, dấu cách tương đương Enter, nên lệnh <code>Z E</code> = ZOOM rồi Extents.</div>
         <button id="addApps">+ Thêm phần mềm</button>
         <button class="primary" id="addBtn">+ Thêm nút</button>
       </div>
@@ -312,7 +314,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
         </div>
         <div id="uMsg" class="help" style="font-size:13px"></div>
       </div>
-      <p class="muted" style="font-size:13px">Xem toàn bộ cảm biến đọc được: <a href="api/sensors" target="_blank">api/sensors</a>. Nhật ký lỗi: <code>deskpanel.log</code> trong thư mục cài DeskPanel.</p>
+      <p class="muted" style="font-size:13px">Xem toàn bộ cảm biến đọc được: <a href="api/sensors" target="_blank">api/sensors</a>. Nhật ký lỗi: <code>deskpanel.log</code> trong thư mục cài DeskPanel. <a href="privacy.html" target="_blank">Bảo mật &amp; quyền riêng tư</a>: DeskPanel đọc gì, lưu gì, gửi đi đâu.</p>
     </div>
   </section>
 </main>
@@ -406,7 +408,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     var opt = { method: method, headers: { 'X-DeskPanel': '1' } };
     if (body !== undefined) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
     return fetch(url, opt).then(function(r){
-      return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.error || ('Lỗi ' + r.status)); return j; });
+      return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.error || T('Lỗi {0}', r.status)); return j; });
     });
   }
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
@@ -499,7 +501,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
   // ---------- Khung lưới chỉnh sửa ----------
   function refText(d){
     if (d.type === 'gauge') return METRICS[d.ref] || '';
-    if (d.type === 'buttons') return d.ref ? 'Nhóm: ' + d.ref : 'Chưa chọn nhóm';
+    if (d.type === 'buttons') return d.ref ? T('Nhóm: {0}', d.ref) : 'Chưa chọn nhóm';
     if (d.type === 'button') { var b = btnById(d.ref); return b ? b.label : 'Chưa chọn nút'; }
     if (d.type === 'clock') return d.ref === 'noweather' ? 'Không kèm thời tiết' : '';
     return '';
@@ -514,7 +516,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     $('emptyHint').classList.toggle('hide', p.widgets.length > 0);
     $('edTitle').textContent = (p.icon ? p.icon + ' ' : '') + p.name;
     var used = 0; p.widgets.forEach(function(w){ used += w.w * w.h; });
-    $('edInfo').textContent = p.widgets.length + ' widget · dùng ' + used + '/' + (GW * GH) + ' ô' + (p.hidden ? ' · đang ẩn' : '');
+    $('edInfo').textContent = T('{0} widget · dùng {1}/{2} ô', p.widgets.length, used, GW * GH) + (p.hidden ? T(' · đang ẩn') : '');
     p.widgets.forEach(function(d){
       var t = WT[d.type] || { ic: '?', nm: d.type };
       var wb = el('div', 'wb' + (d.id === sel ? ' sel' : '')); wb.dataset.id = d.id;
@@ -600,7 +602,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       var t = WT[k];
       if (q && (t.nm + ' ' + t.ds + ' ' + k + ' ' + t.g).toLowerCase().indexOf(q) < 0) return;
       if (t.g !== lastG) { box.appendChild(el('div', 'catg', t.g)); lastG = t.g; }
-      var it = el('div', 'citem'); it.draggable = true; it.title = 'Bấm để thêm, hoặc kéo thả vào lưới (' + t.w + '×' + t.h + ')';
+      var it = el('div', 'citem'); it.draggable = true; it.title = T('Bấm để thêm, hoặc kéo thả vào lưới ({0}×{1})', t.w, t.h);
       it.appendChild(el('span', 'ic', t.ic));
       var nm = el('span', 'nm', t.nm); nm.appendChild(el('small', null, t.ds)); it.appendChild(nm);
       it.onclick = function(){ addWidget(k); };
@@ -645,10 +647,10 @@ dialog h2{margin:0 0 12px;font-size:17px}
       box.appendChild(el('div', 'f')).appendChild(hid);
       var acts = el('div', 'row'); acts.style.flexWrap = 'wrap';
       acts.appendChild(btn('Nhân bản trang', function(){ change(function(){
-        var c = clone(p); c.id = pid(); c.name = (p.name + ' (bản sao)').slice(0, 30); cfg.pages.splice(cur + 1, 0, c); cur++; sel = null; }); }));
+        var c = clone(p); c.id = pid(); c.name = (p.name + T(' (bản sao)')).slice(0, 30); cfg.pages.splice(cur + 1, 0, c); cur++; sel = null; }); }));
       acts.appendChild(btn('Xóa trang', function(){
         if (cfg.pages.length <= 1) { msg('Cần giữ lại ít nhất một trang', 'err'); return; }
-        if (!confirm('Xóa trang "' + p.name + '"?')) return;
+        if (!confirm(T('Xóa trang "{0}"?', p.name))) return;
         change(function(){ cfg.pages.splice(cur, 1); fixCur(); sel = null; });
       }, 'sm danger'));
       box.appendChild(acts);
@@ -665,7 +667,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       box.appendChild(field('Chỉ số', sel_(Object.keys(METRICS).map(function(k){ return [k, METRICS[k]]; }), d.ref, function(v){ change(function(){ d.ref = v; }); })));
     if (d.type === 'buttons') {
       var g = groups(); if (d.ref && g.indexOf(d.ref) < 0) g.push(d.ref);
-      box.appendChild(field('Nhóm nút', sel_(g.map(function(x){ return [x, x + ' (' + cfg.buttons.filter(function(b){ return b.group === x; }).length + ' nút)']; }), d.ref, function(v){ change(function(){ d.ref = v; }); }),
+      box.appendChild(field('Nhóm nút', sel_(g.map(function(x){ return [x, T('{0} ({1} nút)', x, cfg.buttons.filter(function(b){ return b.group === x; }).length)]; }), d.ref, function(v){ change(function(){ d.ref = v; }); }),
         'Sửa danh sách nút ở thẻ "Nút bấm".'));
     }
     if (d.type === 'button')
@@ -708,7 +710,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     var mv = sel_([['', 'Chuyển sang trang…']].concat(cfg.pages.map(function(pp, i){ return [String(i), pp.name]; }).filter(function(o){ return o[0] !== String(cur); })), '', function(v){
       if (v === '') return;
       var dst = cfg.pages[+v], spot = findFree(dst, d.w, d.h);
-      if (!spot) { msg('Trang "' + dst.name + '" đã kín chỗ', 'err'); renderInspector(); return; }
+      if (!spot) { msg(T('Trang "{0}" đã kín chỗ', dst.name), 'err'); renderInspector(); return; }
       change(function(){ page().widgets = page().widgets.filter(function(w){ return w !== d; }); var c = clone(d); c.id = wid(dst); c.x = spot.x; c.y = spot.y; c.w = spot.w; c.h = spot.h; dst.widgets.push(c); sel = null; });
     });
     acts2.appendChild(btn('Xóa widget', function(){ removeSel(); }, 'sm danger'));
@@ -729,7 +731,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       });
     });
   };
-  $('clearPage').onclick = function(){ if (page().widgets.length && confirm('Xóa hết widget trên trang "' + page().name + '"?')) change(function(){ page().widgets = []; sel = null; }); };
+  $('clearPage').onclick = function(){ if (page().widgets.length && confirm(T('Xóa hết widget trên trang "{0}"?', page().name))) change(function(){ page().widgets = []; sel = null; }); };
 
   document.addEventListener('keydown', function(e){
     var tag = (e.target.tagName || '').toLowerCase();
@@ -777,7 +779,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     });
     groups().forEach(function(g){
       var b = el('button', 'tpl'); b.type = 'button';
-      b.appendChild(el('b', null, '🎛️ Nút: ' + g)); b.appendChild(el('small', null, 'Cả nhóm nút "' + g + '" chiếm toàn trang'));
+      b.appendChild(el('b', null, T('🎛️ Nút: {0}', g))); b.appendChild(el('small', null, T('Cả nhóm nút "{0}" chiếm toàn trang', g)));
       b.onclick = function(){ $('dlgPage').close(); addPage(g.slice(0, 30), '🎛️', [W('buttons', 0, 0, 12, 6, g)]); };
       box.appendChild(b);
     });
@@ -834,7 +836,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     $('tRadius').value = t.radius; $('tRadiusV').textContent = t.radius + ' px';
     $('tGap').value = t.gap; $('tGapV').textContent = t.gap + ' px';
     $('tFont').value = t.fontScale; $('tFontV').textContent = t.fontScale + '%';
-    $('tCols').value = cfg.columns; $('tColsV').textContent = cfg.columns + ' cột';
+    $('tCols').value = cfg.columns; $('tColsV').textContent = T('{0} cột', cfg.columns);
     var pp = $('pvPage'), keep = pp.value; pp.innerHTML = '';
     cfg.pages.forEach(function(p){ var o = el('option', null, (p.icon ? p.icon + ' ' : '') + p.name); o.value = p.id; pp.appendChild(o); });
     pp.value = cfg.pages.some(function(p){ return p.id === keep; }) ? keep : (page() ? page().id : '');
@@ -855,7 +857,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       });
     });
   })();
-  $('tCols').oninput = function(){ $('tColsV').textContent = this.value + ' cột'; cfg.columns = +this.value; sendPreview(); };
+  $('tCols').oninput = function(){ $('tColsV').textContent = T('{0} cột', this.value); cfg.columns = +this.value; sendPreview(); };
   $('tReset').onclick = function(){ change(function(){ cfg.theme = clone(THEME0); cfg.columns = 4; }); };
   $('pvPage').onchange = sendPreview;
 
@@ -875,14 +877,14 @@ dialog h2{margin:0 0 12px;font-size:17px}
       var sec = el('div', 'grp box');
       var hd = el('div', 'grph');
       hd.appendChild(el('span', 't', g));
-      hd.appendChild(el('span', 'muted', cfg.buttons.filter(function(b){ return b.group === g; }).length + ' nút'));
+      hd.appendChild(el('span', 'muted', T('{0} nút', cfg.buttons.filter(function(b){ return b.group === g; }).length)));
       hd.appendChild(el('span', 'spacer'));
       if (!groupUsed(g)) {
         var warn = el('span', 'help', 'Chưa hiện trên trang nào'); warn.style.color = 'var(--warn)'; warn.style.margin = '0'; hd.appendChild(warn);
         hd.appendChild(btn('Tạo trang cho nhóm', function(){ addPage(g.slice(0, 30), '🎛️', [W('buttons', 0, 0, 12, 6, g)]); }));
       }
       hd.appendChild(btn('Đổi tên nhóm', function(){
-        var n = (prompt('Tên mới cho nhóm "' + g + '"', g) || '').trim().slice(0, 30);
+        var n = (prompt(T('Tên mới cho nhóm "{0}"', g), g) || '').trim().slice(0, 30);
         if (!n || n === g) return;
         change(function(){
           cfg.buttons.forEach(function(b){ if (b.group === g) b.group = n; });
@@ -919,7 +921,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
   function removeBtn(i){
     var b = cfg.buttons[i];
     var uses = 0; cfg.pages.forEach(function(p){ p.widgets.forEach(function(w){ if (w.type === 'button' && w.ref === b.id) uses++; }); });
-    if (!confirm('Xóa nút "' + b.label + '"?' + (uses ? '\nWidget "Một nút" đang dùng nút này (' + uses + ') cũng bị xóa.' : ''))) return;
+    if (!confirm(T('Xóa nút "{0}"?', b.label) + (uses ? T('\nWidget "Một nút" đang dùng nút này ({0}) cũng bị xóa.', uses) : ''))) return;
     change(function(){
       cfg.buttons.splice(i, 1);
       cfg.pages.forEach(function(p){ p.widgets = p.widgets.filter(function(w){ return !(w.type === 'button' && w.ref === b.id); }); });
@@ -928,7 +930,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
   function testBtn(b){
     var s = saved.buttons.filter(function(x){ return x.id === b.id; })[0];
     if (!s || JSON.stringify(s) !== JSON.stringify(b)) { msg('Hãy Lưu trước khi thử nút này', 'err'); return; }
-    api('POST', 'api/action/' + encodeURIComponent(b.id)).then(function(){ msg('Đã chạy "' + b.label + '"', 'ok'); }).catch(function(e){ msg(e.message, 'err'); });
+    api('POST', 'api/action/' + encodeURIComponent(b.id)).then(function(){ msg(T('Đã chạy "{0}"', b.label), 'ok'); }).catch(function(e){ msg(e.message, 'err'); });
   }
   function syncType(){
     var t = $('fType').value;
@@ -1004,7 +1006,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       row.title = a.path; box.appendChild(row);
     });
   }
-  function countApps(){ var n = Object.keys(appPick).length; $('aCount').textContent = n ? 'Đã chọn ' + n : ''; $('aOk').textContent = n ? 'Thêm ' + n + ' phần mềm' : 'Thêm'; }
+  function countApps(){ var n = Object.keys(appPick).length; $('aCount').textContent = n ? T('Đã chọn {0}', n) : ''; $('aOk').textContent = n ? T('Thêm {0} phần mềm', n) : T('Thêm'); }
   $('aSearch').oninput = renderApps;
   $('addApps').onclick = function(){
     appPick = {}; $('aSearch').value = ''; countApps(); renderApps(); $('dlgApps').showModal();
@@ -1023,7 +1025,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       });
       if (!groupUsed(g)) { var pg = { id: pid(), name: g, icon: '🗂️', hidden: false, widgets: [] }; var w = W('buttons', 0, 0, 12, 6, g); w.id = wid(pg); pg.widgets.push(w); cfg.pages.push(pg); }
     });
-    msg('Đã thêm ' + picked.length + ' phần mềm vào nhóm "' + g + '". Bấm Lưu để điện thoại cập nhật.', 'ok');
+    msg(T('Đã thêm {0} phần mềm vào nhóm "{1}". Bấm Lưu để điện thoại cập nhật.', picked.length, g), 'ok');
   });
 
   // ---------- Chung ----------
@@ -1050,13 +1052,13 @@ dialog h2{margin:0 0 12px;font-size:17px}
       [['claude', 'Claude'], ['chatgpt', 'ChatGPT']].forEach(function(x){
         var on = w[x[0]], st = $(x[0] === 'claude' ? 'aiClaudeSt' : 'aiChatgptSt'), b = $(x[0] === 'claude' ? 'aiClaudeBtn' : 'aiChatgptBtn');
         st.textContent = on ? 'Đã đăng nhập trong DeskPanel' : 'Chưa đăng nhập';
-        b.textContent = on ? 'Đăng xuất' : 'Đăng nhập ' + x[1];
+        b.textContent = on ? T('Đăng xuất') : T('Đăng nhập {0}', x[1]);
         b.dataset.on = on ? '1' : '';
         b.disabled = aiBusy || !!w.busy;
       });
       if (!w.available) $('aiWebMsg').textContent = 'Máy này chưa có Microsoft Edge WebView2 nên chưa mở được cửa sổ đăng nhập.';
       var ago = w.extensionAt ? Math.round((Date.now() - w.extensionAt) / 60000) : null;
-      $('aiExtSt').textContent = ago == null ? 'Chưa kết nối' : ago <= 10 ? 'Đã kết nối (gửi lần cuối ' + (ago < 1 ? 'vừa xong' : ago + ' phút trước') + ')' : 'Mất kết nối ' + ago + ' phút';
+      $('aiExtSt').textContent = ago == null ? T('Chưa kết nối') : ago <= 10 ? T('Đã kết nối (gửi lần cuối {0})', ago < 1 ? T('vừa xong') : T('{0} phút trước', ago)) : T('Mất kết nối {0} phút', ago);
       $('aiExtSt').className = 'help ' + (ago != null && ago <= 10 ? 'ok' : '');
       $('aiExtLink').classList.toggle('hide', !w.hasExtension);
     }).catch(function(){});
@@ -1087,7 +1089,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       if (show) {
         $('lanQr').innerHTML = l.qr; $('lanUrl').textContent = l.url;
         $('lanApkBox').classList.toggle('hide', !l.hasApk); if (l.hasApk) $('lanApkQr').innerHTML = l.apkQr;
-        $('lanIps').textContent = l.addresses.length > 1 ? 'PC có nhiều địa chỉ: ' + l.addresses.join(', ') + '. Mã QR dùng ' + l.addresses[0] + '; nếu không vào được, thử thay bằng địa chỉ khác cùng dải với điện thoại.' : '';
+        $('lanIps').textContent = l.addresses.length > 1 ? T('PC có nhiều địa chỉ: {0}. Mã QR dùng {1}; nếu không vào được, thử thay bằng địa chỉ khác cùng dải với điện thoại.', l.addresses.join(', '), l.addresses[0]) : '';
       }
     }).catch(function(){});
   }
@@ -1096,7 +1098,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     if (dirty() && !confirm('Có thay đổi chưa lưu sẽ mất khi DeskPanel chạy lại. Vẫn tiếp tục?')) { this.checked = !on; return; }
     lanBusy = true; $('lanOn').disabled = true; lanMsg('Đang lưu…');
     api('POST', 'api/lan', { enabled: on }).then(function(r){
-      if (r.error) { lanMsg('Đã lưu nhưng chưa tự chạy lại được (' + r.error + '). Hãy tắt rồi mở lại DeskPanel.', 'err'); lanBusy = false; $('lanOn').disabled = false; return loadLan(); }
+      if (r.error) { lanMsg(T('Đã lưu nhưng chưa tự chạy lại được ({0}). Hãy tắt rồi mở lại DeskPanel.', r.error), 'err'); lanBusy = false; $('lanOn').disabled = false; return loadLan(); }
       if (!r.restarting) { lanBusy = false; $('lanOn').disabled = false; lanMsg(''); return loadLan(); }
       lanMsg('Đang chạy lại DeskPanel…');
       var t0 = Date.now(), down = false;
@@ -1121,11 +1123,11 @@ dialog h2{margin:0 0 12px;font-size:17px}
       $('uCur').textContent = u.current;
       var g = $('uGh'), b = $('uGhInstall');
       if (!u.repo) g.textContent = 'Điền repo rồi bấm Lưu. DeskPanel kiểm tra 6 giờ một lần.';
-      else if (u.error) g.textContent = u.error + (u.checkedAt ? ' (lúc ' + u.checkedAt + ')' : '');
-      else if (u.available) g.textContent = 'Có bản mới ' + u.latest + '.' + (u.notes ? ' ' + u.notes : '');
-      else if (u.latest) g.textContent = 'Đang dùng bản mới nhất (' + u.latest + '), kiểm tra lúc ' + u.checkedAt + '.';
+      else if (u.error) g.textContent = u.error + (u.checkedAt ? T(' (lúc {0})', u.checkedAt) : '');
+      else if (u.available) g.textContent = T('Có bản mới {0}.', u.latest) + (u.notes ? ' ' + u.notes : '');
+      else if (u.latest) g.textContent = T('Đang dùng bản mới nhất ({0}), kiểm tra lúc {1}.', u.latest, u.checkedAt);
       else g.textContent = 'Chưa kiểm tra.';
-      b.classList.toggle('hide', !u.available); b.textContent = 'Cài bản ' + u.latest;
+      b.classList.toggle('hide', !u.available); b.textContent = T('Cài bản {0}', u.latest);
       $('uTokDel').classList.toggle('hide', !u.hasToken); $('uTok').placeholder = u.hasToken ? '•••••• (đã lưu, dán token mới để thay)' : 'github_pat_…';
     }).catch(function(){});
   }
@@ -1133,7 +1135,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     var t0 = Date.now(), seenDown = false;
     var iv = setInterval(function(){
       fetch('api/status', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(s){
-        if (s.version !== oldVer || seenDown) { clearInterval(iv); uMsg('Đã cập nhật xong bản ' + s.version + '. Đang tải lại trang…', 'ok'); setTimeout(function(){ location.reload(); }, 1200); }
+        if (s.version !== oldVer || seenDown) { clearInterval(iv); uMsg(T('Đã cập nhật xong bản {0}. Đang tải lại trang…', s.version), 'ok'); setTimeout(function(){ location.reload(); }, 1200); }
       }).catch(function(){ seenDown = true; });
       if (Date.now() - t0 > 120000) { clearInterval(iv); uMsg('Quá 2 phút chưa thấy DeskPanel chạy lại. Xem file update.log trong thư mục cài.', 'err'); }
     }, 2000);
@@ -1147,12 +1149,12 @@ dialog h2{margin:0 0 12px;font-size:17px}
       waitRestart(old);
     }).catch(function(e){ uMsg(e.message, 'err'); $('uSend').disabled = $('uGhInstall').disabled = false; });
   }
-  function apiErr(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.message || j.error || ('Lỗi ' + r.status)); return j; }); }
+  function apiErr(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.message || j.error || T('Lỗi {0}', r.status)); return j; }); }
   $('uSend').onclick = function(){
     var f = $('uFile').files[0];
     if (!f) { uMsg('Chọn file zip trước', 'err'); return; }
     if (dirty() && !confirm('Có thay đổi chưa lưu sẽ mất khi DeskPanel chạy lại. Vẫn cập nhật?')) return;
-    uMsg('Đang gửi ' + (f.size / 1048576).toFixed(0) + ' MB…');
+    uMsg(T('Đang gửi {0} MB…', (f.size / 1048576).toFixed(0)));
     startUpdate(fetch('api/update/upload', { method: 'POST', headers: { 'X-DeskPanel': '1', 'Content-Type': 'application/zip' }, body: f }).then(apiErr));
   };
   $('uGhInstall').onclick = function(){
@@ -1203,17 +1205,22 @@ dialog h2{margin:0 0 12px;font-size:17px}
     }).catch(function(e){ msg(e.message, 'err'); });
   }
   $('save').onclick = save;
+  $('lang').value = I18N.lang;
+  $('lang').onchange = function(){
+    var v = this.value;
+    api('POST', 'api/lang/' + v).then(function(){ if (saved) { saved.lang = v; cfg.lang = v; } I18N.set(v); }).catch(function(e){ msg(e.message, 'err'); });
+  };
   window.addEventListener('beforeunload', function(e){ if (cfg && dirty()) { e.preventDefault(); e.returnValue = ''; } });
 
   function loadStatus(){
     api('GET', 'api/status').then(function(s){
       var ch = $('chips'); ch.innerHTML = '';
-      var c1 = el('span', 'chip'); c1.innerHTML = 'Phiên bản <b></b>'; c1.querySelector('b').textContent = s.version + (s.windows ? '' : ' (thử)'); ch.appendChild(c1);
+      var c1 = el('span', 'chip'); c1.innerHTML = T('Phiên bản') + ' <b></b>'; c1.querySelector('b').textContent = s.version + (s.windows ? '' : T(' (thử)')); ch.appendChild(c1);
       var okPhone = /Đã kết nối/.test(s.adb || '');
       var c2 = el('span', 'chip ' + (okPhone ? 'ok' : 'bad')); c2.appendChild(el('span', 'dot')); c2.appendChild(document.createTextNode(okPhone ? 'Điện thoại đã nối' : 'Chưa nối điện thoại')); c2.title = s.adb || '';
       ch.appendChild(c2);
       var box = $('status'); box.innerHTML = '';
-      [['Phiên bản', s.version + (s.windows ? '' : ' (chế độ thử, không phải Windows)')], ['Điện thoại', s.adb], ['Cảm biến', s.note || 'Đọc bình thường'], ['Thời tiết', s.weather]]
+      [[T('Phiên bản'), s.version + (s.windows ? '' : T(' (chế độ thử, không phải Windows)'))], [T('Điện thoại'), s.adb], [T('Cảm biến'), s.note || T('Đọc bình thường')], [T('Thời tiết'), s.weather]]
         .forEach(function(r){ var d = el('div'); d.appendChild(el('span', 'muted', r[0] + ': ')); d.appendChild(document.createTextNode(r[1] || '')); box.appendChild(d); });
     }).catch(function(){});
   }
@@ -1224,6 +1231,8 @@ dialog h2{margin:0 0 12px;font-size:17px}
     if (!c.pages) c.pages = [];
     if (!c.theme) c.theme = clone(THEME0);
     saved = c; cfg = clone(c);
+    if (I18N.sync(c.lang)) return;
+    $('lang').value = I18N.lang;
     if (!cfg.pages.length) cfg.pages.push({ id: 'home', name: 'Tổng quan', icon: '🏠', hidden: false, widgets: [] });
     var v = null; try { v = localStorage.getItem('dp.settab'); } catch(e) {}
     renderAll(); showView(v && $(v) ? v : 'vPages');

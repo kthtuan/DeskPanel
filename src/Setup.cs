@@ -21,6 +21,19 @@ public static class Setup
     static string Ver => typeof(Setup).Assembly.GetName().Version?.ToString(3) ?? "";
     const string Title = "DeskPanel";
 
+    // Ngon ngu hop thoai: theo config.json da co (cap nhat/go), neu chua co thi theo ngon ngu Windows.
+    static bool vi = Defaults.SystemLang == "vi";
+    static string L(string viText, string en) => vi ? viText : en;
+    static void UseConfigLang(string dir)
+    {
+        try
+        {
+            using var d = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(dir, "config.json")));
+            if (d.RootElement.TryGetProperty("lang", out var l) && l.ValueKind == System.Text.Json.JsonValueKind.String) vi = l.GetString() != "en";
+        }
+        catch { }
+    }
+
     /// <summary>True neu da xu ly xong (cai/go) va chuong trinh nen thoat.</summary>
     public static bool TryRun(string[] args)
     {
@@ -33,7 +46,7 @@ public static class Setup
         var taskExe = TaskExe();
         if (taskExe != null && SameDir(Path.GetDirectoryName(taskExe)!, selfDir)) return false;
         try { Install(self, taskExe); }
-        catch (Exception ex) { Log.Write("Loi cai dat: " + ex); Box("Cài đặt không thành công:\n\n" + ex.Message, 0x10); }
+        catch (Exception ex) { Log.Write("Loi cai dat: " + ex); Box(L("Cài đặt không thành công:\n\n", "Setup failed:\n\n") + ex.Message, 0x10); }
         return true;
     }
 
@@ -53,9 +66,12 @@ public static class Setup
     {
         var dir = taskExe != null ? Path.GetDirectoryName(taskExe)! : DefaultDir;
         bool update = taskExe != null;
+        UseConfigLang(dir);
         var q = update
-            ? $"Cập nhật DeskPanel lên bản {Ver}?\n\nThư mục: {dir}\nCài đặt nút và trang của bạn được giữ nguyên."
-            : $"Cài DeskPanel {Ver} vào {dir}?\n\nDeskPanel sẽ tự chạy ngầm mỗi khi bạn đăng nhập Windows. Gỡ được trong Settings → Apps.";
+            ? L($"Cập nhật DeskPanel lên bản {Ver}?\n\nThư mục: {dir}\nCài đặt nút và trang của bạn được giữ nguyên.",
+                $"Update DeskPanel to {Ver}?\n\nFolder: {dir}\nYour buttons and pages are kept.")
+            : L($"Cài DeskPanel {Ver} vào {dir}?\n\nDeskPanel sẽ tự chạy ngầm mỗi khi bạn đăng nhập Windows. Gỡ được trong Settings → Apps.",
+                $"Install DeskPanel {Ver} to {dir}?\n\nDeskPanel will run in the background whenever you sign in to Windows. Uninstall it from Settings → Apps.");
         if (Box(q, 0x24 /* YESNO | QUESTION */) != 6) return;
 
         // Dung ban dang chay
@@ -94,19 +110,19 @@ public static class Setup
         {
             // Mo qua explorer de trinh duyet khong chay bang quyen admin
             try { Process.Start("explorer.exe", $"http://localhost:{port}/settings.html"); } catch { }
-            Box((update ? "Đã cập nhật DeskPanel " + Ver + "." : "Đã cài xong DeskPanel " + Ver + ".") +
-                "\n\nTrang cài đặt đang mở trong trình duyệt." +
-                (pawnNew ? "\n\nĐã cài PawnIO để đọc nhiệt độ CPU: khởi động lại máy một lần để có nhiệt độ." : ""), 0x40);
+            Box((update ? L("Đã cập nhật DeskPanel ", "DeskPanel updated to ") + Ver + "." : L("Đã cài xong DeskPanel ", "DeskPanel installed: ") + Ver + ".") +
+                L("\n\nTrang cài đặt đang mở trong trình duyệt.", "\n\nThe settings page is opening in your browser.") +
+                (pawnNew ? L("\n\nĐã cài PawnIO để đọc nhiệt độ CPU: khởi động lại máy một lần để có nhiệt độ.", "\n\nPawnIO was installed to read CPU temperature: restart the PC once to see it.") : ""), 0x40);
         }
         else
         {
             var log = Path.Combine(dir, "deskpanel.log");
-            var tail = File.Exists(log) ? string.Join("\n", File.ReadLines(log).TakeLast(8)) : "(chưa có deskpanel.log)";
+            var tail = File.Exists(log) ? string.Join("\n", File.ReadLines(log).TakeLast(8)) : L("(chưa có deskpanel.log)", "(no deskpanel.log yet)");
             bool running = Process.GetProcessesByName("DeskPanel").Any(p => p.Id != Environment.ProcessId);
-            Box("Đã cài nhưng DeskPanel chưa chạy được sau 60 giây.\n\n" +
-                (running ? "DeskPanel đang chạy nhưng chưa mở cổng " + port + " (cổng bị phần mềm khác chiếm?)."
-                         : "DeskPanel không chạy. Xem Windows Security → Protection history có chặn DeskPanel.exe không.") +
-                "\n\nNhật ký:\n" + tail + "\n\nChụp màn hình thông báo này gửi lại để được hỗ trợ.", 0x30);
+            Box(L("Đã cài nhưng DeskPanel chưa chạy được sau 60 giây.\n\n", "Installed, but DeskPanel is not running after 60 seconds.\n\n") +
+                (running ? L("DeskPanel đang chạy nhưng chưa mở cổng ", "DeskPanel is running but has not opened port ") + port + L(" (cổng bị phần mềm khác chiếm?).", " (is another program using it?).")
+                         : L("DeskPanel không chạy. Xem Windows Security → Protection history có chặn DeskPanel.exe không.", "DeskPanel is not running. Check Windows Security → Protection history to see if DeskPanel.exe was blocked.")) +
+                L("\n\nNhật ký:\n", "\n\nLog:\n") + tail + L("\n\nChụp màn hình thông báo này gửi lại để được hỗ trợ.", "\n\nSend a screenshot of this message to get help."), 0x30);
         }
     }
 
@@ -151,7 +167,7 @@ public static class Setup
         try
         {
             var (code, o) = Run("schtasks.exe", "/Create", "/TN", TaskName, "/XML", tmp, "/F");
-            if (code != 0) throw new Exception("Không tạo được tác vụ tự chạy: " + o.Trim());
+            if (code != 0) throw new Exception(L("Không tạo được tác vụ tự chạy: ", "Could not create the startup task: ") + o.Trim());
         }
         finally { try { File.Delete(tmp); } catch { } }
     }
@@ -192,7 +208,8 @@ public static class Setup
     {
         var self = Environment.ProcessPath!;
         var dir = Path.GetDirectoryName(self)!;
-        if (Box("Gỡ DeskPanel khỏi máy này?\n\nXóa luôn cài đặt nút và trang trong " + dir + ".", 0x24) != 6) return;
+        UseConfigLang(dir);
+        if (Box(L("Gỡ DeskPanel khỏi máy này?\n\nXóa luôn cài đặt nút và trang trong ", "Uninstall DeskPanel from this PC?\n\nThis also deletes your buttons and pages in ") + dir + ".", 0x24) != 6) return;
         Run("schtasks.exe", "/End", "/TN", TaskName);
         Run("schtasks.exe", "/Delete", "/TN", TaskName, "/F");
         Run("schtasks.exe", "/Delete", "/TN", "DeskPanelRestart", "/F");
@@ -209,7 +226,7 @@ public static class Setup
         foreach (var d in dirs) sb.Append($" & rmdir /s /q \"{Path.Combine(dir, d)}\"");
         sb.Append($" & rmdir \"{dir}\"");
         try { Process.Start(new ProcessStartInfo("cmd.exe", "/c " + sb) { CreateNoWindow = true, UseShellExecute = false }); } catch { }
-        Box("Đã gỡ DeskPanel.", 0x40);
+        Box(L("Đã gỡ DeskPanel.", "DeskPanel has been uninstalled."), 0x40);
     }
 
     static (int, string) Run(string exe, params string[] args) => Run(exe, args, 30_000);

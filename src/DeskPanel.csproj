@@ -9,7 +9,7 @@
     <AssemblyName>DeskPanel</AssemblyName>
     <RootNamespace>DeskPanel</RootNamespace>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <Version>0.12.2</Version>
+    <Version>0.13.0</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RuntimeIdentifier)'=='win-x64'">
     <OutputType>WinExe</OutputType>
@@ -36,6 +36,9 @@
     <Content Update="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
     <!-- Giao dien + APK nam trong exe de chi can mot file cai dat -->
     <EmbeddedResource Include="wwwroot\**" LogicalName="wwwroot/%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- Trang Bao mat & quyen rieng tu doc tu SECURITY.md o goc repo -->
+    <Content Include="..\SECURITY.md" Link="wwwroot\privacy.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <EmbeddedResource Include="..\SECURITY.md" LogicalName="wwwroot/privacy.md" />
   </ItemGroup>
   <Target Name="WriteVersionFile" AfterTargets="Publish">
     <WriteLinesToFile File="$(PublishDir)version.txt" Lines="$(Version)" Overwrite="true" />

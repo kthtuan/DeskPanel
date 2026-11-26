@@ -72,14 +72,16 @@ app.Use(async (ctx, next) =>
             var qk = ctx.Request.Query["key"].ToString();
             if (qk.Length > 0)
             {
-                if (!lan.Matches(qk)) { await Deny(ctx, "Mã ghép nối không đúng hoặc đã đổi. Hãy quét lại mã QR trong trang cài đặt DeskPanel trên PC."); return; }
+                if (!lan.Matches(qk)) { await Deny(ctx, "Mã ghép nối không đúng hoặc đã đổi. Hãy quét lại mã QR trong trang cài đặt DeskPanel trên PC.",
+                    "The pairing key is wrong or has changed. Scan the QR code again in DeskPanel settings on the PC."); return; }
                 ctx.Response.Cookies.Append(LanAccess.CookieName, qk, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Strict, MaxAge = TimeSpan.FromDays(400), Path = "/" });
                 // Giu ?key= tren dia chi (khong chuyen huong): iPhone "Them vao MH chinh" luu dung dia chi nay,
                 // ma app tren man hinh chinh cua iOS khong dung chung cookie voi Safari.
             }
             else if (!lan.Matches(ctx.Request.Cookies[LanAccess.CookieName]) && !lan.Matches(ctx.Request.Headers["X-DeskPanel-Key"]))
             {
-                await Deny(ctx, "Thiết bị này chưa được ghép nối. Hãy quét mã QR trong trang cài đặt DeskPanel trên PC (tab Chung → Wi-Fi).");
+                await Deny(ctx, "Thiết bị này chưa được ghép nối. Hãy quét mã QR trong trang cài đặt DeskPanel trên PC (tab Chung → Wi-Fi).",
+                "This device is not paired yet. Scan the QR code in DeskPanel settings on the PC (General tab → Wi-Fi).");
                 return;
             }
             if (!LanAccess.Allowed(ctx.Request.Method, path)) { ctx.Response.StatusCode = 403; return; }
@@ -235,7 +237,7 @@ app.MapPost("/api/ai/login/{site}", async (string site) =>
 {
     if (site is not ("claude" or "chatgpt")) return Results.NotFound();
     if (!WebAgent.Available) return Results.Json(new { ok = false, error = "Máy chưa có Microsoft Edge WebView2. Tải tại https://go.microsoft.com/fwlink/p/?LinkId=2124703 rồi thử lại." }, Json.Opts, statusCode: 400);
-    bool ok = await WebAgent.LoginAsync(site);
+    bool ok = await WebAgent.LoginAsync(site, store.Current.Lang == "en");
     if (ok) SetAiWeb(site, true);
     ai.RefreshSoon();
     return Results.Json(new { ok }, Json.Opts);
@@ -256,6 +258,14 @@ app.MapPost("/api/ai/logout/{site}", async (string site) =>
     SetAiWeb(site, false);
     ai.RefreshSoon();
     return Results.Json(new { ok = true }, Json.Opts);
+});
+app.MapPost("/api/lang/{lang}", (string lang) =>
+{
+    if (lang is not ("vi" or "en")) return Results.Json(new { error = "lang" }, statusCode: 400);
+    var cfg = JsonSerializer.Deserialize<PanelConfig>(JsonSerializer.Serialize(store.Current, Json.Opts), Json.Opts)!;
+    cfg.Lang = lang;
+    store.Save(cfg);
+    return Results.Json(new { ok = true, lang }, Json.Opts);
 });
 void SetAiWeb(string site, bool on)
 {
@@ -300,11 +310,11 @@ static IResult IconResult(byte[]? png, HttpContext ctx)
     return Results.Bytes(png, "image/png");
 }
 
-static async Task Deny(HttpContext ctx, string msg)
+static async Task Deny(HttpContext ctx, string msg, string en)
 {
     ctx.Response.StatusCode = 401;
     ctx.Response.ContentType = "text/html; charset=utf-8";
-    await ctx.Response.WriteAsync("<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><body style='font:16px system-ui;background:#0d1117;color:#e6edf3;padding:24px'><h2>DeskPanel</h2><p>" + System.Net.WebUtility.HtmlEncode(msg) + "</p>");
+    await ctx.Response.WriteAsync("<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><body style='font:16px system-ui;background:#0d1117;color:#e6edf3;padding:24px'><h2>DeskPanel</h2><p>" + System.Net.WebUtility.HtmlEncode(msg) + "</p><p style='color:#8b949e'>" + System.Net.WebUtility.HtmlEncode(en) + "</p>");
 }
 
 static bool SameHostOrigin(string origin, HostString host) =>
