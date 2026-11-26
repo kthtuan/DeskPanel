@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Typeface
@@ -67,6 +69,15 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Ghi lai loi lam app dong de lan mo sau hien ra (de bao loi)
+        val prev = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { t, e ->
+            try {
+                val sw = java.io.StringWriter(); e.printStackTrace(java.io.PrintWriter(sw))
+                prefs.edit().putString("crash", "DeskPanel ${appVersion()} · Android ${Build.VERSION.RELEASE} · ${Build.MANUFACTURER} ${Build.MODEL}\n" + sw.toString().take(3000)).commit()
+            } catch (_: Throwable) {}
+            prev?.uncaughtException(t, e)
+        }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         root = FrameLayout(this).apply { setBackgroundColor(Color.BLACK) }
         web = makeWebView()
@@ -75,8 +86,21 @@ class MainActivity : Activity() {
         root.addView(overlay, FrameLayout.LayoutParams(-1, -1))
         setContentView(root)
         hideBars()
+        val crash = prefs.getString("crash", null)
+        if (crash != null) {
+            prefs.edit().remove("crash").apply()
+            showSetup(null)
+            AlertDialog.Builder(this).setTitle("Lần trước DeskPanel bị lỗi")
+                .setMessage("Chụp màn hình này gửi lại để được sửa:\n\n$crash")
+                .setPositiveButton("OK", null).show()
+            return
+        }
         if (url == null) showSetup(null) else load()
     }
+
+    private fun appVersion(): String = try {
+        packageManager.getPackageInfo(packageName, 0).versionName ?: "?"
+    } catch (_: Throwable) { "?" }
 
     // ---------------- WebView ----------------
 
@@ -204,7 +228,7 @@ class MainActivity : Activity() {
             text = "DeskPanel"; textSize = 28f; setTypeface(typeface, Typeface.BOLD); setTextColor(Color.WHITE); gravity = Gravity.CENTER
         })
         col.addView(TextView(this).apply {
-            text = "Biến điện thoại thành màn hình phụ cho PC."
+            text = "Biến điện thoại thành màn hình phụ cho PC. Bản " + appVersion()
             textSize = 15f; setTextColor(Color.parseColor("#8B949E")); gravity = Gravity.CENTER
             setPadding(0, dp(4), 0, dp(8))
         })
@@ -273,12 +297,30 @@ class MainActivity : Activity() {
     // ---------------- Quet QR ----------------
 
     private fun scan() {
-        IntentIntegrator(this).apply {
-            setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
-            setPrompt("Quét mã QR trong trang cài đặt DeskPanel trên PC")
-            setBeepEnabled(false)
-            setOrientationLocked(false)
-        }.initiateScan()
+        // Tu xin quyen camera truoc khi mo man hinh quet
+        if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.CAMERA), 7)
+            return
+        }
+        try {
+            IntentIntegrator(this).apply {
+                setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
+                setPrompt("Quét mã QR trong trang cài đặt DeskPanel trên PC")
+                setBeepEnabled(false)
+                setOrientationLocked(false)
+            }.initiateScan()
+        } catch (e: Throwable) {
+            AlertDialog.Builder(this).setTitle("Không mở được máy quét")
+                .setMessage("${e.javaClass.simpleName}: ${e.message}\n\nDùng \"Nhập địa chỉ\" thay thế, và chụp màn hình này gửi lại.")
+                .setPositiveButton("OK", null).show()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != 7) return
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) scan()
+        else AlertDialog.Builder(this).setMessage("Cần quyền Camera để quét mã QR. Bạn có thể dùng \"Nhập địa chỉ\" thay thế.").setPositiveButton("OK", null).show()
     }
 
     @Deprecated("Deprecated in Java")

@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## 0.12.2 (26/11/2026)
+- App Android: tự xin quyền Camera trước khi mở máy quét QR; nếu app bị lỗi, lần mở sau hiện chi tiết lỗi để gửi lại. Màn hình đầu ghi số phiên bản app.
+
 ## 0.12.1 (26/11/2026)
 - App Android: sửa lỗi app tự đóng khi bấm **Quét mã QR** (thiếu thư viện xin quyền camera).
 

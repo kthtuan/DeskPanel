@@ -1,5 +1,5 @@
-**Sửa trong 0.12.1**
+**Sửa trong 0.12.2**
 
-- App Android: hết bị đóng khi bấm **Quét mã QR**. Cài lại app: trên PC cập nhật DeskPanel lên 0.12.1, rồi quét mã QR số 1 (tải APK) trong Cài đặt → Chung → Wi-Fi, cài đè lên app cũ.
+- App Android: xin quyền Camera trước khi quét QR, hiện chi tiết lỗi nếu app bị đóng. Cài lại app bằng mã QR số 1 trong Cài đặt → Chung → Wi-Fi (cài đè, không cần gỡ).
 
-Cập nhật PC: Cài đặt → Chung → **Cài bản 0.12.1**.
+Cập nhật PC: Cài đặt → Chung → **Cài bản 0.12.2**.
