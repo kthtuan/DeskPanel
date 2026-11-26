@@ -20,8 +20,24 @@ $settings  = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero)
              -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
 Register-ScheduledTask -TaskName 'DeskPanel' -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
 Start-ScheduledTask -TaskName 'DeskPanel'
-Start-Sleep -Seconds 3
+
+# Lan dau chay mat vai giay (giai nen, doc cam bien): doi toi 60 giay cho cong 8765 mo
+$ok = $false
+for ($i = 0; $i -lt 60; $i++) {
+  Start-Sleep -Seconds 1
+  try { $c = New-Object Net.Sockets.TcpClient; $c.Connect('127.0.0.1', 8765); $c.Close(); $ok = $true; break } catch { }
+}
 Write-Host ""
-Write-Host "Da cai xong. DeskPanel se tu chay moi khi ban dang nhap Windows." -ForegroundColor Green
-Write-Host "Trang cai dat nut: http://localhost:8765/settings.html"
-Start-Process "http://localhost:8765/settings.html"
+if ($ok) {
+  Write-Host "Da cai xong. DeskPanel se tu chay moi khi ban dang nhap Windows." -ForegroundColor Green
+  Write-Host "Trang cai dat nut: http://localhost:8765/settings.html"
+  Start-Process "http://localhost:8765/settings.html"
+} else {
+  Write-Host "Da cai nhung DeskPanel chua chay duoc sau 60 giay." -ForegroundColor Yellow
+  if (Get-Process DeskPanel -ErrorAction SilentlyContinue) { Write-Host "- DeskPanel dang chay nhung chua mo cong 8765 (cong bi phan mem khac chiem?)." }
+  else { Write-Host "- DeskPanel khong chay. Kiem tra Windows Security > Protection history xem co chan DeskPanel.exe khong." }
+  $log = Join-Path $dir 'deskpanel.log'
+  if (Test-Path $log) { Write-Host "- 15 dong cuoi cua deskpanel.log:"; Get-Content $log -Tail 15 | ForEach-Object { Write-Host "    $_" } }
+  else { Write-Host "- Chua co deskpanel.log: DeskPanel chua tung khoi dong duoc." }
+  Write-Host "Chup man hinh cua so nay gui lai de duoc ho tro."
+}

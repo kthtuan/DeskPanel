@@ -118,6 +118,7 @@ Cả ba cách đều giữ nguyên `config.json` (nút, trang, giao diện) và 
 - Nhật ký lỗi nằm ở `C:\DeskPanel\deskpanel.log`.
 - **App báo "Chưa kết nối được"** (Wi-Fi): kiểm tra PC và điện thoại cùng mạng, mạng trên PC đặt là Private, và địa chỉ trong app trùng địa chỉ dưới mã QR trên PC. PC có nhiều card mạng (VPN, máy ảo) thì trang cài đặt liệt kê hết, thử địa chỉ cùng dải với điện thoại.
 - **App báo "chưa nhận điện thoại này"**: mã ghép nối đã đổi, quét lại mã QR.
+- **Trình duyệt báo `localhost refused to connect` / `ERR_CONNECTION_REFUSED`**: DeskPanel không chạy. Lần đầu có thể mất 10–30 giây, đợi rồi tải lại. Nếu vẫn lỗi: mở Task Manager xem có `DeskPanel.exe` không; vào Windows Security → Protection history xem có bị chặn không; chắc chắn đã giải nén zip ra thư mục (không chạy thẳng trong zip) và chạy `install.cmd` bấm **Yes** khi Windows hỏi quyền admin; gửi file `deskpanel.log` trong thư mục DeskPanel nếu có.
 - **Gỡ cài đặt**: chạy `uninstall.cmd` (gỡ luôn quy tắc tường lửa), sau đó xóa thư mục.
 
 ## Về an toàn

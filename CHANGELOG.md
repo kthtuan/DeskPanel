@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## 0.10.2 (26/11/2026)
+- Cài đặt: đợi DeskPanel chạy hẳn (tối đa 60 giây) rồi mới mở trình duyệt. Nếu không chạy được, cửa sổ cài đặt hiện lý do và các dòng cuối của nhật ký.
+
 ## 0.10.1 (26/11/2026)
 - Widget AI: khi PC chưa đăng nhập Claude Code bằng tài khoản Claude, widget ghi rõ cách đăng nhập thay vì để trống.
 
