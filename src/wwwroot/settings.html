@@ -256,6 +256,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
         <div><label class="l">Cổng (đổi xong cần khởi động lại DeskPanel)</label><input id="port" type="number" min="1024" max="65535"></div>
         <div><label class="l">Đường dẫn adb.exe (để trống = tự tìm)</label><input id="adbPath" placeholder="C:\DeskPanel\platform-tools\adb.exe"></div>
         <div style="align-self:end"><label><input id="autoAdb" type="checkbox">Tự nối điện thoại qua USB (adb reverse)</label></div>
+        <div style="grid-column:1/-1"><label><input id="aiOnline" type="checkbox">Widget AI: lấy % giới hạn chính thức của gói Claude và ChatGPT (Codex)</label><div class="help">Dùng đăng nhập sẵn có của Claude Code và Codex trên PC này, 3 phút hỏi một lần. Mã đăng nhập chỉ nằm trên PC, không gửi ra điện thoại. Tắt thì widget chỉ đếm token từ nhật ký.</div></div>
       </div>
       <div class="box" style="margin-top:14px" id="lanBox">
         <h3>Kết nối qua Wi-Fi</h3>
@@ -1010,7 +1011,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
   // ---------- Chung ----------
   function renderGeneral(){
     $('port').value = cfg.port; $('adbPath').value = cfg.adbPath || '';
-    $('weatherCity').value = cfg.weatherCity || ''; $('updateRepo').value = cfg.updateRepo || ''; $('autoAdb').checked = !!cfg.autoAdbReverse;
+    $('weatherCity').value = cfg.weatherCity || ''; $('updateRepo').value = cfg.updateRepo || ''; $('autoAdb').checked = !!cfg.autoAdbReverse; $('aiOnline').checked = cfg.aiOnline !== false;
   }
   $('port').onchange = function(){ var v = parseInt(this.value, 10) || 0; change(function(){ cfg.port = v; }); };
   $('adbPath').onchange = function(){ var v = this.value.trim() || null; change(function(){ cfg.adbPath = v; }); };
@@ -1126,6 +1127,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
   loadUpdate(); setInterval(loadUpdate, 60000);
 
   $('autoAdb').onchange = function(){ var v = this.checked; change(function(){ cfg.autoAdbReverse = v; }); };
+  $('aiOnline').onchange = function(){ var v = this.checked; change(function(){ cfg.aiOnline = v; }); };
 
   // ---------- Khung chung ----------
   function renderAll(light){

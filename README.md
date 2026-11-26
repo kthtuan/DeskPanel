@@ -33,7 +33,7 @@ DeskPanel gồm một **chương trình nhỏ chạy ngầm trên PC** và một
 | **Ổ cứng** | Sức khỏe SMART từng ổ (Tốt / Chú ý / Hỏng), nhiệt độ, tuổi thọ SSD, số giờ chạy, dung lượng đã ghi |
 | **Làm việc với AutoCAD** | Nút lệnh `L`, `TR`, `O`, `Z E`… bấm một chạm: tự đưa AutoCAD lên trước, Esc, gõ lệnh, Enter |
 | **Phím tắt, chương trình** | Tổ hợp phím (`Ctrl+S`, `Win+Shift+S`), mở chương trình, thư mục, trang web, gõ sẵn đoạn chữ |
-| **Theo dõi AI** | Claude Code và Codex trên PC: token hôm nay / 7 ngày, khung 5 giờ, giới hạn kèm giờ làm mới, phiên đang chạy |
+| **Theo dõi AI** | % giới hạn gói Claude (5 giờ, tuần, theo model) và ChatGPT/Codex, giờ làm mới, dự báo theo nhịp dùng, token hôm nay / 7 ngày, phiên đang chạy |
 | **Không dây** | App Android quét QR, toàn màn hình, giữ màn hình sáng, tự kết nối lại khi PC khởi động lại |
 | **Hằng ngày** | Đồng hồ lớn, thời tiết (Open-Meteo, dự phòng MET Norway và wttr.in), nhạc đang phát kèm ảnh bìa và nút điều khiển |
 
@@ -107,6 +107,7 @@ src/                 Chương trình PC (C# .NET 8, ASP.NET Core minimal API)
   Updater.cs         Cập nhật từ zip / GitHub Releases
   Apps.cs            Danh sách phần mềm (Start Menu) và icon thật
   AiMonitor.cs       Đọc nhật ký Claude Code và Codex (token, giới hạn)
+  AiUsage.cs         % giới hạn chính thức của gói Claude / ChatGPT
   Lan.cs             Chế độ Wi-Fi: mã ghép nối, mã QR, tường lửa
   wwwroot/           index.html (điện thoại), settings.html (cài đặt)
 android/             App Android (Kotlin, một WebView toàn màn hình, quét QR bằng ZXing)

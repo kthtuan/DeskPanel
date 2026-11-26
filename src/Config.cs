@@ -16,6 +16,8 @@ public sealed class PanelConfig
     public string? UpdateRepo { get; set; }
     /// <summary>Cho dien thoai vao qua Wi-Fi (mang LAN), can ma ghep noi. Tat = chi cap USB.</summary>
     public bool LanEnabled { get; set; }
+    /// <summary>Widget AI lay % gioi han chinh thuc bang dang nhap san co cua Claude Code / Codex tren PC.</summary>
+    public bool AiOnline { get; set; } = true;
     public List<ButtonDef> Buttons { get; set; } = new();
     /// <summary>Cac trang tren dien thoai, moi trang la luoi 12 cot x 6 hang chua widget.</summary>
     public List<PageDef>? Pages { get; set; }

@@ -1,5 +1,12 @@
 # Nhật ký thay đổi
 
+## 0.10.0 (26/11/2026)
+- Widget **Theo dõi AI** hiện % giới hạn chính thức của gói, giống trang "Mức sử dụng" trên web:
+  - Claude (Pro/Max): phiên 5 giờ, tuần, tuần theo từng model, kèm tên gói (vd. Max 5x). Giới hạn này dùng chung cho Claude trên web, app và Claude Code.
+  - ChatGPT/Codex: giới hạn 5 giờ và tuần, tên gói, credits.
+  - Mỗi giới hạn là một vòng tròn kèm giờ làm mới, vạch "đáng lẽ đã dùng tới đây" và dự báo "theo nhịp này: hết sau …".
+- Số liệu lấy bằng đăng nhập sẵn có của Claude Code và Codex trên PC, 3 phút một lần. DeskPanel chỉ đọc, không tự làm mới đăng nhập, không gửi mã đăng nhập ra điện thoại. Tắt được ở Cài đặt → Chung.
+
 ## 0.9.0 (26/11/2026)
 - Widget mới **Theo dõi AI** (danh mục → nhóm Chung) và mẫu trang **AI**: xem mức dùng Claude Code và Codex trên PC.
   - Claude Code: token hôm nay, 7 ngày, số lượt, khung 5 giờ hiện tại và giờ làm mới.

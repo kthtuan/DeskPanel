@@ -8,9 +8,11 @@ namespace DeskPanel;
 ///  - Codex CLI:   %USERPROFILE%\.codex\sessions\**\*.jsonl (su kien token_count, kem rate_limits).
 /// Chi doc, khong gui di dau. Doc tang dan theo vi tri file nen nhe.
 /// </summary>
-public sealed class AiMonitor : BackgroundService
+public sealed partial class AiMonitor : BackgroundService
 {
     public AiInfo? Latest { get; private set; }
+    readonly ConfigStore? _store;
+    public AiMonitor(ConfigStore? store = null) { _store = store; }
 
     sealed class FileState { public long Pos; public string? Cwd; }
     readonly Dictionary<string, FileState> _files = new();
@@ -28,6 +30,7 @@ public sealed class AiMonitor : BackgroundService
     {
         while (!ct.IsCancellationRequested)
         {
+            try { await PollOnline(ct); } catch (Exception ex) { Log.Write("Loi lay gioi han AI: " + ex.Message); }
             try { Latest = Scan(); }
             catch (Exception ex) { Log.Write("Loi doc nhat ky AI: " + ex.Message); }
             try { await Task.Delay(TimeSpan.FromSeconds(20), ct); } catch { break; }
@@ -39,8 +42,10 @@ public sealed class AiMonitor : BackgroundService
         var now = DateTime.UtcNow;
         var claudeDir = Path.Combine(Environment.GetEnvironmentVariable("CLAUDE_CONFIG_DIR") ?? Path.Combine(Home, ".claude"), "projects");
         var codexDir = Path.Combine(Environment.GetEnvironmentVariable("CODEX_HOME") ?? Path.Combine(Home, ".codex"), "sessions");
-        var claude = Directory.Exists(claudeDir) ? ScanClaude(claudeDir, now) : null;
-        var codex = Directory.Exists(codexDir) ? ScanCodex(codexDir, now) : null;
+        var claude = Directory.Exists(claudeDir) ? ScanClaude(claudeDir, now) : _claudeOn != null ? new AiTool() : null;
+        var codex = Directory.Exists(codexDir) ? ScanCodex(codexDir, now) : _codexOn != null ? new AiTool() : null;
+        ApplyOnline(claude, _claudeOn, true);
+        ApplyOnline(codex, _codexOn, true);
         return claude == null && codex == null ? null : new AiInfo { Claude = claude, Codex = codex };
     }
 
@@ -189,7 +194,7 @@ public sealed class AiMonitor : BackgroundService
         foreach (var l in new[] { _codexPrimary, _codexSecondary })
         {
             if (l == null || (l.ResetAt != null && l.ResetAt < now)) continue; // khung da qua: so cu khong con dung
-            var lim = new AiLimit { Used = Math.Round(l.Used, 1), Label = WindowName(l.WindowMin), Reset = l.ResetAt == null ? null : new DateTimeOffset(l.ResetAt.Value).ToUnixTimeMilliseconds() };
+            var lim = new AiLimit { Used = Math.Round(l.Used, 1), Label = WindowName(l.WindowMin), Window = l.WindowMin, Reset = l.ResetAt == null ? null : new DateTimeOffset(l.ResetAt.Value).ToUnixTimeMilliseconds() };
             tool.Limits.Add(lim);
         }
         return tool;
@@ -200,7 +205,7 @@ public sealed class AiMonitor : BackgroundService
     static string WindowName(int? min) => min switch
     {
         null => "Giới hạn",
-        <= 360 => (min / 60) + " giờ",
+        <= 360 => "Phiên " + (min / 60) + " giờ",
         >= 10000 => "Tuần",
         _ => (min / 60) + " giờ",
     };
@@ -232,6 +237,13 @@ public sealed class AiTool
     public bool Active { get; set; }
     public string? Project { get; set; }
     public List<AiLimit> Limits { get; set; } = new();
+    /// <summary>Goi dang ky (Pro, Max 5x, Plus...), lay tu dang nhap tren PC.</summary>
+    public string? Plan { get; set; }
+    public string? Credits { get; set; }
+    /// <summary>Ly do khong lay duoc gioi han chinh thuc (het han dang nhap...).</summary>
+    public string? Note { get; set; }
+    /// <summary>Thoi diem lay gioi han chinh thuc (ms), null = so tu nhat ky.</summary>
+    public long? LimitsAt { get; set; }
 }
 
 public sealed class AiLimit
@@ -239,4 +251,6 @@ public sealed class AiLimit
     public string Label { get; set; } = "";
     public double Used { get; set; }
     public long? Reset { get; set; }
+    /// <summary>Do dai khung (phut) de tinh nhip dung.</summary>
+    public int? Window { get; set; }
 }

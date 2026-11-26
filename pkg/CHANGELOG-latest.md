@@ -1,7 +1,7 @@
-**Có gì mới trong 0.9.0**
+**Có gì mới trong 0.10.0**
 
-- Widget **Theo dõi AI**: xem trên điện thoại mức dùng Claude Code và Codex của PC này (token hôm nay, 7 ngày, khung 5 giờ, giới hạn kèm giờ làm mới, phiên đang chạy).
-- Thêm nhanh bằng mẫu trang **AI** (Cài đặt → Trang & widget → + Trang).
-- Chỉ đọc nhật ký có sẵn trên PC, không gửi dữ liệu đi đâu. Không theo dõi được ChatGPT hay Claude trên trình duyệt.
+- Widget **Theo dõi AI** giờ hiện % giới hạn chính thức: Claude (phiên 5 giờ, tuần, tuần theo model, tên gói) và ChatGPT/Codex (5 giờ, tuần, credits), kèm giờ làm mới và dự báo "theo nhịp này: hết sau …".
+- Cần đã đăng nhập Claude Code và/hoặc Codex trên PC này (DeskPanel dùng lại đăng nhập đó, chỉ đọc). Tắt được ở Cài đặt → Chung.
+- Giới hạn Claude dùng chung cho web, app và Claude Code nên xem được cả phần dùng trên trình duyệt. Riêng chat thường của ChatGPT không có hạn mức kiểu này.
 
-Cập nhật: Cài đặt → Chung → **Cài bản 0.9.0**.
+Cập nhật: Cài đặt → Chung → **Cài bản 0.10.0**.
