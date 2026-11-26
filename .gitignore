@@ -4,3 +4,4 @@ out*/
 *.zip
 *.user
 .vs/
+update-token.bin

@@ -28,7 +28,8 @@ var media = new MediaWatcher();
 builder.Services.AddHostedService(_ => media);
 var weather = new WeatherService(store);
 builder.Services.AddHostedService(_ => weather);
-var updater = new UpdateChecker(store);
+var tokens = new TokenStore(baseDir);
+var updater = new UpdateChecker(store, tokens);
 builder.Services.AddHostedService(_ => updater);
 var hub = new StatsHub(store, media, weather);
 builder.Services.AddHostedService(_ => hub);
@@ -107,8 +108,18 @@ app.MapGet("/api/media/art", (HttpContext ctx) =>
 app.MapGet("/api/update", () => Results.Json(new
 {
     current = updater.Current, repo = store.Current.UpdateRepo, latest = updater.LatestVersion, available = updater.Available,
-    notes = updater.Notes, page = updater.PageUrl, checkedAt = updater.CheckedAt?.ToString("HH:mm dd/MM"), error = updater.Error,
+    hasToken = tokens.HasToken, notes = updater.Notes, page = updater.PageUrl, checkedAt = updater.CheckedAt?.ToString("HH:mm dd/MM"), error = updater.Error,
 }, Json.Opts));
+app.MapPost("/api/update/token", async (HttpRequest req, CancellationToken ct) =>
+{
+    var j = await JsonSerializer.DeserializeAsync<Dictionary<string, string?>>(req.Body, Json.Opts, ct);
+    var t = j != null && j.TryGetValue("token", out var v) ? v?.Trim() : null;
+    if (!string.IsNullOrEmpty(t) && !TokenStore.LooksValid(t)) return Results.BadRequest(new { error = "Token không đúng dạng (ví dụ github_pat_…)" });
+    tokens.Set(t);
+    Log.Write(string.IsNullOrEmpty(t) ? "Da xoa token GitHub" : "Da luu token GitHub");
+    await updater.CheckAsync(ct);
+    return Results.Ok(new { ok = true, hasToken = tokens.HasToken });
+});
 app.MapPost("/api/update/check", async (CancellationToken ct) => { await updater.CheckAsync(ct); return Results.Json(new { ok = true }); });
 app.MapPost("/api/update/upload", async (HttpContext ctx) =>
 {

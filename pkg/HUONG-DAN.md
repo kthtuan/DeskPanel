@@ -1,4 +1,4 @@
-# DeskPanel 0.6: hướng dẫn cài
+# DeskPanel 0.6.1: hướng dẫn cài
 
 DeskPanel biến điện thoại Android thành màn hình phụ cho PC Windows. Màn hình hiển thị CPU, GPU, RAM, nhiệt độ và sức khỏe ổ cứng, kèm các nút bấm (lệnh AutoCAD, Calculator, phím tắt). Điện thoại nối với PC qua cáp USB và không mở cổng nào ra mạng LAN.
 
@@ -67,7 +67,16 @@ Mọi thay đổi chỉ có hiệu lực khi bấm **Lưu**. Lưu xong, điện 
 
 **Cách 1 (từ bản 0.6 trở đi, dễ nhất): nút Cập nhật.** Mở trang cài đặt, chọn thẻ **Chung**, mục **Cập nhật DeskPanel**. Chọn file `DeskPanel-…-win-x64.zip` vừa tải (không cần giải nén) rồi bấm **Cập nhật**. DeskPanel tự tắt, thay bản mới, chạy lại sau khoảng 10–20 giây và trang tự tải lại.
 
-**Cách 2: tự kiểm tra trên GitHub.** Điền tên repo (dạng `chu/ten-repo`, repo phải công khai) vào ô ở cùng mục rồi bấm **Lưu**. DeskPanel kiểm tra 6 giờ một lần. Khi có bản mới, nút **Cài bản …** hiện ra.
+**Cách 2: tự kiểm tra trên GitHub.** Điền `kthtuan/DeskPanel` vào ô ở cùng mục rồi bấm **Lưu**. DeskPanel kiểm tra 6 giờ một lần. Khi có bản mới, nút **Cài bản …** hiện ra.
+
+Nếu repo để **private**, DeskPanel cần một token chỉ đọc:
+1. Mở https://github.com/settings/personal-access-tokens/new (Fine-grained token).
+2. Đặt tên (ví dụ `DeskPanel PC`), chọn thời hạn (tối đa 1 năm).
+3. **Repository access** → **Only select repositories** → chọn `DeskPanel`.
+4. **Permissions** → **Repository permissions** → **Contents** → **Read-only**. Không cấp quyền nào khác.
+5. Bấm **Generate token**, chép token (bắt đầu bằng `github_pat_`), dán vào ô **Token GitHub** rồi bấm **Lưu token**.
+
+Token được mã hóa theo tài khoản Windows (DPAPI) trong file `update-token.bin`, không nằm trong `config.json` và không gửi ra điện thoại. Hết hạn thì tạo token mới và dán lại.
 
 **Cách 3: update.cmd** (dùng khi nút ở trên báo lỗi, hoặc khi đang ở bản cũ hơn 0.6):
 1. Giải nén bản mới vào một thư mục bất kỳ, ví dụ `Downloads\DeskPanel-moi`. Không giải nén đè thẳng vào thư mục đã cài vì lúc đó DeskPanel đang chạy và khóa file `.exe`.

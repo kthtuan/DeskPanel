@@ -261,10 +261,13 @@ dialog h2{margin:0 0 12px;font-size:17px}
             <div class="help">Không cần giải nén. DeskPanel tự thay bản cũ, giữ nguyên các nút và trang, rồi chạy lại. Điện thoại tự tải lại.</div>
           </div>
           <div>
-            <label class="l">Tự kiểm tra bản mới trên GitHub (repo công khai, dạng chu/ten-repo)</label>
+            <label class="l">Tự kiểm tra bản mới trên GitHub (dạng chu/ten-repo)</label>
             <div class="row"><input id="updateRepo" maxlength="140" placeholder="vd: tentoi/deskpanel"><button id="uCheck">Kiểm tra</button></div>
             <div class="help" id="uGh">Điền repo rồi bấm Lưu. DeskPanel kiểm tra 6 giờ một lần.</div>
             <button class="primary hide" id="uGhInstall" style="margin-top:8px"></button>
+            <label class="l" style="margin-top:12px">Token GitHub (chỉ cần khi repo để private)</label>
+            <div class="row"><input id="uTok" type="password" autocomplete="off" placeholder="github_pat_…"><button id="uTokSave">Lưu token</button><button id="uTokDel" class="danger hide">Xóa</button></div>
+            <div class="help" id="uTokInfo">Tạo tại <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → Fine-grained token</a>: Repository access chọn riêng repo DeskPanel, Permissions → Contents: Read-only. Token được mã hóa theo tài khoản Windows, không lưu trong config.json và không gửi ra điện thoại.</div>
           </div>
         </div>
         <div id="uMsg" class="help" style="font-size:13px"></div>
@@ -935,6 +938,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       else if (u.latest) g.textContent = 'Đang dùng bản mới nhất (' + u.latest + '), kiểm tra lúc ' + u.checkedAt + '.';
       else g.textContent = 'Chưa kiểm tra.';
       b.classList.toggle('hide', !u.available); b.textContent = 'Cài bản ' + u.latest;
+      $('uTokDel').classList.toggle('hide', !u.hasToken); $('uTok').placeholder = u.hasToken ? '•••••• (đã lưu, dán token mới để thay)' : 'github_pat_…';
     }).catch(function(){});
   }
   function waitRestart(oldVer){
@@ -972,6 +976,13 @@ dialog h2{margin:0 0 12px;font-size:17px}
     if (saved && (saved.updateRepo || null) !== (cfg.updateRepo || null)) { uMsg('Bấm Lưu trước để lưu tên repo', 'err'); return; }
     uMsg('Đang kiểm tra…'); api('POST', 'api/update/check').then(loadUpdate).then(function(){ uMsg(''); });
   };
+  function saveTok(t){
+    uMsg('Đang lưu token và kiểm tra…');
+    api('POST', 'api/update/token', { token: t }).then(function(r){ $('uTok').value = ''; return loadUpdate().then(function(){ uMsg(r.hasToken ? 'Đã lưu token.' : 'Đã xóa token.', 'ok'); }); })
+      .catch(function(e){ uMsg(e.message, 'err'); });
+  }
+  $('uTokSave').onclick = function(){ var t = $('uTok').value.trim(); if (!t) { uMsg('Dán token vào ô trước', 'err'); return; } saveTok(t); };
+  $('uTokDel').onclick = function(){ if (confirm('Xóa token GitHub đã lưu?')) saveTok(''); };
   loadUpdate(); setInterval(loadUpdate, 60000);
 
   $('autoAdb').onchange = function(){ var v = this.checked; change(function(){ cfg.autoAdbReverse = v; }); };
