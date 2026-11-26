@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0d12">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<title>DeskPanel</title>
+<style>
+:root{
+  --bg:#0b0d12; --card:rgba(22,25,33,.92); --line:rgba(255,255,255,.08);
+  --text:#e8ecf2; --muted:#8a93a2; --ok:#3fb950; --warn:#e3a52c; --bad:#f85149;
+  --cpu:#3fc8b0; --gpu:#9ccc3c; --ram:#a98bfa; --net:#f0a43a; --up:#5aa9ff;
+  --accent:#58a6ff; --radius:16px; --gap:10px; --fs:1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:calc(16px * var(--fs))}
+html,body{margin:0;height:100%;color:var(--text);overflow:hidden;user-select:none;-webkit-user-select:none;
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg)}
+body.bg-aurora{background:radial-gradient(90% 80% at 75% 10%,#1a1526 0%,var(--bg) 60%) fixed,var(--bg)}
+body.bg-black{--bg:#000}
+#pager{position:fixed;inset:0;bottom:30px;display:flex;transition:transform .35s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.page{flex:none;width:100vw;height:100%;padding:12px 12px 4px;overflow:hidden;display:grid;gap:var(--gap);
+  grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr))}
+#nav{position:fixed;left:0;right:0;bottom:0;height:30px;display:flex;align-items:center;justify-content:center}
+#dots{display:flex;gap:7px;align-items:center}
+#dots i{width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.22);transition:width .25s,background .25s}
+#dots i.on{width:22px;background:rgba(255,255,255,.75)}
+#pname{position:absolute;left:14px;font-size:12px;color:var(--muted);letter-spacing:.04em}
+#gear{position:absolute;right:12px;color:var(--muted);text-decoration:none;font-size:17px;padding:2px 4px}
+.conn{width:8px;height:8px;border-radius:50%;background:var(--bad);display:inline-block;margin-right:6px;vertical-align:1px}
+body.online .conn{background:var(--ok)}
+
+.w{position:relative;min-width:0;min-height:0;overflow:hidden;border-radius:var(--radius)}
+.card{background:var(--card);border:1px solid var(--line);padding:12px 14px}
+body.sf-flat .card{border-color:transparent;background:#161a22}
+body.sf-content .card{border-color:transparent;background:transparent}
+.bare{padding:4px 8px}
+.card>*:not(.spark){position:relative;z-index:1}
+.lab{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hd .r{font-size:.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.num{font-size:1.9rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.num small{font-size:.875rem;color:var(--muted);font-weight:500;margin-left:2px}
+.sub{font-size:.75rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:.75rem;background:rgba(255,255,255,.07);border-radius:8px;padding:2px 8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.spark{position:absolute;left:0;right:0;bottom:0;height:55%;width:100%;z-index:0}
+.spark path.a{opacity:.16}
+.spark path.l{fill:none;stroke-width:1.6;vector-effect:non-scaling-stroke}
+.ok{color:var(--ok)!important}.warn{color:var(--warn)!important}.bad{color:var(--bad)!important}
+
+.clockw{display:flex;flex-direction:column;justify-content:center}
+.status{font-size:.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clock{font-weight:200;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:6px}
+.clock sup{font-size:.22em;font-weight:300;color:var(--muted);vertical-align:top;margin-left:6px;position:relative;top:.35em}
+.date{font-size:1.1rem;color:#cfd5de;margin-top:4px}
+.note{font-size:.75rem;color:var(--warn);margin-top:4px}
+.wx{display:flex;align-items:center;gap:12px;margin-top:12px}
+.wx .ic{font-size:2.5rem;line-height:1}
+.wx .t{font-size:2.2rem;font-weight:300;font-variant-numeric:tabular-nums}
+.wx .d{font-size:.875rem;color:#cfd5de;line-height:1.35}
+.wx .d small{color:var(--muted);font-size:.8rem}
+
+.media{display:flex;flex-direction:column;justify-content:space-between;
+  background:radial-gradient(120% 120% at 0% 0%,rgba(168,85,247,.16),transparent 55%),var(--card)}
+.media .top{display:flex;gap:14px;align-items:center;min-width:0}
+.art{width:min(24vh,120px);height:min(24vh,120px);border-radius:12px;flex:none;object-fit:cover;background:#2a2340;
+  display:flex;align-items:center;justify-content:center;font-size:2.6rem;box-shadow:0 8px 24px rgba(0,0,0,.45);overflow:hidden}
+.art img{width:100%;height:100%;object-fit:cover}
+.media .meta{min-width:0}
+.media .app{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#c084fc}
+.media .ti{font-size:1.3rem;font-weight:600;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.media .ar{font-size:.875rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog .b{height:4px;border-radius:2px;background:rgba(255,255,255,.12);position:relative;margin-top:8px}
+.prog .b i{position:absolute;left:0;top:0;bottom:0;background:#fff;border-radius:2px}
+.prog .b i::after{content:"";position:absolute;right:-6px;top:-4px;width:12px;height:12px;border-radius:50%;background:#fff}
+.prog .tm{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.ctl{display:flex;align-items:center;justify-content:center;gap:14px}
+.ctl button{background:none;border:0;color:#fff;font-size:1.4rem;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.ctl button.pp{background:#fff;color:#111;width:58px;height:58px}
+.ctl button.sm{font-size:1.1rem;color:#cfd5de;width:38px;height:38px;background:rgba(255,255,255,.06)}
+.ctl button:active{transform:scale(.92)}
+.ctl .sep{width:1px;height:26px;background:var(--line)}
+
+.ring{position:relative;height:calc(100% - 22px);aspect-ratio:1/1;margin:4px auto 0;max-width:100%}
+.ring svg{display:block;width:100%;height:100%}
+.ring .bgc{fill:none;stroke:rgba(255,255,255,.08);stroke-width:9}
+.ring .fg{fill:none;stroke-width:9;stroke-linecap:round;transition:stroke-dasharray .6s;filter:drop-shadow(0 0 4px currentColor)}
+.ring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.ring .val small{font-size:.7rem;color:var(--muted);font-weight:500}
+.gauge h3{margin:0;text-align:center;font-size:.75rem;letter-spacing:.1em;color:var(--muted)}
+
+.bars{display:flex;flex-direction:column;gap:9px;margin-top:8px}
+.bar .t{display:flex;justify-content:space-between;font-size:.8rem;color:#cfd5de;font-variant-numeric:tabular-nums}
+.bar .t span:first-child{color:var(--muted)}
+.bar .b{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px}
+.bar .b i{display:block;height:100%;width:0;border-radius:3px;transition:width .6s}
+.vols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 12px}
+.netv{display:flex;gap:14px;font-size:1rem;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+
+.diskgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--gap);height:100%;align-content:start;overflow-y:auto}
+.disk .nm{font-size:1rem;font-weight:600;margin:6px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.kv div{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kv b{display:block;font-size:1.2rem;color:var(--text);font-weight:600;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums;margin-top:2px}
+.badge{font-size:.75rem;padding:2px 8px;border-radius:999px;font-weight:700;flex:none}
+.badge.Good{background:rgba(63,185,80,.16);color:var(--ok)}
+.badge.Caution{background:rgba(227,165,44,.18);color:var(--warn)}
+.badge.Bad{background:rgba(248,81,73,.2);color:var(--bad)}
+.badge.Unknown{background:rgba(255,255,255,.07);color:var(--muted)}
+.drow{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:.875rem;min-width:0}
+.drow:first-of-type{border-top:0}
+.drow .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .v{font-size:.8rem;color:var(--muted);white-space:nowrap}
+
+.deck{display:grid;gap:var(--gap);height:100%;overflow-y:auto}
+.btn{--c:#4a5568;border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:var(--radius);color:#fff;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--c) 34%,#12151c) 0%,#12151c 85%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 6px;font:inherit;font-size:.95rem;font-weight:600;
+  min-width:0;min-height:64px;width:100%;height:100%;transition:transform .08s,filter .2s}
+@supports not (background:color-mix(in srgb,red 50%,blue)){ .btn{background:var(--c)} }
+.btn .ic{font-size:1.9rem;line-height:1}
+.btn .lb{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn:active{transform:scale(.95);filter:brightness(1.3)}
+.btn.done{box-shadow:0 0 0 3px var(--ok)} .btn.fail{box-shadow:0 0 0 3px var(--bad)}
+.empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem;text-align:center}
+
+@media (orientation:portrait){
+  .page{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(54px,auto);overflow-y:auto;align-content:start}
+}
+#toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:#3a1d1d;color:#ffd7d5;border:1px solid var(--bad);
+  padding:10px 16px;border-radius:12px;font-size:15px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;z-index:5}
+#toast.show{opacity:1}
+#offline{position:fixed;inset:0;background:rgba(11,13,18,.88);display:none;align-items:center;justify-content:center;flex-direction:column;
+  gap:8px;text-align:center;padding:24px;font-size:18px;z-index:6}
+#offline.show{display:flex}
+#offline small{color:var(--muted);font-size:14px}
+body.preview #offline,body.preview #gear{display:none!important}
+</style>
+</head>
+<body class="bg-aurora sf-cards">
+<div id="pager"></div>
+<nav id="nav"><span id="pname"></span><div id="dots"></div><a id="gear" href="settings.html" title="Cài đặt">⚙</a></nav>
+<div id="toast"></div>
+<div id="offline"><div>⚠ Mất kết nối với máy tính</div><small>Kiểm tra cáp USB và DeskPanel trên PC. Đang thử lại…</small></div>
+<script>
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var PREVIEW = /[?&]preview/.test(location.search);
+  var cfg = null, cfgVer = -1, appVer = null, ws = null, lastMsg = 0, wakeLock = null, page = 0, pages = [];
+  var H = { cpu: [], gpu: [], ram: [], down: [], up: [] }, HN = 90;
+  var widgets = []; // [{update(s)}]
+  var last = null;  // snapshot gần nhất
+  if (PREVIEW) document.body.classList.add('preview');
+
+  function api(method, url, body){
+    var opt = { method: method, headers: { 'X-DeskPanel': '1' } };
+    if (body !== undefined) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+    return fetch(url, opt).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.error || ('Lỗi ' + r.status)); return j; });
+    });
+  }
+  function toast(msg){
+    var t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function h(html){ var d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild; }
+  function num(v, d){ return (v === null || v === undefined) ? '--' : Number(v).toFixed(d || 0); }
+  function p2(n){ return ('0' + n).slice(-2); }
+  function tcls(t, warn, bad){ return t == null ? '' : (t >= bad ? 'bad' : t >= warn ? 'warn' : 'ok'); }
+  function temp(t, w, b){ return t == null ? '' : '<b class="' + tcls(t, w, b) + '">' + num(t) + '°C</b>'; }
+  function join(a){ return a.filter(Boolean).join(' · ') || '--'; }
+  function speed(b){ if (b == null) return ['--', 'KB/s']; if (b >= 1e6) return [(b / 1048576).toFixed(1), 'MB/s']; return [(b / 1024).toFixed(b < 10240 ? 1 : 0), 'KB/s']; }
+  function push(arr, v){ arr.push(v == null ? 0 : v); if (arr.length > HN) arr.shift(); }
+  function uptime(sec){ var d = Math.floor(sec / 86400), hh = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
+    return 'Bật ' + (d ? d + ' ngày ' : '') + hh + ' giờ' + (d ? '' : ' ' + m + ' phút'); }
+  var ST = { Good: 'Tốt', Caution: 'Chú ý', Bad: 'Hỏng', Unknown: '?' };
+  var DAYS = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+
+  function spark(svg, series, maxFixed){
+    svg.setAttribute('viewBox', '0 0 100 100'); svg.setAttribute('preserveAspectRatio', 'none');
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var max = maxFixed || 1;
+    if (!maxFixed) series.forEach(function(s){ s.data.forEach(function(v){ if (v > max) max = v; }); });
+    series.forEach(function(s, k){
+      var d = s.data, pts = [];
+      for (var i = 0; i < d.length; i++) pts.push(((HN - d.length + i) / (HN - 1) * 100).toFixed(2) + ',' + (100 - Math.min(1, d[i] / max) * 92 - 2).toFixed(2));
+      if (pts.length < 2) return;
+      if (k === 0) { var a = document.createElementNS(NS, 'path'); a.setAttribute('class', 'a'); a.setAttribute('fill', s.color);
+        a.setAttribute('d', 'M' + pts[0].split(',')[0] + ',100 L' + pts.join(' L') + ' L100,100 Z'); svg.appendChild(a); }
+      var l = document.createElementNS(NS, 'path'); l.setAttribute('class', 'l'); l.setAttribute('stroke', s.color); l.setAttribute('d', 'M' + pts.join(' L')); svg.appendChild(l);
+    });
+  }
+  function svgEl(cls){ var s = document.createElementNS(NS, 'svg'); s.setAttribute('class', cls); return s; }
+  function worstDisk(s){ var w = 'Good'; (s.disks || []).forEach(function(k){ if (k.status === 'Bad' || (k.status === 'Caution' && w !== 'Bad')) w = k.status; }); return w; }
+
+  // ================= Các loại widget =================
+  // Mỗi hàm nhận (box, def) và trả về hàm update(snapshot)
+  var W = {};
+
+  W.clock = function(box, d){
+    box.classList.add('bare', 'clockw');
+    box.innerHTML = '<div class="status"><span class="conn"></span><span class="st"></span></div><div class="clock"><span class="hm">--:--</span><sup class="ss">00</sup></div>' +
+      '<div class="date"></div><div class="wx" style="display:none"><span class="ic"></span><span class="t"></span><span class="d"><span class="dd"></span><br><small class="ds"></small></span></div><div class="note"></div>';
+    var q = function(c){ return box.querySelector(c); };
+    function sizeClock(){ q('.clock').style.fontSize = Math.max(28, Math.min(box.clientHeight * 0.5, box.clientWidth * 0.26)) + 'px'; }
+    function tick(){ var t = new Date(); q('.hm').textContent = p2(t.getHours()) + ':' + p2(t.getMinutes()); q('.ss').textContent = p2(t.getSeconds());
+      q('.date').textContent = DAYS[t.getDay()] + ', ' + t.getDate() + ' tháng ' + (t.getMonth() + 1); }
+    tick(); setTimeout(sizeClock, 0);
+    return { tick: tick, resize: sizeClock, update: function(s){
+      var wd = worstDisk(s);
+      q('.st').textContent = (s.host || 'PC') + ' · USB' + (s.disks && s.disks.length ? ' · Ổ cứng: ' + ST[wd] : '') + (s.uptime ? ' · ' + uptime(s.uptime) : '');
+      q('.st').className = 'st ' + (wd === 'Bad' ? 'bad' : wd === 'Caution' ? 'warn' : '');
+      var w = s.weather; q('.wx').style.display = w && !w.error && d.ref !== 'noweather' ? '' : 'none';
+      if (w && !w.error) { q('.wx .ic').textContent = w.icon || ''; q('.wx .t').textContent = num(w.temp) + '°';
+        q('.dd').textContent = [w.desc, w.city].filter(Boolean).join(' · '); q('.ds').textContent = '↑' + num(w.max) + '° ↓' + num(w.min) + '° · Cảm giác ' + num(w.feels) + '°'; }
+      q('.note').textContent = s.note || '';
+    } };
+  };
+
+  W.weather = function(box){
+    box.classList.add('card');
+    box.innerHTML = '<div class="hd"><span class="lab" style="color:#7dd3fc">Thời tiết</span><span class="r city"></span></div><div class="wx" style="margin-top:8px"><span class="ic"></span><span class="t"></span><span class="d"><span class="dd"></span><br><small class="ds"></small></span></div>';
+    var q = function(c){ return box.querySelector(c); };
+    return { update: function(s){
+      var w = s.weather;
+      if (!w) { q('.dd').textContent = 'Chưa bật thời tiết (⚙ → Chung)'; return; }
+      q('.city').textContent = w.city || '';
+      if (w.error) { q('.dd').textContent = w.error; q('.ds').textContent = w.detail || ''; q('.ic').textContent = '🌡️'; q('.t').textContent = ''; return; }
+      q('.ic').textContent = w.icon || ''; q('.t').textContent = num(w.temp) + '°'; q('.dd').textContent = w.desc || '';
+      q('.ds').textContent = '↑' + num(w.max) + '° ↓' + num(w.min) + '° · Cảm giác ' + num(w.feels) + '°';
+    } };
+  };
+
+  W.media = function(box){
+    box.classList.add('card', 'media');
+    box.innerHTML = '<div class="top"><div class="art">🎵</div><div class="meta"><div class="app">Âm nhạc</div><div class="ti">Không có gì đang phát</div><div class="ar">Mở Spotify, YouTube… trên PC</div></div></div>' +
+      '<div class="prog"><div class="b"><i style="width:0"></i></div><div class="tm"><span class="ps">0:00</span><span class="du">0:00</span></div></div>' +
+      '<div class="ctl"><button data-m="prev">⏮</button><button class="pp" data-m="toggle">▶</button><button data-m="next">⏭</button><span class="sep"></span>' +
+      '<button class="sm" data-m="voldown">－</button><button class="sm" data-m="mute">🔇</button><button class="sm" data-m="volup">＋</button></div>';
+    var q = function(c){ return box.querySelector(c); }, artVer = null;
+    Array.prototype.forEach.call(box.querySelectorAll('.ctl button'), function(b){
+      b.onclick = function(){ if (PREVIEW) return; if (navigator.vibrate) navigator.vibrate(12);
+        api('POST', 'api/media/' + b.getAttribute('data-m')).catch(function(e){ toast(e.message); }); };
+    });
+    function mmss(t){ if (t == null) return '0:00'; t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + p2(t % 60); }
+    return { update: function(s){
+      var m = s.media;
+      if (!m || !m.title) { q('.app').textContent = 'Âm nhạc'; q('.ti').textContent = 'Không có gì đang phát'; q('.ar').textContent = 'Mở Spotify, YouTube… trên PC';
+        q('.prog').style.visibility = 'hidden'; q('.pp').textContent = '▶'; if (artVer !== null) { artVer = null; q('.art').textContent = '🎵'; } return; }
+      q('.app').textContent = m.app || 'Âm nhạc'; q('.ti').textContent = m.title; q('.ar').textContent = [m.artist, m.album].filter(Boolean).join(' · ');
+      q('.pp').textContent = m.playing ? '⏸' : '▶';
+      if (m.dur) { q('.prog').style.visibility = ''; q('.prog i').style.width = Math.min(100, m.pos / m.dur * 100) + '%'; q('.ps').textContent = mmss(m.pos); q('.du').textContent = mmss(m.dur); }
+      else q('.prog').style.visibility = 'hidden';
+      if ((m.artVer || null) !== artVer) { artVer = m.artVer || null; var a = q('.art'); a.innerHTML = '';
+        if (artVer) { var im = document.createElement('img'); im.src = 'api/media/art?v=' + artVer; im.onerror = function(){ a.textContent = '🎵'; }; a.appendChild(im); } else a.textContent = '🎵'; }
+    } };
+  };
+
+  function mini(box, d, label, color, fn){
+    box.classList.add('card');
+    box.innerHTML = '<div class="lab"></div><div class="num"><span class="v">--</span><small class="u"></small></div><div class="sub"></div>';
+    box.querySelector('.lab').textContent = d.title || label; box.querySelector('.lab').style.color = d.color || color;
+    var sv = svgEl('spark'); box.appendChild(sv);
+    return { update: function(s){ fn(s, box.querySelector('.v'), box.querySelector('.u'), box.querySelector('.sub'), sv, d.color || color); } };
+  }
+  W.cpu = function(b, d){ return mini(b, d, 'CPU', 'var(--cpu)', function(s, v, u, sub, sv, c){ v.textContent = num(s.cpuLoad); u.textContent = '%';
+    sub.innerHTML = join([temp(s.cpuTemp, 75, 90), s.cpuPower == null ? '' : num(s.cpuPower) + ' W']); spark(sv, [{ data: H.cpu, color: c }], 100); }); };
+  W.gpu = function(b, d){ return mini(b, d, 'GPU', 'var(--gpu)', function(s, v, u, sub, sv, c){ v.textContent = num(s.gpuLoad); u.textContent = '%';
+    sub.innerHTML = join([temp(s.gpuTemp, 75, 88), s.gpuPower == null ? '' : num(s.gpuPower) + ' W']); spark(sv, [{ data: H.gpu, color: c }], 100); }); };
+  W.ram = function(b, d){ return mini(b, d, 'RAM', 'var(--ram)', function(s, v, u, sub, sv, c){ v.textContent = num(s.ramUsed, 1); u.textContent = 'GB';
+    sub.textContent = '/ ' + num(s.ramTotal, 0) + ' GB'; spark(sv, [{ data: H.ram, color: c }], s.ramTotal || 0); }); };
+  W.net = function(b, d){ return mini(b, d, 'Mạng', 'var(--net)', function(s, v, u, sub, sv, c){ var x = speed(s.netDown), y = speed(s.netUp);
+    v.textContent = x[0]; u.textContent = x[1]; sub.textContent = '↑ ' + y[0] + ' ' + y[1]; spark(sv, [{ data: H.down, color: c }]); }); };
+
+  var METRIC = {
+    cpuLoad: ['CPU', function(s){ return [s.cpuLoad, '%', s.cpuLoad]; }],
+    cpuTemp: ['Nhiệt CPU', function(s){ return [s.cpuTemp, '°C', s.cpuTemp]; }],
+    gpuLoad: ['GPU', function(s){ return [s.gpuLoad, '%', s.gpuLoad]; }],
+    gpuTemp: ['Nhiệt GPU', function(s){ return [s.gpuTemp, '°C', s.gpuTemp]; }],
+    ramLoad: ['RAM', function(s){ return [s.ramLoad, '%', s.ramLoad]; }],
+    vram: ['VRAM', function(s){ var p = s.gpuMemTotal ? s.gpuMemUsed / s.gpuMemTotal * 100 : null; return [p, '%', p]; }]
+  };
+  W.gauge = function(box, d){
+    box.classList.add('card', 'gauge');
+    var m = METRIC[d.ref] || METRIC.cpuLoad, C = 2 * Math.PI * 42;
+    box.innerHTML = '<h3></h3><div class="ring"><svg viewBox="0 0 100 100"><circle class="bgc" cx="50" cy="50" r="42"/><circle class="fg" cx="50" cy="50" r="42" transform="rotate(-90 50 50)" stroke-dasharray="0 264"/></svg><div class="val"><span class="v">--</span><small class="u"></small></div></div>';
+    box.querySelector('h3').textContent = (d.title || m[0]).toUpperCase();
+    return { update: function(s){ var r = m[1](s), p = Math.max(0, Math.min(100, r[2] || 0)), fg = box.querySelector('.fg');
+      var col = d.color || (p >= 90 ? '#f85149' : p >= 75 ? '#e3a52c' : 'var(--accent)');
+      fg.setAttribute('stroke-dasharray', (p / 100 * C).toFixed(1) + ' ' + C.toFixed(1)); fg.style.stroke = col; fg.style.color = col;
+      box.querySelector('.v').textContent = num(r[0]); box.querySelector('.u').textContent = r[1]; } };
+  };
+
+  function detail(box, d, label, color, fn){
+    box.classList.add('card');
+    box.innerHTML = '<div class="hd"><span class="lab"></span><span class="r nm"></span></div><div class="hd" style="margin-top:2px"><span class="num"><span class="v">--</span><small>%</small></span><span class="pill">--</span></div>';
+    box.querySelector('.lab').textContent = d.title || label; box.querySelector('.lab').style.color = d.color || color;
+    var sv = svgEl('spark'); box.appendChild(sv);
+    return { update: function(s){ fn(s, box, sv, d.color || color); } };
+  }
+  W.cpuDetail = function(b, d){ return detail(b, d, 'Bộ xử lý', 'var(--cpu)', function(s, x, sv, c){ x.querySelector('.nm').textContent = s.cpuName || ''; x.querySelector('.v').textContent = num(s.cpuLoad);
+    x.querySelector('.pill').innerHTML = join([temp(s.cpuTemp, 75, 90), s.cpuPower == null ? '' : num(s.cpuPower) + ' W', s.cpuClock ? (s.cpuClock / 1000).toFixed(1) + ' GHz' : '']); spark(sv, [{ data: H.cpu, color: c }], 100); }); };
+  W.gpuDetail = function(b, d){ return detail(b, d, 'Đồ họa', 'var(--gpu)', function(s, x, sv, c){ x.querySelector('.nm').textContent = s.gpuName || ''; x.querySelector('.v').textContent = num(s.gpuLoad);
+    x.querySelector('.pill').innerHTML = join([temp(s.gpuTemp, 75, 88), s.gpuPower == null ? '' : num(s.gpuPower) + ' W']); spark(sv, [{ data: H.gpu, color: c }], 100); }); };
+
+  W.memory = function(box, d){
+    box.classList.add('card');
+    box.innerHTML = '<div class="hd"><span class="lab" style="color:var(--ram)"></span><span class="r up"></span></div><div class="bars">' +
+      '<div class="bar"><div class="t"><span>RAM</span><span class="rt">--</span></div><div class="b"><i class="rb" style="background:var(--ram)"></i></div></div>' +
+      '<div class="bar"><div class="t"><span>VRAM</span><span class="vt">--</span></div><div class="b"><i class="vb" style="background:var(--gpu)"></i></div></div><div class="vols"></div></div>';
+    box.querySelector('.lab').textContent = d.title || 'Bộ nhớ';
+    var q = function(c){ return box.querySelector(c); };
+    return { update: function(s){
+      q('.up').textContent = s.uptime ? uptime(s.uptime) : '';
+      q('.rt').textContent = num(s.ramUsed, 1) + ' / ' + num(s.ramTotal, 0) + ' GB'; q('.rb').style.width = (s.ramLoad || 0) + '%';
+      q('.vt').textContent = s.gpuMemUsed == null ? '--' : (s.gpuMemUsed / 1024).toFixed(1) + ' / ' + (s.gpuMemTotal ? (s.gpuMemTotal / 1024).toFixed(0) : '?') + ' GB';
+      q('.vb').style.width = (s.gpuMemTotal ? s.gpuMemUsed / s.gpuMemTotal * 100 : 0) + '%';
+      var v = q('.vols'); v.innerHTML = '';
+      (s.disks || []).forEach(function(k){ if (k.usedPct == null) return;
+        var b = el('div', 'bar'), t = el('div', 't'); t.appendChild(el('span', null, k.letters || k.name.slice(0, 10))); t.appendChild(el('span', null, num(k.usedPct) + '%'));
+        var bb = el('div', 'b'), i = el('i'); i.style.width = k.usedPct + '%'; i.style.background = k.usedPct >= 90 ? 'var(--bad)' : '#aab2bf'; bb.appendChild(i);
+        b.appendChild(t); b.appendChild(bb); v.appendChild(b); });
+    } };
+  };
+
+  W.netDetail = function(box, d){
+    box.classList.add('card');
+    box.innerHTML = '<div class="hd"><span class="lab" style="color:var(--net)"></span><span class="r nm"></span></div><div class="netv"><span style="color:var(--net)">↓ <span class="dn">--</span></span><span style="color:var(--up)">↑ <span class="upv">--</span></span></div>';
+    box.querySelector('.lab').textContent = d.title || 'Mạng';
+    var sv = svgEl('spark'); sv.style.height = '62%'; box.appendChild(sv);
+    return { update: function(s){ box.querySelector('.nm').textContent = s.netName || ''; box.querySelector('.dn').textContent = speed(s.netDown).join(' ');
+      box.querySelector('.upv').textContent = speed(s.netUp).join(' '); spark(sv, [{ data: H.down, color: 'var(--net)' }, { data: H.up, color: 'var(--up)' }]); } };
+  };
+
+  W.disks = function(box){
+    box.classList.add('diskgrid');
+    return { update: function(s){
+      box.innerHTML = '';
+      (s.disks || []).forEach(function(k){
+        var c = el('div', 'card disk w'), hd = el('div', 'hd');
+        hd.appendChild(el('span', 'badge ' + (ST[k.status] ? k.status : 'Unknown'), 'Sức khỏe: ' + (ST[k.status] || k.status)));
+        hd.appendChild(el('span', 'r', [k.letters, k.sizeGb ? (k.sizeGb >= 1000 ? (k.sizeGb / 1000).toFixed(1) + ' TB' : k.sizeGb + ' GB') : ''].filter(Boolean).join(' · ')));
+        c.appendChild(hd); c.appendChild(el('div', 'nm', k.name));
+        var kv = el('div', 'kv');
+        [['Nhiệt độ', k.temp == null ? '--' : k.temp + '°C', tcls(k.temp, 50, 60)],
+         ['Tuổi thọ', k.life == null ? '--' : k.life + '%', k.life == null ? '' : k.life <= 10 ? 'bad' : k.life <= 30 ? 'warn' : 'ok'],
+         ['Giờ chạy', k.powerOnHours == null ? '--' : Number(k.powerOnHours).toLocaleString('vi-VN'), ''],
+         ['Đã ghi', k.writtenGb == null ? '--' : (k.writtenGb >= 1000 ? (k.writtenGb / 1000).toFixed(1) + ' TB' : k.writtenGb + ' GB'), '']
+        ].forEach(function(x){ var dv = el('div', null, x[0]); dv.appendChild(el('b', x[2], x[1])); kv.appendChild(dv); });
+        c.appendChild(kv);
+        if (k.usedPct != null) { var bar = el('div', 'bar'); bar.style.marginTop = '10px';
+          var t = el('div', 't'); t.appendChild(el('span', null, 'Đã dùng')); t.appendChild(el('span', null, num(k.usedPct) + '%'));
+          var bb = el('div', 'b'), i = el('i'); i.style.width = k.usedPct + '%'; i.style.background = k.usedPct >= 90 ? 'var(--bad)' : '#aab2bf';
+          bb.appendChild(i); bar.appendChild(t); bar.appendChild(bb); c.appendChild(bar); }
+        box.appendChild(c);
+      });
+      if (!s.disks || !s.disks.length) box.appendChild(el('div', 'card empty', 'Không đọc được ổ cứng'));
+    } };
+  };
+
+  W.diskSummary = function(box, d){
+    box.classList.add('card');
+    box.innerHTML = '<div class="hd"><span class="lab" style="color:#cfd5de"></span><span class="r sm"></span></div><div class="ls" style="margin-top:6px"></div>';
+    box.querySelector('.lab').textContent = d.title || 'Ổ cứng';
+    return { update: function(s){
+      var ls = box.querySelector('.ls'); ls.innerHTML = '';
+      (s.disks || []).forEach(function(k){ var r = el('div', 'drow');
+        r.appendChild(el('span', 'badge ' + (ST[k.status] ? k.status : 'Unknown'), ST[k.status] || k.status));
+        r.appendChild(el('span', 'nm', (k.letters ? k.letters + '  ' : '') + k.name));
+        r.appendChild(el('span', 'v', [k.temp == null ? '' : k.temp + '°C', k.life == null ? '' : k.life + '%'].filter(Boolean).join(' · '))); ls.appendChild(r); });
+      var w = worstDisk(s), sm = box.querySelector('.sm');
+      sm.textContent = s.disks && s.disks.length ? (w === 'Good' ? 'Tất cả ổ đều tốt' : w === 'Bad' ? 'Có ổ sắp hỏng!' : 'Có ổ cần chú ý') : '';
+      sm.className = 'r sm ' + (w === 'Good' ? 'ok' : w === 'Bad' ? 'bad' : 'warn');
+    } };
+  };
+
+  function makeButton(b){
+    var e = el('button', 'btn');
+    if (b.color) e.style.setProperty('--c', b.color);
+    e.appendChild(el('div', 'ic', b.icon || '●')); e.appendChild(el('div', 'lb', b.label));
+    e.onclick = function(){
+      if (PREVIEW) return;
+      if (navigator.vibrate) navigator.vibrate(15);
+      e.classList.remove('done', 'fail');
+      api('POST', 'api/action/' + encodeURIComponent(b.id)).then(function(){ e.classList.add('done'); })
+        .catch(function(x){ e.classList.add('fail'); toast(b.label + ': ' + x.message); })
+        .then(function(){ setTimeout(function(){ e.classList.remove('done', 'fail'); }, 700); });
+    };
+    return e;
+  }
+  W.buttons = function(box, d){
+    box.classList.add('deck');
+    var items = cfg.buttons.filter(function(b){ return b.group === d.ref; });
+    var cols = Math.max(1, Math.min(items.length || 1, Math.round((cfg.columns || 4) * d.w / 12) || 1));
+    var rows = Math.max(1, Math.ceil(items.length / cols));
+    box.style.gridTemplateColumns = 'repeat(' + cols + ',minmax(0,1fr))';
+    box.style.gridAutoRows = rows <= Math.max(1, d.h * 0.75) ? '1fr' : 'minmax(76px,auto)';
+    items.forEach(function(b){ box.appendChild(makeButton(b)); });
+    if (!items.length) { box.classList.add('card', 'empty'); box.textContent = 'Nhóm "' + (d.ref || '') + '" chưa có nút'; }
+    return {};
+  };
+  W.button = function(box, d){
+    var b = cfg.buttons.filter(function(x){ return x.id === d.ref; })[0];
+    if (!b) { box.classList.add('card', 'empty'); box.textContent = 'Chưa chọn nút'; return {}; }
+    box.appendChild(makeButton(b)); return {};
+  };
+
+  // ================= Dựng trang =================
+  function applyTheme(t){
+    t = t || {};
+    var r = document.documentElement.style;
+    r.setProperty('--accent', t.accent || '#58a6ff'); r.setProperty('--radius', (t.radius == null ? 16 : t.radius) + 'px');
+    r.setProperty('--gap', (t.gap == null ? 10 : t.gap) + 'px'); r.setProperty('--fs', (t.fontScale || 100) / 100);
+    document.body.className = document.body.className.replace(/\b(bg|sf)-\w+/g, '').trim() + ' bg-' + (t.background || 'aurora') + ' sf-' + (t.surface || 'cards');
+  }
+
+  function build(){
+    applyTheme(cfg.theme);
+    var pager = $('pager'); pager.innerHTML = ''; widgets = [];
+    var portrait = window.matchMedia('(orientation:portrait)').matches;
+    pages = (cfg.pages || []).filter(function(p){ return !p.hidden || PREVIEW; });
+    pages.forEach(function(p){
+      var sec = el('section', 'page'); sec.setAttribute('data-name', p.name); sec.setAttribute('data-id', p.id);
+      var ws = (p.widgets || []).slice().sort(function(a, b){ return a.y - b.y || a.x - b.x; });
+      ws.forEach(function(d){
+        var box = el('div', 'w w-' + d.type);
+        if (portrait) { box.style.gridColumn = 'span ' + (d.w >= 7 || d.type === 'buttons' || d.type === 'disks' ? 2 : 1); box.style.gridRow = 'span ' + Math.max(2, d.h); }
+        else { box.style.gridColumn = (d.x + 1) + ' / span ' + d.w; box.style.gridRow = (d.y + 1) + ' / span ' + d.h; }
+        sec.appendChild(box);
+        try { var w = (W[d.type] || function(b){ b.classList.add('card', 'empty'); b.textContent = d.type; return {}; })(box, d); w.def = d; widgets.push(w); }
+        catch (e) { console.error(e); }
+      });
+      if (!ws.length) sec.appendChild(h('<div class="w card empty" style="grid-column:1/-1;grid-row:1/-1">Trang trống. Thêm widget trong ⚙ Cài đặt.</div>'));
+      pager.appendChild(sec);
+    });
+    var dots = $('dots'); dots.innerHTML = '';
+    pages.forEach(function(p, i){ var d = el('i'); d.onclick = function(){ go(i); }; dots.appendChild(d); });
+    var saved = null; try { saved = localStorage.getItem('dp.page'); } catch(e) {}
+    var idx = -1; pages.forEach(function(p, i){ if (p.id === saved) idx = i; });
+    go(idx >= 0 ? idx : Math.min(page, Math.max(0, pages.length - 1)), true);
+    setTimeout(function(){ widgets.forEach(function(w){ if (w.resize) w.resize(); }); if (last) render(last, true); }, 0);
+  }
+  function go(i, instant){
+    if (!pages.length) return;
+    page = (i + pages.length) % pages.length;
+    var pager = $('pager');
+    if (instant) pager.style.transition = 'none';
+    pager.style.transform = 'translateX(' + (-page * 100) + 'vw)';
+    if (instant) { pager.offsetWidth; pager.style.transition = ''; }
+    Array.prototype.forEach.call($('dots').children, function(d, k){ d.className = k === page ? 'on' : ''; });
+    $('pname').textContent = pages[page].name;
+    if (!PREVIEW) try { localStorage.setItem('dp.page', pages[page].id); } catch(e) {}
+  }
+  var sx = null, sy = 0;
+  document.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    if (sx === null) return;
+    var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    go(page + (dx < 0 ? 1 : -1));
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'ArrowRight') go(page + 1); if (e.key === 'ArrowLeft') go(page - 1); });
+  var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(function(){ if (cfg) build(); }, 200); });
+
+  function render(s, noPush){
+    last = s;
+    if (!noPush) { push(H.cpu, s.cpuLoad); push(H.gpu, s.gpuLoad); push(H.ram, s.ramUsed); push(H.down, s.netDown); push(H.up, s.netUp); }
+    widgets.forEach(function(w){ if (w.update) try { w.update(s); } catch(e) { console.error(e); } });
+    if (PREVIEW) return;
+    if (s.appVer) { if (appVer && appVer !== s.appVer) { location.reload(); return; } appVer = s.appVer; }
+    if (s.cfgVer !== cfgVer) { cfgVer = s.cfgVer; loadConfig().catch(function(){}); }
+  }
+  function loadConfig(){ return api('GET', 'api/config').then(function(c){ cfg = c; build(); }); }
+
+  setInterval(function(){ widgets.forEach(function(w){ if (w.tick) w.tick(); }); }, 1000);
+
+  function connect(){
+    ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+    ws.onmessage = function(ev){
+      lastMsg = Date.now(); document.body.classList.add('online'); $('offline').classList.remove('show');
+      try { render(JSON.parse(ev.data)); } catch(e) { console.error(e); }
+    };
+    ws.onclose = function(){ document.body.classList.remove('online'); setTimeout(connect, 2000); };
+    ws.onerror = function(){ try { ws.close(); } catch(e) {} };
+  }
+  setInterval(function(){ if (Date.now() - lastMsg > 5000) { document.body.classList.remove('online'); $('offline').classList.add('show'); } }, 1000);
+
+  function keepAwake(){
+    if (PREVIEW || !('wakeLock' in navigator) || wakeLock) return;
+    navigator.wakeLock.request('screen').then(function(l){ wakeLock = l; l.addEventListener('release', function(){ wakeLock = null; }); }).catch(function(){});
+  }
+  document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') keepAwake(); });
+  document.addEventListener('click', function(){
+    if (PREVIEW) return;
+    var de = document.documentElement;
+    if (!document.fullscreenElement && de.requestFullscreen) de.requestFullscreen().catch(function(){});
+    keepAwake();
+  });
+
+  // Chế độ xem trước: trang cài đặt gửi cấu hình nháp qua postMessage
+  if (PREVIEW) {
+    window.addEventListener('message', function(e){
+      if (e.origin !== location.origin || !e.data || e.data.type !== 'dp-preview') return;
+      cfg = e.data.cfg; build();
+      if (e.data.pageId) pages.forEach(function(p, i){ if (p.id === e.data.pageId) go(i, true); });
+    });
+    if (window.parent !== window) window.parent.postMessage({ type: 'dp-preview-ready' }, location.origin);
+  } else {
+    loadConfig().catch(function(e){ toast(e.message); });
+  }
+  lastMsg = Date.now();
+  connect();
+})();
+</script>
+</body>
+</html>

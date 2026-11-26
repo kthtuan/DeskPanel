@@ -1,0 +1,3 @@
+- Nút cập nhật trong trang cài đặt (thẻ Chung): chọn file zip hoặc cài thẳng bản mới từ GitHub.
+- Thời tiết có nguồn dự phòng (MET Norway, wttr.in) khi Open-Meteo báo lỗi 429.
+- Trang cài đặt mới: kéo thả widget trên lưới 12×6, nhiều trang, chỉnh giao diện, xem trước trực tiếp.

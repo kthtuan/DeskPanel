@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeskPanel – Cài đặt</title>
+<style>
+:root{--bg:#0b0d12;--panel:#12161d;--panel2:#1a1f29;--panel3:#222835;--line:#262d3a;--text:#e6edf3;--muted:#8b96a3;
+  --ok:#3fb950;--warn:#e3a52c;--bad:#f85149;--accent:#58a6ff;--sel:#58a6ff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;display:flex;flex-direction:column}
+a{color:var(--accent)}
+.muted{color:var(--muted)}
+input,select{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;width:100%}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+input[type=checkbox]{width:auto;margin:0 6px 0 0;vertical-align:-2px}
+input[type=color]{padding:2px;height:34px;width:46px;flex:none;cursor:pointer}
+input[type=range]{padding:0;border:0;background:none;accent-color:var(--accent)}
+input[type=number]{padding:6px 6px}
+button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font:inherit;cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:default;border-color:var(--line)}
+button.primary{background:var(--accent);color:#04111f;border-color:var(--accent);font-weight:600}
+button.danger{color:var(--bad)}
+button.sm{padding:3px 8px;font-size:13px}
+button.ghost{background:none;border-color:transparent}
+button.ghost:hover{background:var(--panel2)}
+label.l{display:block;font-size:12px;color:var(--muted);margin:0 0 4px}
+.f{margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{min-width:0}
+.row>button{flex:none}
+.hide{display:none!important}
+.help{font-size:12px;color:var(--muted);margin-top:4px}
+h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600}
+
+/* Thanh trên cùng */
+header{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+.brand{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text)}
+.brand i{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#58a6ff,#a855f7);display:inline-block}
+nav.tabs{display:flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
+nav.tabs button{border:0;background:none;color:var(--muted);padding:6px 14px;border-radius:7px}
+nav.tabs button.on{background:var(--panel3);color:var(--text)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;font-size:12px}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:3px 10px;color:var(--muted);white-space:nowrap}
+.chip b{font-weight:600;color:var(--text)}
+.chip .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);margin-right:5px;vertical-align:1px}
+.chip.ok .dot{background:var(--ok)} .chip.bad .dot{background:var(--bad)}
+.spacer{flex:1}
+.save{display:flex;gap:8px;align-items:center}
+#msg{color:var(--muted);font-size:13px;max-width:420px;text-align:right}
+#msg.err{color:var(--bad)} #msg.ok{color:var(--ok)} #msg.dirty{color:var(--warn)}
+
+main{flex:1;min-height:0;overflow:auto}
+.view{padding:14px;height:100%}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+
+/* Trang & widget */
+#vPages{display:grid;grid-template-columns:230px minmax(0,1fr) 300px;gap:14px;align-items:start}
+.plist{display:flex;flex-direction:column;gap:4px}
+.pitem{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:9px;cursor:pointer;border:1px solid transparent}
+.pitem:hover{background:var(--panel2)}
+.pitem.on{background:var(--panel3);border-color:var(--line)}
+.pitem .ic{width:26px;text-align:center;font-size:16px}
+.pitem .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pitem .cnt{font-size:11px;color:var(--muted)}
+.pitem.hid .nm{color:var(--muted);text-decoration:line-through}
+.pitem[draggable=true]{cursor:grab}
+.pitem.dropb{box-shadow:0 2px 0 var(--accent)} .pitem.dropt{box-shadow:0 -2px 0 var(--accent)}
+
+.center{display:flex;flex-direction:column;gap:14px;min-width:0}
+.edhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.edhead .t{font-weight:600;font-size:15px}
+.canvas{position:relative;width:100%;aspect-ratio:2.4/1;background:#0a0c10;border:1px solid var(--line);border-radius:12px;
+  background-image:linear-gradient(to right,rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:calc(100%/12) calc(100%/6);touch-action:none;user-select:none}
+.canvas.over{outline:2px dashed var(--accent);outline-offset:2px}
+.wb{position:absolute;padding:3px}
+.wb>div{position:absolute;inset:3px;border-radius:9px;background:var(--panel2);border:1px solid #333c4c;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:grab;padding:4px;transition:border-color .1s}
+.wb .ic{font-size:22px;line-height:1}
+.wb .nm{font-size:12px;font-weight:600;margin-top:4px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wb .rf{font-size:11px;color:var(--muted);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wb .sz{position:absolute;left:7px;top:4px;font-size:10px;color:var(--muted)}
+.wb .hdl{position:absolute;right:3px;bottom:3px;width:16px;height:16px;cursor:nwse-resize;border-radius:0 0 8px 0;
+  background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.35) 50%)}
+.wb.sel>div{border:2px solid var(--sel);box-shadow:0 0 0 3px rgba(88,166,255,.18)}
+.wb.drag{z-index:5}.wb.drag>div{cursor:grabbing;opacity:.9}
+.wb.bad>div{border-color:var(--bad)!important;background:rgba(248,81,73,.15)}
+.ghost{position:absolute;border:2px dashed var(--accent);border-radius:9px;pointer-events:none;background:rgba(88,166,255,.08)}
+.ghost.bad{border-color:var(--bad);background:rgba(248,81,73,.1)}
+.empty-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);pointer-events:none;font-size:13px;text-align:center;padding:20px}
+
+.pv{position:relative;width:100%;aspect-ratio:915/412;border-radius:16px;overflow:hidden;background:#000;border:6px solid #1c2029;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.pv iframe{position:absolute;left:0;top:0;width:915px;height:412px;border:0;transform-origin:0 0;pointer-events:none}
+.pvbar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+
+.cat{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.citem{display:flex;gap:8px;align-items:center;padding:7px 8px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);cursor:grab;user-select:none}
+.citem:hover{border-color:var(--accent)}
+.citem .ic{font-size:18px;width:22px;text-align:center;flex:none}
+.citem .nm{font-size:12.5px;line-height:1.25}
+.citem .nm small{display:block;color:var(--muted);font-size:11px}
+.catg{grid-column:1/-1;font-size:11px;color:var(--muted);margin:8px 0 0;text-transform:uppercase;letter-spacing:.06em}
+.side{display:flex;flex-direction:column;gap:14px}
+.ihd{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:15px}.ihd .ic{font-size:18px}.ihd b{flex:1}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+
+/* Giao diện */
+#vTheme{display:grid;grid-template-columns:340px minmax(0,1fr);gap:14px;align-items:start}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.opt{border:1px solid var(--line);border-radius:9px;padding:8px 6px;text-align:center;cursor:pointer;font-size:12px;background:var(--panel2)}
+.opt .sw{height:34px;border-radius:6px;margin-bottom:5px;border:1px solid var(--line)}
+.opt.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(88,166,255,.25)}
+.swatches{display:flex;gap:6px;flex-wrap:wrap}
+.swatches i{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+.swatches i.on{border-color:#fff}
+.rng{display:flex;align-items:center;gap:10px}
+.rng span{width:52px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+/* Nút bấm & chung */
+.narrow{max-width:960px;margin:0 auto}
+.grp{margin-bottom:16px}
+.grph{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.grph .t{font-weight:600;font-size:15px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:8px}
+.tile{border-radius:12px;padding:10px;background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--c,#4a5568);display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile .top{display:flex;align-items:center;gap:8px}
+.tile .ic{font-size:20px}
+.tile .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .ds{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .acts{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tile .acts button{padding:2px 7px;font-size:12px}
+.status div{margin:3px 0}
+
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:16px;width:min(560px,94vw)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h2{margin:0 0 12px;font-size:17px}
+.tpls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tpl{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);cursor:pointer;text-align:left}
+.tpl b{display:block;margin-bottom:2px}
+.tpl small{color:var(--muted)}
+
+@media (max-width:1200px){ #vPages{grid-template-columns:200px minmax(0,1fr)} #vPages .side{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr} }
+@media (max-width:820px){
+  #vPages,#vTheme{grid-template-columns:minmax(0,1fr)} #vPages .side{display:flex}
+  .plist{flex-direction:row;overflow-x:auto} .pitem{flex:none}
+  header{gap:8px} #msg{text-align:left}
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="./" title="Về màn hình chính"><i></i>DeskPanel</a>
+  <nav class="tabs" id="tabs">
+    <button data-v="vPages" class="on">Trang &amp; widget</button>
+    <button data-v="vButtons">Nút bấm</button>
+    <button data-v="vTheme">Giao diện</button>
+    <button data-v="vGeneral">Chung</button>
+  </nav>
+  <div class="chips" id="chips"></div>
+  <div class="spacer"></div>
+  <div class="save">
+    <span id="msg">Đang tải…</span>
+    <button id="undo" title="Ctrl+Z">↶</button>
+    <button id="redo" title="Ctrl+Y">↷</button>
+    <button id="revert">Bỏ thay đổi</button>
+    <button class="primary" id="save">Lưu</button>
+  </div>
+</header>
+
+<main>
+  <!-- TRANG & WIDGET -->
+  <section class="view" id="vPages">
+    <div class="box">
+      <h3>Trang</h3>
+      <div class="plist" id="plist"></div>
+      <div class="row" style="margin-top:10px"><button class="primary" id="addPage" style="flex:1">+ Thêm trang</button></div>
+      <div class="help">Kéo để đổi thứ tự. Thứ tự này là thứ tự khi vuốt trên điện thoại.</div>
+    </div>
+
+    <div class="center">
+      <div class="box">
+        <div class="edhead">
+          <span class="t" id="edTitle"></span>
+          <span class="muted" id="edInfo"></span>
+          <span class="spacer"></span>
+          <button class="sm" id="autoFill" title="Xếp lại widget lấp chỗ trống từ trên xuống">Dồn lên</button>
+          <button class="sm danger" id="clearPage">Xóa hết widget</button>
+        </div>
+        <div class="canvas" id="canvas"><div class="empty-hint" id="emptyHint">Kéo widget từ danh sách bên phải thả vào đây,<br>hoặc bấm vào widget để thêm vào chỗ trống đầu tiên.</div></div>
+        <div class="help">Kéo để di chuyển, kéo góc dưới phải để đổi kích thước. Lưới 12 × 6 ô. Phím mũi tên dịch widget đang chọn, Delete để xóa.</div>
+      </div>
+      <div class="box">
+        <div class="pvbar"><h3 style="margin:0">Xem trước trên điện thoại</h3><span class="spacer"></span><span class="help" style="margin:0">Số liệu thật từ PC, cập nhật khi bạn sửa</span></div>
+        <div class="pv" data-pv><iframe title="Xem trước" data-src="index.html?preview"></iframe></div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="box" id="insp"></div>
+      <div class="box">
+        <h3>Thêm widget</h3>
+        <input id="catQ" placeholder="Tìm widget…" style="margin-bottom:4px">
+        <div class="cat" id="cat"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NÚT BẤM -->
+  <section class="view hide" id="vButtons">
+    <div class="narrow">
+      <div class="row" style="margin-bottom:12px">
+        <div class="help" style="flex:1;margin:0">Thư viện nút. Mỗi nhóm hiện trên điện thoại qua widget <b>Nhóm nút</b>; từng nút lẻ có thể đặt riêng bằng widget <b>Một nút</b>.
+          Trong AutoCAD, dấu cách tương đương Enter, nên lệnh <code>Z E</code> = ZOOM rồi Extents.</div>
+        <button class="primary" id="addBtn">+ Thêm nút</button>
+      </div>
+      <div id="blist"></div>
+    </div>
+  </section>
+
+  <!-- GIAO DIỆN -->
+  <section class="view hide" id="vTheme">
+    <div class="box">
+      <div class="f"><label class="l">Màu nhấn</label>
+        <div class="row"><input type="color" id="tAccent"><div class="swatches" id="swatches"></div></div></div>
+      <div class="f"><label class="l">Nền</label><div class="opts" id="tBg"></div></div>
+      <div class="f"><label class="l">Kiểu thẻ</label><div class="opts" id="tSf"></div></div>
+      <div class="f"><label class="l">Bo góc</label><div class="rng"><input type="range" id="tRadius" min="0" max="32"><span id="tRadiusV"></span></div></div>
+      <div class="f"><label class="l">Khoảng cách giữa các thẻ</label><div class="rng"><input type="range" id="tGap" min="0" max="24"><span id="tGapV"></span></div></div>
+      <div class="f"><label class="l">Cỡ chữ</label><div class="rng"><input type="range" id="tFont" min="60" max="180" step="5"><span id="tFontV"></span></div></div>
+      <div class="f"><label class="l">Số cột tối đa của widget Nhóm nút (khi rộng hết màn hình)</label><div class="rng"><input type="range" id="tCols" min="2" max="8"><span id="tColsV"></span></div></div>
+      <button id="tReset">Về mặc định</button>
+    </div>
+    <div class="box">
+      <div class="pvbar"><h3 style="margin:0">Xem trước</h3><span class="spacer"></span>
+        <select id="pvPage" style="width:auto"></select></div>
+      <div class="pv" data-pv><iframe title="Xem trước" data-src="index.html?preview"></iframe></div>
+    </div>
+  </section>
+
+  <!-- CHUNG -->
+  <section class="view hide" id="vGeneral">
+    <div class="narrow">
+      <div class="box status" id="status" style="margin-bottom:14px"><div class="muted">Đang tải…</div></div>
+      <div class="box grid2">
+        <div><label class="l">Thành phố xem thời tiết (để trống = tắt)</label><input id="weatherCity" maxlength="60" placeholder="Ho Chi Minh City, Hanoi, Da Nang…"><div class="help">Có thể nhập tọa độ dạng <code>10.78,106.70</code>. Tình trạng xem ở khung phía trên.</div></div>
+        <div><label class="l">Cổng (đổi xong cần khởi động lại DeskPanel)</label><input id="port" type="number" min="1024" max="65535"></div>
+        <div><label class="l">Đường dẫn adb.exe (để trống = tự tìm)</label><input id="adbPath" placeholder="C:\DeskPanel\platform-tools\adb.exe"></div>
+        <div style="align-self:end"><label><input id="autoAdb" type="checkbox">Tự nối điện thoại qua USB (adb reverse)</label></div>
+      </div>
+      <div class="box" style="margin-top:14px" id="updBox">
+        <h3>Cập nhật DeskPanel</h3>
+        <div class="f">Bản đang chạy: <b id="uCur">…</b></div>
+        <div class="grid2">
+          <div>
+            <label class="l">Cập nhật từ file zip đã tải về (DeskPanel-…-win-x64.zip)</label>
+            <div class="row"><input type="file" id="uFile" accept=".zip,application/zip"><button class="primary" id="uSend">Cập nhật</button></div>
+            <div class="help">Không cần giải nén. DeskPanel tự thay bản cũ, giữ nguyên các nút và trang, rồi chạy lại. Điện thoại tự tải lại.</div>
+          </div>
+          <div>
+            <label class="l">Tự kiểm tra bản mới trên GitHub (repo công khai, dạng chu/ten-repo)</label>
+            <div class="row"><input id="updateRepo" maxlength="140" placeholder="vd: tentoi/deskpanel"><button id="uCheck">Kiểm tra</button></div>
+            <div class="help" id="uGh">Điền repo rồi bấm Lưu. DeskPanel kiểm tra 6 giờ một lần.</div>
+            <button class="primary hide" id="uGhInstall" style="margin-top:8px"></button>
+          </div>
+        </div>
+        <div id="uMsg" class="help" style="font-size:13px"></div>
+      </div>
+      <p class="muted" style="font-size:13px">Xem toàn bộ cảm biến đọc được: <a href="api/sensors" target="_blank">api/sensors</a>. Nhật ký lỗi: <code>deskpanel.log</code> trong thư mục cài DeskPanel.</p>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlgPage">
+  <form method="dialog">
+    <h2>Thêm trang</h2>
+    <div class="tpls" id="tpls"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button value="cancel">Hủy</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg">
+  <form method="dialog" id="form">
+    <h2 id="dlgTitle">Sửa nút</h2>
+    <div class="grid2">
+      <div class="f"><label class="l">Tên hiển thị</label><input id="fLabel" maxlength="40" required></div>
+      <div class="f"><label class="l">Nhóm</label><input id="fGroup" maxlength="30" list="groups" required><datalist id="groups"></datalist></div>
+      <div class="f"><label class="l">Biểu tượng (emoji)</label><input id="fIcon" maxlength="8"></div>
+      <div class="f"><label class="l">Màu</label><input id="fColor" type="color"></div>
+    </div>
+    <div class="f"><label class="l">Loại</label>
+      <select id="fType">
+        <option value="cad">Lệnh AutoCAD</option>
+        <option value="run">Mở chương trình</option>
+        <option value="url">Mở trang web / thư mục</option>
+        <option value="keys">Tổ hợp phím</option>
+        <option value="text">Gõ chữ</option>
+      </select>
+    </div>
+    <div class="f"><label class="l" id="fValueLabel">Nội dung</label><input id="fValue" maxlength="1000" required><div class="help" id="fHelp"></div></div>
+    <div class="f" id="rowArgs"><label class="l">Tham số (không bắt buộc)</label><input id="fArgs" maxlength="1000">
+      <div class="help">Để trống thì chương trình mở với quyền thường. Có tham số thì chương trình sẽ chạy với quyền admin.</div></div>
+    <div class="f" id="rowFocus"><label class="l">Đưa chương trình này lên trước khi gửi (tên tiến trình, không bắt buộc)</label><input id="fFocus" placeholder="acad,acadlt">
+      <div class="help">Ví dụ <code>acad</code> cho AutoCAD, <code>chrome</code>, <code>EXCEL</code>. Để trống thì gửi vào cửa sổ đang mở.</div></div>
+    <div class="f" id="rowEnter"><label><input type="checkbox" id="fEnter">Nhấn Enter sau khi gõ</label></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button value="cancel" formnovalidate>Hủy</button>
+      <button class="primary" value="ok">Xong</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var GW = 12, GH = 6;
+  var saved = null, cfg = null, cur = 0, sel = null, hist = [], fut = [], editing = -1;
+
+  // ---------- Danh mục widget ----------
+  var WT = {
+    clock:       { ic: '🕒', nm: 'Đồng hồ',          ds: 'Giờ, ngày, thời tiết',      g: 'Chung',     w: 6, h: 4 },
+    weather:     { ic: '⛅', nm: 'Thời tiết',         ds: 'Nhiệt độ, cao/thấp',        g: 'Chung',     w: 4, h: 2 },
+    media:       { ic: '🎵', nm: 'Nhạc đang phát',    ds: 'Spotify, YouTube…',         g: 'Chung',     w: 6, h: 4 },
+    cpu:         { ic: '🧠', nm: 'CPU',               ds: 'Tải + đồ thị',              g: 'Ô số liệu', w: 3, h: 2 },
+    gpu:         { ic: '🎮', nm: 'GPU',               ds: 'Tải + đồ thị',              g: 'Ô số liệu', w: 3, h: 2 },
+    ram:         { ic: '🧩', nm: 'RAM',               ds: 'Đã dùng + đồ thị',          g: 'Ô số liệu', w: 3, h: 2 },
+    net:         { ic: '🌐', nm: 'Mạng',              ds: 'Tải xuống/lên',             g: 'Ô số liệu', w: 3, h: 2 },
+    gauge:       { ic: '🎯',  nm: 'Vòng đo',           ds: 'Một chỉ số tự chọn',        g: 'Ô số liệu', w: 2, h: 3 },
+    cpuDetail:   { ic: '🧠', nm: 'Bộ xử lý (chi tiết)', ds: 'Tải, nhiệt, công suất',   g: 'Chi tiết',  w: 6, h: 3 },
+    gpuDetail:   { ic: '🎮', nm: 'Đồ họa (chi tiết)',  ds: 'Tải, nhiệt, VRAM',        g: 'Chi tiết',  w: 6, h: 3 },
+    memory:      { ic: '🧩', nm: 'Bộ nhớ',            ds: 'RAM, VRAM, các ổ',          g: 'Chi tiết',  w: 6, h: 3 },
+    netDetail:   { ic: '🌐', nm: 'Mạng (chi tiết)',   ds: 'Đồ thị lên/xuống',          g: 'Chi tiết',  w: 6, h: 3 },
+    disks:       { ic: '💽', nm: 'Ổ cứng',            ds: 'Thẻ SMART từng ổ',          g: 'Ổ cứng',    w: 12, h: 6 },
+    diskSummary: { ic: '🩺', nm: 'Tóm tắt ổ cứng',    ds: 'Sức khỏe chung',            g: 'Ổ cứng',    w: 4, h: 2 },
+    buttons:     { ic: '🎛️', nm: 'Nhóm nút',          ds: 'Cả một nhóm nút',           g: 'Nút bấm',   w: 12, h: 3 },
+    button:      { ic: '🔘', nm: 'Một nút',           ds: 'Nút lẻ, to tùy ý',          g: 'Nút bấm',   w: 2, h: 2 },
+  };
+  var METRICS = { cpuLoad: 'Tải CPU', cpuTemp: 'Nhiệt độ CPU', gpuLoad: 'Tải GPU', gpuTemp: 'Nhiệt độ GPU', ramLoad: 'RAM đã dùng', vram: 'VRAM đã dùng' };
+  var ACCENTS = ['#58a6ff', '#3fc8b0', '#9ccc3c', '#e3a52c', '#f0883e', '#f85149', '#db61a2', '#a98bfa'];
+  var THEME0 = { accent: '#58a6ff', background: 'aurora', surface: 'cards', radius: 16, gap: 10, fontScale: 100 };
+
+  // ---------- Tiện ích ----------
+  function api(method, url, body){
+    var opt = { method: method, headers: { 'X-DeskPanel': '1' } };
+    if (body !== undefined) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+    return fetch(url, opt).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.error || ('Lỗi ' + r.status)); return j; });
+    });
+  }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function btn(text, fn, cls, title){ var b = el('button', cls || 'sm', text); b.type = 'button'; b.onclick = fn; if (title) b.title = title; return b; }
+  function uid(prefix, taken){ var id; do { id = prefix + Math.random().toString(36).slice(2, 7); } while (taken(id)); return id; }
+  function page(){ return cfg.pages[cur]; }
+  function selW(){ if (!sel) return null; var p = page(); for (var i = 0; i < p.widgets.length; i++) if (p.widgets[i].id === sel) return p.widgets[i]; return null; }
+  function groups(){ var g = []; cfg.buttons.forEach(function(b){ if (g.indexOf(b.group) < 0) g.push(b.group); }); return g; }
+  function btnById(id){ return cfg.buttons.filter(function(b){ return b.id === id; })[0]; }
+  function wid(p){ return uid('w', function(id){ return p.widgets.some(function(w){ return w.id === id; }); }); }
+  function pid(){ return uid('p', function(id){ return cfg.pages.some(function(p){ return p.id === id; }); }); }
+
+  function msg(text, cls){ var m = $('msg'); m.textContent = text; m.className = cls || ''; }
+  function dirty(){ return JSON.stringify(cfg) !== JSON.stringify(saved); }
+  function touchMsg(){ if (dirty()) msg('Có thay đổi chưa lưu', 'dirty'); else msg('Đã lưu hết'); $('undo').disabled = !hist.length; $('redo').disabled = !fut.length; }
+
+  // Mọi thay đổi đi qua đây để có Hoàn tác (Ctrl+Z)
+  function change(fn, keepFuture){
+    var before = JSON.stringify(cfg);
+    fn();
+    if (JSON.stringify(cfg) === before) return;
+    hist.push(before); if (hist.length > 80) hist.shift();
+    if (!keepFuture) fut = [];
+    renderAll();
+  }
+  function undo(){ if (!hist.length) return; fut.push(JSON.stringify(cfg)); cfg = JSON.parse(hist.pop()); fixCur(); renderAll(); }
+  function redo(){ if (!fut.length) return; hist.push(JSON.stringify(cfg)); cfg = JSON.parse(fut.pop()); fixCur(); renderAll(); }
+  function fixCur(){ cur = Math.max(0, Math.min(cur, cfg.pages.length - 1)); if (!selW()) sel = null; }
+
+  // ---------- Lưới ----------
+  function collides(p, x, y, w, h, ignore){
+    return p.widgets.some(function(o){ return o.id !== ignore && x < o.x + o.w && o.x < x + w && y < o.y + o.h && o.y < y + h; });
+  }
+  function fits(p, x, y, w, h, ignore){ return x >= 0 && y >= 0 && x + w <= GW && y + h <= GH && !collides(p, x, y, w, h, ignore); }
+  function findFree(p, w, h){
+    for (var hh = h; hh >= 1; hh--) for (var ww = w; ww >= 1; ww--)
+      for (var y = 0; y + hh <= GH; y++) for (var x = 0; x + ww <= GW; x++)
+        if (!collides(p, x, y, ww, hh)) return { x: x, y: y, w: ww, h: hh };
+    return null;
+  }
+  function defaultRef(type){
+    if (type === 'gauge') return 'cpuLoad';
+    if (type === 'buttons') return groups()[0] || null;
+    if (type === 'button') return cfg.buttons[0] ? cfg.buttons[0].id : null;
+    return null;
+  }
+  function addWidget(type, at){
+    var p = page(), t = WT[type], spot = null;
+    if (at) {
+      var w = Math.min(t.w, GW), h = Math.min(t.h, GH), x = Math.min(at.x, GW - w), y = Math.min(at.y, GH - h);
+      // thu nhỏ dần cho vừa chỗ thả
+      for (var hh = h; hh >= 1 && !spot; hh--) for (var ww = w; ww >= 1 && !spot; ww--)
+        if (fits(p, Math.min(at.x, GW - ww), Math.min(at.y, GH - hh), ww, hh)) spot = { x: Math.min(at.x, GW - ww), y: Math.min(at.y, GH - hh), w: ww, h: hh };
+    }
+    spot = spot || findFree(p, t.w, t.h);
+    if (!spot) { msg('Trang đã kín chỗ. Thu nhỏ hoặc xóa bớt widget.', 'err'); return; }
+    var d = { id: wid(p), type: type, x: spot.x, y: spot.y, w: spot.w, h: spot.h, title: null, ref: defaultRef(type), color: null };
+    change(function(){ p.widgets.push(d); sel = d.id; });
+  }
+
+  // ---------- Danh sách trang ----------
+  var dragPage = -1;
+  function renderPages(){
+    var box = $('plist'); box.innerHTML = '';
+    cfg.pages.forEach(function(p, i){
+      var it = el('div', 'pitem' + (i === cur ? ' on' : '') + (p.hidden ? ' hid' : ''));
+      it.draggable = true;
+      it.appendChild(el('span', 'ic', p.icon || '📄'));
+      it.appendChild(el('span', 'nm', p.name));
+      it.appendChild(el('span', 'cnt', p.hidden ? 'ẩn' : String(p.widgets.length)));
+      it.onclick = function(){ cur = i; sel = null; renderAll(true); };
+      it.ondragstart = function(e){ dragPage = i; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/x-page', String(i)); };
+      it.ondragover = function(e){ if (dragPage < 0) return; e.preventDefault(); var r = it.getBoundingClientRect(), after = e.clientY > r.top + r.height / 2;
+        it.classList.toggle('dropb', after); it.classList.toggle('dropt', !after); };
+      it.ondragleave = function(){ it.classList.remove('dropb', 'dropt'); };
+      it.ondrop = function(e){
+        e.preventDefault(); it.classList.remove('dropb', 'dropt');
+        var from = dragPage; dragPage = -1; if (from < 0) return;
+        var r = it.getBoundingClientRect(), to = i + (e.clientY > r.top + r.height / 2 ? 1 : 0);
+        if (to > from) to--;
+        if (to === from) return;
+        change(function(){ var mv = cfg.pages.splice(from, 1)[0]; cfg.pages.splice(to, 0, mv); cur = to; });
+      };
+      it.ondragend = function(){ dragPage = -1; };
+      box.appendChild(it);
+    });
+  }
+
+  // ---------- Khung lưới chỉnh sửa ----------
+  function refText(d){
+    if (d.type === 'gauge') return METRICS[d.ref] || '';
+    if (d.type === 'buttons') return d.ref ? 'Nhóm: ' + d.ref : 'Chưa chọn nhóm';
+    if (d.type === 'button') { var b = btnById(d.ref); return b ? b.label : 'Chưa chọn nút'; }
+    if (d.type === 'clock') return d.ref === 'noweather' ? 'Không kèm thời tiết' : '';
+    return '';
+  }
+  function place(node, x, y, w, h){
+    node.style.left = (x / GW * 100) + '%'; node.style.top = (y / GH * 100) + '%';
+    node.style.width = (w / GW * 100) + '%'; node.style.height = (h / GH * 100) + '%';
+  }
+  function renderCanvas(){
+    var cv = $('canvas'), p = page();
+    Array.prototype.slice.call(cv.querySelectorAll('.wb,.ghost')).forEach(function(n){ n.remove(); });
+    $('emptyHint').classList.toggle('hide', p.widgets.length > 0);
+    $('edTitle').textContent = (p.icon ? p.icon + ' ' : '') + p.name;
+    var used = 0; p.widgets.forEach(function(w){ used += w.w * w.h; });
+    $('edInfo').textContent = p.widgets.length + ' widget · dùng ' + used + '/' + (GW * GH) + ' ô' + (p.hidden ? ' · đang ẩn' : '');
+    p.widgets.forEach(function(d){
+      var t = WT[d.type] || { ic: '?', nm: d.type };
+      var wb = el('div', 'wb' + (d.id === sel ? ' sel' : '')); wb.dataset.id = d.id;
+      var inner = el('div');
+      var b = d.type === 'button' ? btnById(d.ref) : null;
+      var col = d.color || (b && b.color);
+      if (col) { inner.style.background = col + '33'; inner.style.borderColor = col + '99'; }
+      inner.appendChild(el('span', 'sz', d.w + '×' + d.h));
+      inner.appendChild(el('div', 'ic', b && b.icon ? b.icon : t.ic));
+      inner.appendChild(el('div', 'nm', d.title || t.nm));
+      var rt = refText(d); if (rt) inner.appendChild(el('div', 'rf', rt));
+      inner.appendChild(el('div', 'hdl'));
+      wb.appendChild(inner); place(wb, d.x, d.y, d.w, d.h);
+      cv.appendChild(wb);
+    });
+  }
+
+  // Kéo / đổi cỡ bằng chuột hoặc cảm ứng
+  (function(){
+    var cv = $('canvas'), st = null;
+    cv.addEventListener('pointerdown', function(e){
+      var wb = e.target.closest('.wb');
+      if (!wb) { if (sel) { sel = null; renderAll(true); } return; }
+      var p = page(), d = p.widgets.filter(function(w){ return w.id === wb.dataset.id; })[0];
+      if (!d) return;
+      if (sel !== d.id) { sel = d.id; renderInspector(); cv.querySelectorAll('.wb').forEach(function(n){ n.classList.toggle('sel', n === wb); }); sendPreview(); }
+      var r = cv.getBoundingClientRect();
+      st = { d: d, wb: wb, mode: e.target.classList.contains('hdl') ? 'size' : 'move', sx: e.clientX, sy: e.clientY,
+        cw: r.width / GW, ch: r.height / GH, n: { x: d.x, y: d.y, w: d.w, h: d.h }, moved: false };
+      cv.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    cv.addEventListener('pointermove', function(e){
+      if (!st) return;
+      var dx = Math.round((e.clientX - st.sx) / st.cw), dy = Math.round((e.clientY - st.sy) / st.ch), d = st.d, n = st.n;
+      if (st.mode === 'move') { n.x = Math.max(0, Math.min(GW - d.w, d.x + dx)); n.y = Math.max(0, Math.min(GH - d.h, d.y + dy)); }
+      else { n.w = Math.max(1, Math.min(GW - d.x, d.w + dx)); n.h = Math.max(1, Math.min(GH - d.y, d.h + dy)); }
+      if (Math.abs(e.clientX - st.sx) + Math.abs(e.clientY - st.sy) > 3) { st.moved = true; st.wb.classList.add('drag'); }
+      place(st.wb, n.x, n.y, n.w, n.h);
+      st.wb.querySelector('.sz').textContent = n.w + '×' + n.h;
+      st.wb.classList.toggle('bad', collides(page(), n.x, n.y, n.w, n.h, d.id));
+    });
+    function end(){
+      if (!st) return;
+      var s = st; st = null;
+      s.wb.classList.remove('drag');
+      var n = s.n, d = s.d;
+      if (!s.moved || (n.x === d.x && n.y === d.y && n.w === d.w && n.h === d.h)) { renderCanvas(); return; }
+      if (collides(page(), n.x, n.y, n.w, n.h, d.id)) { msg('Chỗ đó đã có widget khác', 'err'); renderCanvas(); return; }
+      change(function(){ d.x = n.x; d.y = n.y; d.w = n.w; d.h = n.h; });
+    }
+    cv.addEventListener('pointerup', end);
+    cv.addEventListener('pointercancel', function(){ st = null; renderCanvas(); });
+
+    // Thả widget từ danh mục
+    var ghost = null;
+    function cellAt(e, type){
+      var r = cv.getBoundingClientRect(), t = WT[type] || { w: 1, h: 1 };
+      var x = Math.floor((e.clientX - r.left) / r.width * GW - Math.min(t.w, GW) / 2 + .5), y = Math.floor((e.clientY - r.top) / r.height * GH - Math.min(t.h, GH) / 2 + .5);
+      return { x: Math.max(0, Math.min(GW - Math.min(t.w, GW), x)), y: Math.max(0, Math.min(GH - Math.min(t.h, GH), y)), w: Math.min(t.w, GW), h: Math.min(t.h, GH) };
+    }
+    cv.addEventListener('dragover', function(e){
+      if (!dragType) return;
+      e.preventDefault(); cv.classList.add('over');
+      var c = cellAt(e, dragType);
+      if (!ghost) { ghost = el('div', 'ghost'); cv.appendChild(ghost); }
+      place(ghost, c.x, c.y, c.w, c.h); ghost.classList.toggle('bad', collides(page(), c.x, c.y, c.w, c.h));
+    });
+    function clearGhost(){ cv.classList.remove('over'); if (ghost) { ghost.remove(); ghost = null; } }
+    cv.addEventListener('dragleave', function(e){ if (!cv.contains(e.relatedTarget)) clearGhost(); });
+    cv.addEventListener('drop', function(e){
+      e.preventDefault(); clearGhost();
+      if (!dragType) return;
+      var t = dragType; dragType = null; addWidget(t, cellAt(e, t));
+    });
+  })();
+
+  // ---------- Danh mục widget ----------
+  var dragType = null;
+  function renderCatalog(){
+    var q = $('catQ').value.trim().toLowerCase(), box = $('cat'), lastG = null;
+    box.innerHTML = '';
+    Object.keys(WT).forEach(function(k){
+      var t = WT[k];
+      if (q && (t.nm + ' ' + t.ds + ' ' + k + ' ' + t.g).toLowerCase().indexOf(q) < 0) return;
+      if (t.g !== lastG) { box.appendChild(el('div', 'catg', t.g)); lastG = t.g; }
+      var it = el('div', 'citem'); it.draggable = true; it.title = 'Bấm để thêm, hoặc kéo thả vào lưới (' + t.w + '×' + t.h + ')';
+      it.appendChild(el('span', 'ic', t.ic));
+      var nm = el('span', 'nm', t.nm); nm.appendChild(el('small', null, t.ds)); it.appendChild(nm);
+      it.onclick = function(){ addWidget(k); };
+      it.ondragstart = function(e){ dragType = k; e.dataTransfer.effectAllowed = 'copy'; e.dataTransfer.setData('text/plain', k); };
+      it.ondragend = function(){ dragType = null; };
+      box.appendChild(it);
+    });
+  }
+  $('catQ').oninput = renderCatalog;
+
+  // ---------- Bảng thuộc tính ----------
+  function field(label, input, help){
+    var f = el('div', 'f'); f.appendChild(el('label', 'l', label)); f.appendChild(input);
+    if (help) f.appendChild(el('div', 'help', help));
+    return f;
+  }
+  function inp(type, val, onchg, attrs){
+    var i = el('input'); i.type = type; i.value = val == null ? '' : val;
+    for (var k in attrs || {}) i.setAttribute(k, attrs[k]);
+    i.onchange = function(){ onchg(i.value, i); };
+    return i;
+  }
+  function sel_(opts, val, onchg){
+    var s = el('select');
+    opts.forEach(function(o){ var op = el('option', null, o[1]); op.value = o[0]; s.appendChild(op); });
+    s.value = val == null ? '' : val; s.onchange = function(){ onchg(s.value); };
+    return s;
+  }
+  function renderInspector(){
+    var box = $('insp'); box.innerHTML = '';
+    var d = selW(), p = page();
+    if (!d) {
+      box.appendChild(el('h3', null, 'Trang này'));
+      var r = el('div', 'row');
+      var ic = inp('text', p.icon, function(v){ change(function(){ p.icon = v.trim() || null; }); }, { maxlength: 8, placeholder: '🏠' }); ic.style.width = '64px'; ic.style.flex = 'none';
+      var nm = inp('text', p.name, function(v){ v = v.trim(); if (!v) { renderInspector(); return; } change(function(){ p.name = v; }); }, { maxlength: 30 });
+      r.appendChild(ic); r.appendChild(nm);
+      box.appendChild(field('Biểu tượng và tên', r));
+      var hid = el('label'); var cb = el('input'); cb.type = 'checkbox'; cb.checked = !!p.hidden;
+      cb.onchange = function(){ change(function(){ p.hidden = cb.checked; }); };
+      hid.appendChild(cb); hid.appendChild(document.createTextNode('Ẩn trang này trên điện thoại'));
+      box.appendChild(el('div', 'f')).appendChild(hid);
+      var acts = el('div', 'row'); acts.style.flexWrap = 'wrap';
+      acts.appendChild(btn('Nhân bản trang', function(){ change(function(){
+        var c = clone(p); c.id = pid(); c.name = (p.name + ' (bản sao)').slice(0, 30); cfg.pages.splice(cur + 1, 0, c); cur++; sel = null; }); }));
+      acts.appendChild(btn('Xóa trang', function(){
+        if (cfg.pages.length <= 1) { msg('Cần giữ lại ít nhất một trang', 'err'); return; }
+        if (!confirm('Xóa trang "' + p.name + '"?')) return;
+        change(function(){ cfg.pages.splice(cur, 1); fixCur(); sel = null; });
+      }, 'sm danger'));
+      box.appendChild(acts);
+      box.appendChild(el('div', 'help', 'Bấm vào một widget trên lưới để chỉnh nó.'));
+      return;
+    }
+    var t = WT[d.type] || { nm: d.type, ic: '?' };
+    var hd = el('div', 'ihd');
+    hd.appendChild(el('span', 'ic', t.ic)); hd.appendChild(el('b', null, t.nm));
+    hd.appendChild(btn('✕', function(){ sel = null; renderAll(true); }, 'sm ghost', 'Bỏ chọn (Esc)'));
+    box.appendChild(hd);
+
+    if (d.type === 'gauge')
+      box.appendChild(field('Chỉ số', sel_(Object.keys(METRICS).map(function(k){ return [k, METRICS[k]]; }), d.ref, function(v){ change(function(){ d.ref = v; }); })));
+    if (d.type === 'buttons') {
+      var g = groups(); if (d.ref && g.indexOf(d.ref) < 0) g.push(d.ref);
+      box.appendChild(field('Nhóm nút', sel_(g.map(function(x){ return [x, x + ' (' + cfg.buttons.filter(function(b){ return b.group === x; }).length + ' nút)']; }), d.ref, function(v){ change(function(){ d.ref = v; }); }),
+        'Sửa danh sách nút ở thẻ "Nút bấm".'));
+    }
+    if (d.type === 'button')
+      box.appendChild(field('Nút', sel_(cfg.buttons.map(function(b){ return [b.id, (b.icon ? b.icon + ' ' : '') + b.label + ' · ' + b.group]; }), d.ref, function(v){ change(function(){ d.ref = v; }); })));
+    if (d.type === 'clock')
+      box.appendChild(field('Thời tiết', sel_([['', 'Hiện dưới đồng hồ'], ['noweather', 'Không hiện']], d.ref, function(v){ change(function(){ d.ref = v || null; }); })));
+
+    var canTitle = ['cpu', 'gpu', 'ram', 'net', 'gauge', 'cpuDetail', 'gpuDetail', 'memory', 'netDetail'].indexOf(d.type) >= 0;
+    var canColor = canTitle;
+    if (canTitle) box.appendChild(field('Tiêu đề (để trống = mặc định)', inp('text', d.title, function(v){ change(function(){ d.title = v.trim() || null; }); }, { maxlength: 40, placeholder: t.nm })));
+    if (canColor) {
+      var cr = el('div', 'row');
+      var ci = inp('color', d.color || '#58a6ff', function(v){ change(function(){ d.color = v; }); });
+      cr.appendChild(ci);
+      cr.appendChild(btn('Mặc định', function(){ change(function(){ d.color = null; }); }));
+      if (!d.color) cr.appendChild(el('span', 'help', '(đang dùng màu mặc định)'));
+      box.appendChild(field('Màu', cr));
+    }
+
+    var g4 = el('div', 'grid4');
+    [['x', 'Cột', 0, GW - 1], ['y', 'Hàng', 0, GH - 1], ['w', 'Rộng', 1, GW], ['h', 'Cao', 1, GH]].forEach(function(a){
+      var w = el('div'); w.appendChild(el('label', 'l', a[1]));
+      var i = inp('number', a[0] === 'x' || a[0] === 'y' ? d[a[0]] + 1 : d[a[0]], function(v){
+        var n = parseInt(v, 10); if (isNaN(n)) { renderInspector(); return; }
+        if (a[0] === 'x' || a[0] === 'y') n--;
+        var c = { x: d.x, y: d.y, w: d.w, h: d.h }; c[a[0]] = n;
+        if (!fits(page(), c.x, c.y, c.w, c.h, d.id)) { msg('Không đặt được: ra ngoài lưới hoặc chồng lên widget khác', 'err'); renderInspector(); return; }
+        change(function(){ d[a[0]] = n; });
+      }, { min: a[2] + (a[0] === 'x' || a[0] === 'y' ? 1 : 0), max: a[3] + (a[0] === 'x' || a[0] === 'y' ? 1 : 0) });
+      w.appendChild(i); g4.appendChild(w);
+    });
+    box.appendChild(field('Vị trí và kích thước (ô)', g4));
+
+    var acts2 = el('div', 'row'); acts2.style.marginBottom = '8px';
+    acts2.appendChild(btn('Nhân bản', function(){
+      var spot = findFree(page(), d.w, d.h);
+      if (!spot) { msg('Trang đã kín chỗ', 'err'); return; }
+      change(function(){ var c = clone(d); c.id = wid(page()); c.x = spot.x; c.y = spot.y; c.w = spot.w; c.h = spot.h; page().widgets.push(c); sel = c.id; });
+    }));
+    var mv = sel_([['', 'Chuyển sang trang…']].concat(cfg.pages.map(function(pp, i){ return [String(i), pp.name]; }).filter(function(o){ return o[0] !== String(cur); })), '', function(v){
+      if (v === '') return;
+      var dst = cfg.pages[+v], spot = findFree(dst, d.w, d.h);
+      if (!spot) { msg('Trang "' + dst.name + '" đã kín chỗ', 'err'); renderInspector(); return; }
+      change(function(){ page().widgets = page().widgets.filter(function(w){ return w !== d; }); var c = clone(d); c.id = wid(dst); c.x = spot.x; c.y = spot.y; c.w = spot.w; c.h = spot.h; dst.widgets.push(c); sel = null; });
+    });
+    acts2.appendChild(btn('Xóa widget', function(){ removeSel(); }, 'sm danger'));
+    box.appendChild(acts2);
+    box.appendChild(mv);
+  }
+  function removeSel(){ var d = selW(); if (!d) return; change(function(){ page().widgets = page().widgets.filter(function(w){ return w !== d; }); sel = null; }); }
+
+  $('autoFill').onclick = function(){
+    change(function(){
+      var p = page(), ws = p.widgets.slice().sort(function(a, b){ return a.y - b.y || a.x - b.x; });
+      p.widgets = [];
+      ws.forEach(function(w){
+        var best = null;
+        for (var y = 0; y + w.h <= GH && !best; y++) for (var x = 0; x + w.w <= GW && !best; x++) if (!collides(p, x, y, w.w, w.h)) best = { x: x, y: y };
+        if (best) { w.x = best.x; w.y = best.y; }
+        p.widgets.push(w);
+      });
+    });
+  };
+  $('clearPage').onclick = function(){ if (page().widgets.length && confirm('Xóa hết widget trên trang "' + page().name + '"?')) change(function(){ page().widgets = []; sel = null; }); };
+
+  document.addEventListener('keydown', function(e){
+    var tag = (e.target.tagName || '').toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
+    if (tag === 'input' || tag === 'select' || tag === 'textarea' || document.querySelector('dialog[open]')) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
+    if ($('vPages').classList.contains('hide')) return;
+    var d = selW(); if (!d) return;
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeSel(); return; }
+    if (e.key === 'Escape') { sel = null; renderAll(true); return; }
+    var m = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (!m) return;
+    e.preventDefault();
+    if (e.shiftKey) { var nw = d.w + m[0], nh = d.h + m[1]; if (nw >= 1 && nh >= 1 && fits(page(), d.x, d.y, nw, nh, d.id)) change(function(){ d.w = nw; d.h = nh; }); }
+    else if (fits(page(), d.x + m[0], d.y + m[1], d.w, d.h, d.id)) change(function(){ d.x += m[0]; d.y += m[1]; });
+  });
+
+  // ---------- Mẫu trang ----------
+  function W(type, x, y, w, h, ref){ return { id: '', type: type, x: x, y: y, w: w, h: h, title: null, ref: ref || null, color: null }; }
+  var TEMPLATES = [
+    { nm: 'Trang trống', ds: 'Tự kéo widget vào', ic: '📄', ws: function(){ return []; } },
+    { nm: 'Tổng quan', ds: 'Đồng hồ, nhạc, 4 ô số liệu', ic: '🏠', ws: function(){ return [W('clock', 0, 0, 6, 4), W('media', 6, 0, 6, 4), W('cpu', 0, 4, 3, 2), W('gpu', 3, 4, 3, 2), W('ram', 6, 4, 3, 2), W('net', 9, 4, 3, 2)]; } },
+    { nm: 'Hệ thống', ds: 'CPU, GPU, bộ nhớ, mạng chi tiết', ic: '📊', ws: function(){ return [W('cpuDetail', 0, 0, 6, 3), W('gpuDetail', 6, 0, 6, 3), W('memory', 0, 3, 6, 3), W('netDetail', 6, 3, 6, 3)]; } },
+    { nm: 'Vòng đo', ds: '6 vòng đo nhiệt độ và tải', ic: '🎯', ws: function(){ var k = Object.keys(METRICS); return k.map(function(m, i){ return W('gauge', i * 2, 0, 2, 3, m); }).concat([W('cpu', 0, 3, 4, 3), W('gpu', 4, 3, 4, 3), W('ram', 8, 3, 4, 3)]); } },
+    { nm: 'Ổ cứng', ds: 'Thẻ sức khỏe từng ổ', ic: '💽', ws: function(){ return [W('disks', 0, 0, 12, 6)]; } },
+    { nm: 'Làm việc + nút', ds: 'Số liệu nhỏ ở trên, nhóm nút ở dưới', ic: '🛠️', ws: function(){ return [W('cpu', 0, 0, 3, 2), W('gpu', 3, 0, 3, 2), W('ram', 6, 0, 3, 2), W('diskSummary', 9, 0, 3, 2), W('buttons', 0, 2, 12, 4, groups()[0])]; } },
+  ];
+  function addPage(name, icon, ws){
+    change(function(){
+      var p = { id: pid(), name: name, icon: icon, hidden: false, widgets: [] };
+      ws.forEach(function(w){ w.id = wid(p); p.widgets.push(w); });
+      cfg.pages.splice(cur + 1, 0, p); cur = cfg.pages.indexOf(p); sel = null;
+    });
+    showView('vPages');
+  }
+  function openPageDlg(){
+    var box = $('tpls'); box.innerHTML = '';
+    TEMPLATES.forEach(function(t){
+      var b = el('button', 'tpl'); b.type = 'button';
+      b.appendChild(el('b', null, t.ic + ' ' + t.nm)); b.appendChild(el('small', null, t.ds));
+      b.onclick = function(){ $('dlgPage').close(); addPage(t.nm, t.ic, t.ws()); };
+      box.appendChild(b);
+    });
+    groups().forEach(function(g){
+      var b = el('button', 'tpl'); b.type = 'button';
+      b.appendChild(el('b', null, '🎛️ Nút: ' + g)); b.appendChild(el('small', null, 'Cả nhóm nút "' + g + '" chiếm toàn trang'));
+      b.onclick = function(){ $('dlgPage').close(); addPage(g.slice(0, 30), '🎛️', [W('buttons', 0, 0, 12, 6, g)]); };
+      box.appendChild(b);
+    });
+    $('dlgPage').showModal();
+  }
+  $('addPage').onclick = openPageDlg;
+
+  // ---------- Xem trước ----------
+  var pvTimer = null;
+  function sendPreview(){
+    clearTimeout(pvTimer);
+    pvTimer = setTimeout(function(){
+      var pidShow = $('vTheme').classList.contains('hide') ? (page() && page().id) : ($('pvPage').value || (page() && page().id));
+      document.querySelectorAll('.pv iframe').forEach(function(f){
+        if (!f.dataset.ready || f.closest('.view').classList.contains('hide')) return;
+        try { f.contentWindow.postMessage({ type: 'dp-preview', cfg: cfg, pageId: pidShow }, location.origin); } catch(e) {}
+      });
+    }, 120);
+  }
+  window.addEventListener('message', function(e){
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'dp-preview-ready') return;
+    document.querySelectorAll('.pv iframe').forEach(function(f){ if (f.contentWindow === e.source) f.dataset.ready = '1'; });
+    sendPreview();
+  });
+  function fitPreviews(){
+    document.querySelectorAll('.pv').forEach(function(pv){
+      var f = pv.querySelector('iframe');
+      if (pv.offsetWidth && !f.src) f.src = f.dataset.src; // chỉ nạp khi thấy
+      f.style.transform = 'scale(' + (pv.clientWidth / 915) + ')';
+    });
+  }
+  window.addEventListener('resize', fitPreviews);
+
+  // ---------- Giao diện ----------
+  var BG = [['aurora', 'Cực quang', 'radial-gradient(90% 80% at 75% 10%,#1a1526,#0b0d12 60%)'], ['plain', 'Tối', '#0b0d12'], ['black', 'Đen (AMOLED)', '#000']];
+  var SF = [['cards', 'Thẻ viền', 'rgba(22,25,33,.92)', '1px solid rgba(255,255,255,.12)'], ['flat', 'Phẳng', '#161a22', '1px solid transparent'], ['content', 'Không nền', 'transparent', '1px dashed #333']];
+  function th(){ return cfg.theme || (cfg.theme = clone(THEME0)); }
+  function renderTheme(){
+    var t = th();
+    $('tAccent').value = t.accent;
+    var sw = $('swatches'); sw.innerHTML = '';
+    ACCENTS.forEach(function(c){ var i = el('i', c.toLowerCase() === (t.accent || '').toLowerCase() ? 'on' : ''); i.style.background = c; i.title = c;
+      i.onclick = function(){ change(function(){ th().accent = c; }); }; sw.appendChild(i); });
+    function opts(box, list, key){
+      box.innerHTML = '';
+      list.forEach(function(o){
+        var d = el('div', 'opt' + (t[key] === o[0] ? ' on' : '')); var s = el('div', 'sw'); s.style.background = o[2];
+        if (key === 'surface') { s.style.background = '#0b0d12'; var c = el('div'); c.style.cssText = 'margin:6px 10px;height:20px;border-radius:5px;background:' + o[2] + ';border:' + o[3]; s.appendChild(c); }
+        d.appendChild(s); d.appendChild(document.createTextNode(o[1]));
+        d.onclick = function(){ change(function(){ th()[key] = o[0]; }); }; box.appendChild(d);
+      });
+    }
+    opts($('tBg'), BG, 'background'); opts($('tSf'), SF, 'surface');
+    $('tRadius').value = t.radius; $('tRadiusV').textContent = t.radius + ' px';
+    $('tGap').value = t.gap; $('tGapV').textContent = t.gap + ' px';
+    $('tFont').value = t.fontScale; $('tFontV').textContent = t.fontScale + '%';
+    $('tCols').value = cfg.columns; $('tColsV').textContent = cfg.columns + ' cột';
+    var pp = $('pvPage'), keep = pp.value; pp.innerHTML = '';
+    cfg.pages.forEach(function(p){ var o = el('option', null, (p.icon ? p.icon + ' ' : '') + p.name); o.value = p.id; pp.appendChild(o); });
+    pp.value = cfg.pages.some(function(p){ return p.id === keep; }) ? keep : (page() ? page().id : '');
+  }
+  $('tAccent').onchange = function(){ var v = this.value; change(function(){ th().accent = v; }); };
+  [['tRadius', 'radius', ' px'], ['tGap', 'gap', ' px'], ['tFont', 'fontScale', '%']].forEach(function(a){
+    var r = $(a[0]);
+    r.oninput = function(){ $(a[0] + 'V').textContent = r.value + a[2]; th()[a[1]] = +r.value; sendPreview(); };
+  });
+  // thanh trượt: ghi lịch sử một lần khi thả tay
+  (function(){
+    var before = null;
+    ['tRadius', 'tGap', 'tFont', 'tCols'].forEach(function(id){
+      $(id).addEventListener('pointerdown', function(){ before = JSON.stringify(cfg); });
+      $(id).addEventListener('change', function(){
+        if (before && before !== JSON.stringify(cfg)) { hist.push(before); fut = []; }
+        before = null; renderAll();
+      });
+    });
+  })();
+  $('tCols').oninput = function(){ $('tColsV').textContent = this.value + ' cột'; cfg.columns = +this.value; sendPreview(); };
+  $('tReset').onclick = function(){ change(function(){ cfg.theme = clone(THEME0); cfg.columns = 4; }); };
+  $('pvPage').onchange = sendPreview;
+
+  // ---------- Nút bấm ----------
+  var TYPE_TEXT = { cad: 'AutoCAD', run: 'Chương trình', url: 'Web/thư mục', keys: 'Phím', text: 'Gõ chữ' };
+  var HELP = {
+    cad: ['Lệnh AutoCAD', 'Gõ như trên dòng lệnh, ví dụ L, TR, O, DLI hoặc Z E. DeskPanel sẽ đưa AutoCAD lên trước, bấm Esc 2 lần, gõ lệnh rồi Enter.'],
+    run: ['Đường dẫn chương trình', 'Ví dụ %SystemRoot%\\System32\\calc.exe hoặc C:\\Program Files\\Autodesk\\AutoCAD 2024\\acad.exe'],
+    url: ['Địa chỉ', 'Ví dụ https://google.com hoặc D:\\BanVe'],
+    keys: ['Tổ hợp phím', 'Ví dụ Ctrl+S, Win+Shift+S, Alt+Tab, F5, VolumeUp, MediaPlayPause. Nhiều tổ hợp nối tiếp: Ctrl+K, Ctrl+C'],
+    text: ['Chữ cần gõ', 'Gõ vào cửa sổ đang mở (hoặc chương trình ở ô bên dưới).']
+  };
+  function groupUsed(g){ return cfg.pages.some(function(p){ return p.widgets.some(function(w){ return w.type === 'buttons' && w.ref === g; }); }); }
+  function renderButtons(){
+    var list = $('blist'); list.innerHTML = '';
+    groups().forEach(function(g){
+      var sec = el('div', 'grp box');
+      var hd = el('div', 'grph');
+      hd.appendChild(el('span', 't', g));
+      hd.appendChild(el('span', 'muted', cfg.buttons.filter(function(b){ return b.group === g; }).length + ' nút'));
+      hd.appendChild(el('span', 'spacer'));
+      if (!groupUsed(g)) {
+        var warn = el('span', 'help', 'Chưa hiện trên trang nào'); warn.style.color = 'var(--warn)'; warn.style.margin = '0'; hd.appendChild(warn);
+        hd.appendChild(btn('Tạo trang cho nhóm', function(){ addPage(g.slice(0, 30), '🎛️', [W('buttons', 0, 0, 12, 6, g)]); }));
+      }
+      hd.appendChild(btn('Đổi tên nhóm', function(){
+        var n = (prompt('Tên mới cho nhóm "' + g + '"', g) || '').trim().slice(0, 30);
+        if (!n || n === g) return;
+        change(function(){
+          cfg.buttons.forEach(function(b){ if (b.group === g) b.group = n; });
+          cfg.pages.forEach(function(p){ if (p.name === g) p.name = n; p.widgets.forEach(function(w){ if (w.type === 'buttons' && w.ref === g) w.ref = n; }); });
+        });
+      }));
+      hd.appendChild(btn('+ Nút', function(){ edit(-1, g); }));
+      sec.appendChild(hd);
+      var tiles = el('div', 'tiles');
+      cfg.buttons.forEach(function(b, i){
+        if (b.group !== g) return;
+        var t = el('div', 'tile'); t.style.setProperty('--c', b.color || '#4a5568');
+        var top = el('div', 'top'); top.appendChild(el('span', 'ic', b.icon || '●')); top.appendChild(el('span', 'nm', b.label)); t.appendChild(top);
+        t.appendChild(el('div', 'ds', TYPE_TEXT[b.type] + ': ' + b.value));
+        var a = el('div', 'acts');
+        a.appendChild(btn('←', function(){ moveBtn(i, -1); }, 'sm', 'Lên trước'));
+        a.appendChild(btn('→', function(){ moveBtn(i, 1); }, 'sm', 'Ra sau'));
+        a.appendChild(btn('Sửa', function(){ edit(i); }));
+        a.appendChild(btn('Thử', function(){ testBtn(b); }));
+        a.appendChild(btn('Xóa', function(){ removeBtn(i); }, 'sm danger'));
+        t.appendChild(a); tiles.appendChild(t);
+      });
+      sec.appendChild(tiles); list.appendChild(sec);
+    });
+    var dl = $('groups'); dl.innerHTML = '';
+    groups().forEach(function(g){ var o = el('option'); o.value = g; dl.appendChild(o); });
+  }
+  function moveBtn(i, dir){
+    var b = cfg.buttons[i], j = i + dir;
+    while (j >= 0 && j < cfg.buttons.length && cfg.buttons[j].group !== b.group) j += dir;
+    if (j < 0 || j >= cfg.buttons.length) return;
+    change(function(){ cfg.buttons[i] = cfg.buttons[j]; cfg.buttons[j] = b; });
+  }
+  function removeBtn(i){
+    var b = cfg.buttons[i];
+    var uses = 0; cfg.pages.forEach(function(p){ p.widgets.forEach(function(w){ if (w.type === 'button' && w.ref === b.id) uses++; }); });
+    if (!confirm('Xóa nút "' + b.label + '"?' + (uses ? '\nWidget "Một nút" đang dùng nút này (' + uses + ') cũng bị xóa.' : ''))) return;
+    change(function(){
+      cfg.buttons.splice(i, 1);
+      cfg.pages.forEach(function(p){ p.widgets = p.widgets.filter(function(w){ return !(w.type === 'button' && w.ref === b.id); }); });
+    });
+  }
+  function testBtn(b){
+    var s = saved.buttons.filter(function(x){ return x.id === b.id; })[0];
+    if (!s || JSON.stringify(s) !== JSON.stringify(b)) { msg('Hãy Lưu trước khi thử nút này', 'err'); return; }
+    api('POST', 'api/action/' + encodeURIComponent(b.id)).then(function(){ msg('Đã chạy "' + b.label + '"', 'ok'); }).catch(function(e){ msg(e.message, 'err'); });
+  }
+  function syncType(){
+    var t = $('fType').value;
+    $('fValueLabel').textContent = HELP[t][0]; $('fHelp').textContent = HELP[t][1];
+    $('rowArgs').classList.toggle('hide', t !== 'run');
+    $('rowFocus').classList.toggle('hide', !(t === 'keys' || t === 'text' || t === 'cad'));
+    $('rowEnter').classList.toggle('hide', t !== 'text');
+    $('fFocus').placeholder = t === 'cad' ? 'acad,acadlt (mặc định)' : 'vd: acad';
+  }
+  $('fType').onchange = syncType;
+  function edit(i, group){
+    editing = i;
+    var b = i >= 0 ? cfg.buttons[i] : { label: '', group: group || groups()[0] || 'Chung', icon: '', color: '#2b6cb0', type: 'cad', value: '' };
+    $('dlgTitle').textContent = i >= 0 ? 'Sửa nút' : 'Thêm nút';
+    $('fLabel').value = b.label; $('fGroup').value = b.group; $('fIcon').value = b.icon || '';
+    $('fColor').value = b.color || '#4a5568'; $('fType').value = b.type; $('fValue').value = b.value;
+    $('fArgs').value = b.args || ''; $('fFocus').value = b.focus || ''; $('fEnter').checked = !!b.enter;
+    syncType(); $('dlg').showModal();
+  }
+  function slug(s){
+    var base = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'nut';
+    var id = base, n = 2;
+    while (cfg.buttons.some(function(b, k){ return b.id === id && k !== editing; })) id = base + '-' + (n++);
+    return id;
+  }
+  $('dlg').addEventListener('close', function(){
+    if ($('dlg').returnValue !== 'ok') return;
+    var t = $('fType').value;
+    var b = editing >= 0 ? clone(cfg.buttons[editing]) : {};
+    b.label = $('fLabel').value.trim(); b.group = $('fGroup').value.trim() || 'Chung';
+    b.icon = $('fIcon').value.trim() || null; b.color = $('fColor').value; b.type = t; b.value = $('fValue').value.trim();
+    b.args = t === 'run' && $('fArgs').value.trim() ? $('fArgs').value.trim() : null;
+    b.focus = (t === 'keys' || t === 'text' || t === 'cad') && $('fFocus').value.trim() ? $('fFocus').value.trim() : null;
+    b.enter = t === 'text' && $('fEnter').checked;
+    if (!b.id) b.id = slug(b.label);
+    change(function(){
+      if (editing >= 0) cfg.buttons[editing] = b;
+      else { var last = -1; cfg.buttons.forEach(function(x, k){ if (x.group === b.group) last = k; });
+        if (last < 0) cfg.buttons.push(b); else cfg.buttons.splice(last + 1, 0, b); }
+    });
+  });
+  $('addBtn').onclick = function(){ edit(-1); };
+
+  // ---------- Chung ----------
+  function renderGeneral(){
+    $('port').value = cfg.port; $('adbPath').value = cfg.adbPath || '';
+    $('weatherCity').value = cfg.weatherCity || ''; $('updateRepo').value = cfg.updateRepo || ''; $('autoAdb').checked = !!cfg.autoAdbReverse;
+  }
+  $('port').onchange = function(){ var v = parseInt(this.value, 10) || 0; change(function(){ cfg.port = v; }); };
+  $('adbPath').onchange = function(){ var v = this.value.trim() || null; change(function(){ cfg.adbPath = v; }); };
+  $('weatherCity').onchange = function(){ var v = this.value.trim() || null; change(function(){ cfg.weatherCity = v; }); };
+  $('updateRepo').onchange = function(){ var v = this.value.trim() || null; change(function(){ cfg.updateRepo = v; }); };
+
+  // ---------- Cập nhật ----------
+  function uMsg(t, cls){ var m = $('uMsg'); m.textContent = t; m.style.color = cls === 'err' ? 'var(--bad)' : cls === 'ok' ? 'var(--ok)' : ''; }
+  function loadUpdate(){
+    return api('GET', 'api/update').then(function(u){
+      $('uCur').textContent = u.current;
+      var g = $('uGh'), b = $('uGhInstall');
+      if (!u.repo) g.textContent = 'Điền repo rồi bấm Lưu. DeskPanel kiểm tra 6 giờ một lần.';
+      else if (u.error) g.textContent = u.error + (u.checkedAt ? ' (lúc ' + u.checkedAt + ')' : '');
+      else if (u.available) g.textContent = 'Có bản mới ' + u.latest + '.' + (u.notes ? ' ' + u.notes : '');
+      else if (u.latest) g.textContent = 'Đang dùng bản mới nhất (' + u.latest + '), kiểm tra lúc ' + u.checkedAt + '.';
+      else g.textContent = 'Chưa kiểm tra.';
+      b.classList.toggle('hide', !u.available); b.textContent = 'Cài bản ' + u.latest;
+    }).catch(function(){});
+  }
+  function waitRestart(oldVer){
+    var t0 = Date.now(), seenDown = false;
+    var iv = setInterval(function(){
+      fetch('api/status', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(s){
+        if (s.version !== oldVer || seenDown) { clearInterval(iv); uMsg('Đã cập nhật xong bản ' + s.version + '. Đang tải lại trang…', 'ok'); setTimeout(function(){ location.reload(); }, 1200); }
+      }).catch(function(){ seenDown = true; });
+      if (Date.now() - t0 > 120000) { clearInterval(iv); uMsg('Quá 2 phút chưa thấy DeskPanel chạy lại. Xem file update.log trong thư mục cài.', 'err'); }
+    }, 2000);
+  }
+  function startUpdate(p){
+    var old = $('uCur').textContent;
+    $('uSend').disabled = $('uGhInstall').disabled = true;
+    return p.then(function(r){
+      uMsg(r.message, 'ok');
+      if (/chế độ thử/.test(r.message)) { $('uSend').disabled = $('uGhInstall').disabled = false; return; }
+      waitRestart(old);
+    }).catch(function(e){ uMsg(e.message, 'err'); $('uSend').disabled = $('uGhInstall').disabled = false; });
+  }
+  function apiErr(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.message || j.error || ('Lỗi ' + r.status)); return j; }); }
+  $('uSend').onclick = function(){
+    var f = $('uFile').files[0];
+    if (!f) { uMsg('Chọn file zip trước', 'err'); return; }
+    if (dirty() && !confirm('Có thay đổi chưa lưu sẽ mất khi DeskPanel chạy lại. Vẫn cập nhật?')) return;
+    uMsg('Đang gửi ' + (f.size / 1048576).toFixed(0) + ' MB…');
+    startUpdate(fetch('api/update/upload', { method: 'POST', headers: { 'X-DeskPanel': '1', 'Content-Type': 'application/zip' }, body: f }).then(apiErr));
+  };
+  $('uGhInstall').onclick = function(){
+    if (dirty() && !confirm('Có thay đổi chưa lưu sẽ mất khi DeskPanel chạy lại. Vẫn cập nhật?')) return;
+    uMsg('Đang tải bản mới từ GitHub…');
+    startUpdate(fetch('api/update/github', { method: 'POST', headers: { 'X-DeskPanel': '1' } }).then(apiErr));
+  };
+  $('uCheck').onclick = function(){
+    if (saved && (saved.updateRepo || null) !== (cfg.updateRepo || null)) { uMsg('Bấm Lưu trước để lưu tên repo', 'err'); return; }
+    uMsg('Đang kiểm tra…'); api('POST', 'api/update/check').then(loadUpdate).then(function(){ uMsg(''); });
+  };
+  loadUpdate(); setInterval(loadUpdate, 60000);
+
+  $('autoAdb').onchange = function(){ var v = this.checked; change(function(){ cfg.autoAdbReverse = v; }); };
+
+  // ---------- Khung chung ----------
+  function renderAll(light){
+    renderPages(); renderCanvas(); renderInspector();
+    if (!light) { renderTheme(); renderButtons(); renderGeneral(); }
+    touchMsg(); sendPreview();
+  }
+  function showView(v){
+    document.querySelectorAll('.view').forEach(function(s){ s.classList.toggle('hide', s.id !== v); });
+    document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('on', b.dataset.v === v); });
+    try { localStorage.setItem('dp.settab', v); } catch(e) {}
+    fitPreviews(); sendPreview();
+  }
+  document.querySelectorAll('#tabs button').forEach(function(b){ b.onclick = function(){ showView(b.dataset.v); }; });
+
+  $('undo').onclick = undo; $('redo').onclick = redo;
+  $('revert').onclick = function(){ if (!dirty()) return; hist.push(JSON.stringify(cfg)); cfg = clone(saved); fixCur(); renderAll(); };
+  function save(){
+    var repoChanged = saved && (saved.updateRepo || null) !== (cfg.updateRepo || null);
+    api('PUT', 'api/config', cfg).then(function(r){
+      if (repoChanged) api('POST', 'api/update/check').then(loadUpdate).catch(function(){});
+      return api('GET', 'api/config').then(function(c){
+        saved = c; cfg = clone(c); fixCur(); renderAll();
+        msg(r.restartNeeded ? 'Đã lưu. Đổi cổng cần khởi động lại DeskPanel.' : 'Đã lưu. Điện thoại tự cập nhật.', 'ok');
+      });
+    }).catch(function(e){ msg(e.message, 'err'); });
+  }
+  $('save').onclick = save;
+  window.addEventListener('beforeunload', function(e){ if (cfg && dirty()) { e.preventDefault(); e.returnValue = ''; } });
+
+  function loadStatus(){
+    api('GET', 'api/status').then(function(s){
+      var ch = $('chips'); ch.innerHTML = '';
+      var c1 = el('span', 'chip'); c1.innerHTML = 'Phiên bản <b></b>'; c1.querySelector('b').textContent = s.version + (s.windows ? '' : ' (thử)'); ch.appendChild(c1);
+      var okPhone = /Đã kết nối/.test(s.adb || '');
+      var c2 = el('span', 'chip ' + (okPhone ? 'ok' : 'bad')); c2.appendChild(el('span', 'dot')); c2.appendChild(document.createTextNode(okPhone ? 'Điện thoại đã nối' : 'Chưa nối điện thoại')); c2.title = s.adb || '';
+      ch.appendChild(c2);
+      var box = $('status'); box.innerHTML = '';
+      [['Phiên bản', s.version + (s.windows ? '' : ' (chế độ thử, không phải Windows)')], ['Điện thoại', s.adb], ['Cảm biến', s.note || 'Đọc bình thường'], ['Thời tiết', s.weather]]
+        .forEach(function(r){ var d = el('div'); d.appendChild(el('span', 'muted', r[0] + ': ')); d.appendChild(document.createTextNode(r[1] || '')); box.appendChild(d); });
+    }).catch(function(){});
+  }
+  loadStatus(); setInterval(loadStatus, 5000);
+
+  renderCatalog();
+  api('GET', 'api/config').then(function(c){
+    if (!c.pages) c.pages = [];
+    if (!c.theme) c.theme = clone(THEME0);
+    saved = c; cfg = clone(c);
+    if (!cfg.pages.length) cfg.pages.push({ id: 'home', name: 'Tổng quan', icon: '🏠', hidden: false, widgets: [] });
+    var v = null; try { v = localStorage.getItem('dp.settab'); } catch(e) {}
+    renderAll(); showView(v && $(v) ? v : 'vPages');
+  }).catch(function(e){ msg(e.message, 'err'); });
+})();
+</script>
+</body>
+</html>
