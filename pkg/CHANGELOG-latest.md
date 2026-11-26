@@ -1,11 +1,13 @@
-**Mới trong 0.13.0**
+**Sửa trong 0.13.1**
 
-- Giao diện tiếng Anh: chọn 🌐 Tiếng Việt / English ở góc trên trang Cài đặt, điện thoại đổi theo. App Android và tiện ích trình duyệt theo ngôn ngữ máy.
-- Trang **Bảo mật & quyền riêng tư** (⚙ → Chung): DeskPanel đọc gì, lưu gì, gửi đi đâu.
+- Giao diện riêng từng trang: Cài đặt → Giao diện → **Áp dụng cho** → chọn trang.
+- Báo **Điện thoại đã nối qua Wi-Fi** khi điện thoại vào bằng mã QR.
+- Thẻ ổ cứng không còn chữ chồng nhau khi chữ to.
 
-**New in 0.13.0**
+**Fixed in 0.13.1**
 
-- English UI: pick 🌐 English at the top of the Settings page; the phone follows. The Android app and browser extension follow the device language.
-- **Security & privacy** page (⚙ → General): what DeskPanel reads, stores and sends.
+- Per-page look: Settings → Appearance → **Apply to** → pick a page.
+- Settings now shows **Phone connected over Wi-Fi** for phones paired by QR code.
+- Disk cards no longer overlap text at large font sizes.
 
-Cập nhật PC / Update: Cài đặt → Chung → **Cài bản 0.13.0**. App Android: cài lại bằng mã QR số 1 (cài đè) để có tiếng Anh.
+Cập nhật PC / Update: Cài đặt → Chung → **Cài bản 0.13.1**.

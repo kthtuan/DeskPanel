@@ -282,6 +282,7 @@ app.MapPost("/api/restart", () =>
 });
 app.MapGet("/api/stats", () => Results.Json(hub.Latest, Json.Opts));
 app.MapGet("/api/sensors", async () => Results.Json(await hub.DumpAsync(), Json.Opts));
+int lanPhones = 0;
 app.MapGet("/api/status", () => Results.Json(new
 {
     version = typeof(Program).Assembly.GetName().Version?.ToString(3),
@@ -291,13 +292,20 @@ app.MapGet("/api/status", () => Results.Json(new
     weather = weather.Status,
     windows = OperatingSystem.IsWindows(),
     lan = lanOn,
+    lanPhones = Volatile.Read(ref lanPhones),
 }, Json.Opts));
 
 app.Map("/ws", async ctx =>
 {
     if (!ctx.WebSockets.IsWebSocketRequest) { ctx.Response.StatusCode = 400; return; }
     using var ws = await ctx.WebSockets.AcceptWebSocketAsync();
-    await hub.ServeAsync(ws, ctx.RequestAborted);
+    // Thiet bi noi qua Wi-Fi (khong phai localhost / adb reverse): dem de trang cai dat bao "da noi"
+    var remote = ctx.Connection.RemoteIpAddress;
+    if (remote != null && remote.IsIPv4MappedToIPv6) remote = remote.MapToIPv4();
+    bool viaLan = remote != null && !System.Net.IPAddress.IsLoopback(remote);
+    if (viaLan) Interlocked.Increment(ref lanPhones);
+    try { await hub.ServeAsync(ws, ctx.RequestAborted); }
+    finally { if (viaLan) Interlocked.Decrement(ref lanPhones); }
 });
 
 Log.Write($"DeskPanel {typeof(Program).Assembly.GetName().Version?.ToString(3)} chay tai http://localhost:{port}");

@@ -233,6 +233,8 @@ dialog h2{margin:0 0 12px;font-size:17px}
   <!-- GIAO DIỆN -->
   <section class="view hide" id="vTheme">
     <div class="box">
+      <div class="f"><label class="l">Áp dụng cho</label><select id="tScope"></select>
+        <div class="help" id="tScopeHelp"></div><button id="tUnlink" class="hide" style="margin-top:6px">Dùng lại giao diện chung</button></div>
       <div class="f"><label class="l">Màu nhấn</label>
         <div class="row"><input type="color" id="tAccent"><div class="swatches" id="swatches"></div></div></div>
       <div class="f"><label class="l">Nền</label><div class="opts" id="tBg"></div></div>
@@ -816,9 +818,23 @@ dialog h2{margin:0 0 12px;font-size:17px}
   // ---------- Giao diện ----------
   var BG = [['aurora', 'Cực quang', 'radial-gradient(90% 80% at 75% 10%,#1a1526,#0b0d12 60%)'], ['plain', 'Tối', '#0b0d12'], ['black', 'Đen (AMOLED)', '#000']];
   var SF = [['cards', 'Thẻ viền', 'rgba(22,25,33,.92)', '1px solid rgba(255,255,255,.12)'], ['flat', 'Phẳng', '#161a22', '1px solid transparent'], ['content', 'Không nền', 'transparent', '1px dashed #333']];
-  function th(){ return cfg.theme || (cfg.theme = clone(THEME0)); }
+  // Pham vi chinh: '' = giao dien chung, con lai = id trang (giao dien rieng cua trang do)
+  var tScope = '';
+  function scopePage(){ return tScope ? cfg.pages.filter(function(p){ return p.id === tScope; })[0] || null : null; }
+  function gth(){ return cfg.theme || (cfg.theme = clone(THEME0)); }
+  // Ghi: trang chua co giao dien rieng thi tao tu giao dien chung
+  function th(){ var p = scopePage(); if (!p) return gth(); return p.theme || (p.theme = clone(gth())); }
+  function cols(){ var p = scopePage(); return (p && p.columns) || cfg.columns; }
   function renderTheme(){
-    var t = th();
+    if (tScope && !scopePage()) tScope = '';
+    var sp = scopePage(), t = (sp && sp.theme) || gth();
+    var sc = $('tScope'); sc.innerHTML = '';
+    var o0 = el('option', null, T('Tất cả trang (giao diện chung)')); o0.value = ''; sc.appendChild(o0);
+    cfg.pages.forEach(function(p){ var o = el('option', null, (p.icon ? p.icon + ' ' : '') + p.name + (p.theme || p.columns ? T(' · riêng') : '')); o.value = p.id; sc.appendChild(o); });
+    sc.value = tScope;
+    var own = !!(sp && (sp.theme || sp.columns));
+    $('tScopeHelp').textContent = !sp ? T('Các trang chưa có giao diện riêng dùng giao diện này.') : own ? T('Trang này đang dùng giao diện riêng.') : T('Trang này đang dùng giao diện chung. Chỉnh bất kỳ mục nào bên dưới để tạo giao diện riêng cho trang.');
+    $('tUnlink').classList.toggle('hide', !own);
     $('tAccent').value = t.accent;
     var sw = $('swatches'); sw.innerHTML = '';
     ACCENTS.forEach(function(c){ var i = el('i', c.toLowerCase() === (t.accent || '').toLowerCase() ? 'on' : ''); i.style.background = c; i.title = c;
@@ -836,11 +852,13 @@ dialog h2{margin:0 0 12px;font-size:17px}
     $('tRadius').value = t.radius; $('tRadiusV').textContent = t.radius + ' px';
     $('tGap').value = t.gap; $('tGapV').textContent = t.gap + ' px';
     $('tFont').value = t.fontScale; $('tFontV').textContent = t.fontScale + '%';
-    $('tCols').value = cfg.columns; $('tColsV').textContent = T('{0} cột', cfg.columns);
+    $('tCols').value = cols(); $('tColsV').textContent = T('{0} cột', cols());
     var pp = $('pvPage'), keep = pp.value; pp.innerHTML = '';
     cfg.pages.forEach(function(p){ var o = el('option', null, (p.icon ? p.icon + ' ' : '') + p.name); o.value = p.id; pp.appendChild(o); });
-    pp.value = cfg.pages.some(function(p){ return p.id === keep; }) ? keep : (page() ? page().id : '');
+    pp.value = sp ? sp.id : cfg.pages.some(function(p){ return p.id === keep; }) ? keep : (page() ? page().id : '');
   }
+  $('tScope').onchange = function(){ tScope = this.value; renderTheme(); sendPreview(); };
+  $('tUnlink').onclick = function(){ var p = scopePage(); if (p) change(function(){ delete p.theme; delete p.columns; }); };
   $('tAccent').onchange = function(){ var v = this.value; change(function(){ th().accent = v; }); };
   [['tRadius', 'radius', ' px'], ['tGap', 'gap', ' px'], ['tFont', 'fontScale', '%']].forEach(function(a){
     var r = $(a[0]);
@@ -857,9 +875,9 @@ dialog h2{margin:0 0 12px;font-size:17px}
       });
     });
   })();
-  $('tCols').oninput = function(){ $('tColsV').textContent = T('{0} cột', this.value); cfg.columns = +this.value; sendPreview(); };
-  $('tReset').onclick = function(){ change(function(){ cfg.theme = clone(THEME0); cfg.columns = 4; }); };
-  $('pvPage').onchange = sendPreview;
+  $('tCols').oninput = function(){ $('tColsV').textContent = T('{0} cột', this.value); var p = scopePage(); if (p) { th(); p.columns = +this.value; } else cfg.columns = +this.value; sendPreview(); };
+  $('tReset').onclick = function(){ var p = scopePage(); change(function(){ if (p) { p.theme = clone(THEME0); p.columns = 4; } else { cfg.theme = clone(THEME0); cfg.columns = 4; } }); };
+  $('pvPage').onchange = function(){ if (tScope) { tScope = this.value; renderTheme(); } sendPreview(); };
 
   // ---------- Nút bấm ----------
   var TYPE_TEXT = { cad: 'AutoCAD', run: 'Chương trình', url: 'Web/thư mục', keys: 'Phím', text: 'Gõ chữ' };
@@ -1216,11 +1234,13 @@ dialog h2{margin:0 0 12px;font-size:17px}
     api('GET', 'api/status').then(function(s){
       var ch = $('chips'); ch.innerHTML = '';
       var c1 = el('span', 'chip'); c1.innerHTML = T('Phiên bản') + ' <b></b>'; c1.querySelector('b').textContent = s.version + (s.windows ? '' : T(' (thử)')); ch.appendChild(c1);
-      var okPhone = /Đã kết nối/.test(s.adb || '');
-      var c2 = el('span', 'chip ' + (okPhone ? 'ok' : 'bad')); c2.appendChild(el('span', 'dot')); c2.appendChild(document.createTextNode(okPhone ? 'Điện thoại đã nối' : 'Chưa nối điện thoại')); c2.title = s.adb || '';
+      var usbOk = /Đã kết nối/.test(s.adb || ''), wifi = s.lanPhones || 0, okPhone = usbOk || wifi > 0;
+      var c2 = el('span', 'chip ' + (okPhone ? 'ok' : 'bad')); c2.appendChild(el('span', 'dot'));
+      c2.appendChild(document.createTextNode(okPhone ? (usbOk ? T('Điện thoại đã nối') : T('Điện thoại đã nối qua Wi-Fi ({0})', wifi)) : T('Chưa nối điện thoại')));
+      c2.title = (s.adb || '') + (wifi ? '\n' + T('Wi-Fi: {0} thiết bị đang mở bảng', wifi) : '');
       ch.appendChild(c2);
       var box = $('status'); box.innerHTML = '';
-      [[T('Phiên bản'), s.version + (s.windows ? '' : T(' (chế độ thử, không phải Windows)'))], [T('Điện thoại'), s.adb], [T('Cảm biến'), s.note || T('Đọc bình thường')], [T('Thời tiết'), s.weather]]
+      [[T('Phiên bản'), s.version + (s.windows ? '' : T(' (chế độ thử, không phải Windows)'))], [T('Điện thoại'), (s.adb || '') + (wifi ? ' · ' + T('Wi-Fi: {0} thiết bị đang mở bảng', wifi) : '')], [T('Cảm biến'), s.note || T('Đọc bình thường')], [T('Thời tiết'), s.weather]]
         .forEach(function(r){ var d = el('div'); d.appendChild(el('span', 'muted', r[0] + ': ')); d.appendChild(document.createTextNode(r[1] || '')); box.appendChild(d); });
     }).catch(function(){});
   }

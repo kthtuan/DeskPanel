@@ -1,5 +1,10 @@
 # Nhật ký thay đổi
 
+## 0.13.1 (26/11/2026)
+- **Giao diện riêng từng trang**: Cài đặt → Giao diện → **Áp dụng cho** chọn một trang để chỉnh màu, nền, kiểu thẻ, bo góc, khoảng cách, cỡ chữ, số cột nút cho riêng trang đó. Nút **Dùng lại giao diện chung** để bỏ.
+- Trang cài đặt báo **Điện thoại đã nối qua Wi-Fi** khi điện thoại vào bằng mã QR (trước chỉ đếm cáp USB).
+- Thẻ ổ cứng không còn chữ chồng lên nhau khi chữ to; số giờ chạy ghi theo ngôn ngữ đang chọn.
+
 ## 0.13.0 (26/11/2026)
 - **Tiếng Anh**: chọn 🌐 Tiếng Việt / English ở góc trên trang Cài đặt. Điện thoại đổi theo. Máy cài mới dùng ngôn ngữ của Windows; máy đang dùng giữ tiếng Việt. Hộp thoại cài/gỡ, app Android (theo ngôn ngữ điện thoại) và tiện ích trình duyệt cũng có tiếng Anh.
 - **Trang Bảo mật & quyền riêng tư** (⚙ → Chung, và `SECURITY.md` trên GitHub): DeskPanel đọc gì, lưu gì, kết nối tới đâu, cách báo lỗi bảo mật.

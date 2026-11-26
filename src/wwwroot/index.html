@@ -120,11 +120,11 @@ body.sf-content .card{border-color:transparent;background:transparent}
 .vols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 12px}
 .netv{display:flex;gap:14px;font-size:1rem;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
 
-.diskgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--gap);height:100%;align-content:start;overflow-y:auto}
+.diskgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:var(--gap);height:100%;align-content:start;overflow-y:auto}
 .disk .nm{font-size:1rem;font-weight:600;margin:6px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(4.6rem,1fr));gap:6px;margin-top:10px}
 .kv div{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.kv b{display:block;font-size:1.2rem;color:var(--text);font-weight:600;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums;margin-top:2px}
+.kv b{display:block;font-size:1.2rem;color:var(--text);font-weight:600;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .badge{font-size:.75rem;padding:2px 8px;border-radius:999px;font-weight:700;flex:none}
 .badge.Good{background:rgba(63,185,80,.16);color:var(--ok)}
 .badge.Caution{background:rgba(227,165,44,.18);color:var(--warn)}
@@ -452,7 +452,7 @@ body.preview #offline,body.preview #gear{display:none!important}
         var kv = el('div', 'kv');
         [['Nhiệt độ', k.temp == null ? '--' : k.temp + '°C', tcls(k.temp, 50, 60)],
          ['Tuổi thọ', k.life == null ? '--' : k.life + '%', k.life == null ? '' : k.life <= 10 ? 'bad' : k.life <= 30 ? 'warn' : 'ok'],
-         ['Giờ chạy', k.powerOnHours == null ? '--' : Number(k.powerOnHours).toLocaleString('vi-VN'), ''],
+         ['Giờ chạy', k.powerOnHours == null ? '--' : Number(k.powerOnHours).toLocaleString(I18N.lang === 'en' ? 'en-US' : 'vi-VN'), ''],
          ['Đã ghi', k.writtenGb == null ? '--' : (k.writtenGb >= 1000 ? (k.writtenGb / 1000).toFixed(1) + ' TB' : k.writtenGb + ' GB'), '']
         ].forEach(function(x){ var dv = el('div', null, x[0]); dv.appendChild(el('b', x[2], x[1])); kv.appendChild(dv); });
         c.appendChild(kv);
@@ -511,7 +511,7 @@ body.preview #offline,body.preview #gear{display:none!important}
   W.buttons = function(box, d){
     box.classList.add('deck');
     var items = cfg.buttons.filter(function(b){ return b.group === d.ref; });
-    var cols = Math.max(1, Math.min(items.length || 1, Math.round((cfg.columns || 4) * d.w / 12) || 1));
+    var cols = Math.max(1, Math.min(items.length || 1, Math.round(((buildPage && buildPage.columns) || cfg.columns || 4) * d.w / 12) || 1));
     // Nhieu nut qua thi tang so cot cho vua khung, khong de hang cuoi bi cat
     var maxRows = Math.max(1, Math.floor(d.h * 0.75)), cap = Math.max(cols, Math.round(10 * d.w / 12));
     while (cols < cap && Math.ceil(items.length / cols) > maxRows) cols++;
@@ -537,13 +537,17 @@ body.preview #offline,body.preview #gear{display:none!important}
     document.body.className = document.body.className.replace(/\b(bg|sf)-\w+/g, '').trim() + ' bg-' + (t.background || 'aurora') + ' sf-' + (t.surface || 'cards');
   }
 
+  var buildPage = null;
+  // Trang co giao dien rieng thi dung no, khong thi dung giao dien chung
+  function themeOf(p){ return (p && p.theme) || cfg.theme; }
   function build(){
-    applyTheme(cfg.theme);
+    applyTheme(themeOf(null));
     var pager = $('pager'); pager.innerHTML = ''; widgets = [];
     var portrait = window.matchMedia('(orientation:portrait)').matches;
     pages = (cfg.pages || []).filter(function(p){ return !p.hidden || PREVIEW; });
     pages.forEach(function(p){
       var sec = el('section', 'page'); sec.setAttribute('data-name', p.name); sec.setAttribute('data-id', p.id);
+      buildPage = p;
       var ws = (p.widgets || []).slice().sort(function(a, b){ return a.y - b.y || a.x - b.x; });
       ws.forEach(function(d){
         var box = el('div', 'w w-' + d.type);
@@ -556,6 +560,7 @@ body.preview #offline,body.preview #gear{display:none!important}
       if (!ws.length) sec.appendChild(h('<div class="w card empty" style="grid-column:1/-1;grid-row:1/-1">Trang trống. Thêm widget trong ⚙ Cài đặt.</div>'));
       pager.appendChild(sec);
     });
+    buildPage = null;
     var dots = $('dots'); dots.innerHTML = '';
     pages.forEach(function(p, i){ var d = el('i'); d.onclick = function(){ go(i); }; dots.appendChild(d); });
     var saved = null; try { saved = localStorage.getItem('dp.page'); } catch(e) {}
@@ -572,6 +577,7 @@ body.preview #offline,body.preview #gear{display:none!important}
     if (instant) { pager.offsetWidth; pager.style.transition = ''; }
     Array.prototype.forEach.call($('dots').children, function(d, k){ d.className = k === page ? 'on' : ''; });
     $('pname').textContent = pages[page].name;
+    applyTheme(themeOf(pages[page]));
     if (!PREVIEW) try { localStorage.setItem('dp.page', pages[page].id); } catch(e) {}
   }
   var sx = null, sy = 0;

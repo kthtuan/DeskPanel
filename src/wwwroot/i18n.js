@@ -104,6 +104,8 @@
     'Đọc bình thường': 'Reading normally',
     'Điện thoại đã nối': 'Phone connected',
     'Chưa nối điện thoại': 'No phone connected',
+    'Điện thoại đã nối qua Wi-Fi ({0})': 'Phone connected over Wi-Fi ({0})',
+    'Wi-Fi: {0} thiết bị đang mở bảng': 'Wi-Fi: {0} device(s) showing the panel',
 
     // ---------- Cai dat: trang & widget ----------
     '+ Thêm trang': '+ Add page',
@@ -278,6 +280,13 @@
     'Số cột tối đa của widget Nhóm nút (khi rộng hết màn hình)': 'Max columns of the Button group widget (at full width)',
     '{0} cột': '{0} columns',
     'Về mặc định': 'Reset to default',
+    'Áp dụng cho': 'Apply to',
+    'Tất cả trang (giao diện chung)': 'All pages (shared look)',
+    ' · riêng': ' · custom',
+    'Dùng lại giao diện chung': 'Use the shared look again',
+    'Các trang chưa có giao diện riêng dùng giao diện này.': 'Pages without their own look use this one.',
+    'Trang này đang dùng giao diện riêng.': 'This page has its own look.',
+    'Trang này đang dùng giao diện chung. Chỉnh bất kỳ mục nào bên dưới để tạo giao diện riêng cho trang.': 'This page uses the shared look. Change anything below to give this page its own look.',
     'Xem trước': 'Preview',
     'Cực quang': 'Aurora', 'Tối': 'Dark', 'Đen (AMOLED)': 'Black (AMOLED)',
     'Thẻ viền': 'Outlined', 'Phẳng': 'Flat', 'Không nền': 'No background',

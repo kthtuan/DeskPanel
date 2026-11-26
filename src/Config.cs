@@ -35,6 +35,10 @@ public sealed class PageDef
     public string Name { get; set; } = "";
     public string? Icon { get; set; }
     public bool Hidden { get; set; }
+    /// <summary>Giao dien rieng cua trang nay; null = dung giao dien chung.</summary>
+    public ThemeDef? Theme { get; set; }
+    /// <summary>So cot rieng cho widget Nhom nut tren trang nay; null = dung chung.</summary>
+    public int? Columns { get; set; }
     public List<WidgetDef> Widgets { get; set; } = new();
 }
 
@@ -188,14 +192,25 @@ public sealed class ConfigStore
         return m.Success ? m.Groups[1].Value + "/" + m.Groups[2].Value : v;
     }
 
-    static string? ValidatePages(PanelConfig c)
+    static string? ValidateTheme(ThemeDef t)
     {
-        var t = c.Theme ??= new ThemeDef();
         if (!ColorRx.IsMatch(t.Accent ?? "")) return "Màu nhấn phải dạng #RRGGBB";
         if (t.Background is not ("aurora" or "plain" or "black")) return "Kiểu nền không hợp lệ";
         if (t.Surface is not ("cards" or "flat" or "content")) return "Kiểu thẻ không hợp lệ";
         if (t.Radius < 0 || t.Radius > 32 || t.Gap < 0 || t.Gap > 24 || t.FontScale < 60 || t.FontScale > 180) return "Thông số giao diện ngoài giới hạn";
+        return null;
+    }
+
+    static string? ValidatePages(PanelConfig c)
+    {
+        var terr = ValidateTheme(c.Theme ??= new ThemeDef());
+        if (terr != null) return terr;
         if (c.Pages == null) return null;
+        foreach (var p in c.Pages)
+        {
+            if (p?.Theme != null && ValidateTheme(p.Theme) is { } pe) return $"Trang '{p.Name}': {pe}";
+            if (p?.Columns is < 2 or > 8) return $"Trang '{p.Name}': số cột phải từ 2 đến 8";
+        }
         if (c.Pages.Count > 30) return "Tối đa 30 trang";
         var pids = new HashSet<string>();
         foreach (var p in c.Pages)
