@@ -1,5 +1,9 @@
 # Nhật ký thay đổi
 
+## 0.7.1 (26/11/2026)
+- Nút AutoCAD và nút phím có chọn chương trình: kiểm tra lại cửa sổ đã thật sự lên trước rồi mới gõ. Nếu Windows chặn đổi cửa sổ, điện thoại báo lỗi thay vì gõ nhầm vào cửa sổ khác.
+- Kiểm tra kết quả gửi phím: nếu Windows chặn (máy khóa, hộp thoại UAC), điện thoại báo lỗi thay vì báo thành công.
+
 ## 0.7.0 (26/11/2026)
 - Kết nối qua Wi-Fi, không cần cáp: bật trong Cài đặt → Chung → **Kết nối qua Wi-Fi**. Điện thoại ghép nối một lần bằng mã QR. Từ mạng LAN chỉ xem bảng và bấm nút được, không mở được trang cài đặt hay cập nhật.
 - App Android **DeskPanel** (file APK, Android 5 trở lên): quét mã QR, toàn màn hình, giữ màn hình sáng, mất kết nối tự thử lại. Dùng được cả với cáp USB.

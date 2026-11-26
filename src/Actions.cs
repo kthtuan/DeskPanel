@@ -79,22 +79,19 @@ public static class ActionRunner
                 return Launch(b.Value.Trim(), null);
             case "keys":
             {
-                if (!string.IsNullOrWhiteSpace(b.Focus) && !Win.FocusProcess(b.Focus!))
-                    return new(false, $"Chưa mở chương trình '{b.Focus}'");
+                if (!string.IsNullOrWhiteSpace(b.Focus) && Win.FocusError(b.Focus!, b.Focus == ConfigStore.CadProcesses ? "AutoCAD" : b.Focus!) is { } fe1) return new(false, fe1);
                 var err = KeyParser.TryParseSequence(b.Value, out var combos);
                 if (err != null) return new(false, err);
                 foreach (var c in combos) { Win.SendCombo(c); Thread.Sleep(40); }
                 return new(true);
             }
             case "text":
-                if (!string.IsNullOrWhiteSpace(b.Focus) && !Win.FocusProcess(b.Focus!))
-                    return new(false, $"Chưa mở chương trình '{b.Focus}'");
+                if (!string.IsNullOrWhiteSpace(b.Focus) && Win.FocusError(b.Focus!, b.Focus == ConfigStore.CadProcesses ? "AutoCAD" : b.Focus!) is { } fe2) return new(false, fe2);
                 Win.TypeText(b.Value);
                 if (b.Enter) Win.SendCombo(new ushort[] { 0x0D });
                 return new(true);
             case "cad":
-                if (!Win.FocusProcess(string.IsNullOrWhiteSpace(b.Focus) ? ConfigStore.CadProcesses : b.Focus!))
-                    return new(false, "AutoCAD chưa mở");
+                if (Win.FocusError(string.IsNullOrWhiteSpace(b.Focus) ? ConfigStore.CadProcesses : b.Focus!, "AutoCAD") is { } fe3) return new(false, fe3);
                 // Huy lenh dang do roi go lenh moi. Trong AutoCAD, dau cach tuong duong Enter.
                 Win.SendCombo(new ushort[] { 0x1B }); Thread.Sleep(30);
                 Win.SendCombo(new ushort[] { 0x1B }); Thread.Sleep(30);
@@ -171,7 +168,9 @@ static class Win
     static void Send(List<INPUT> list)
     {
         if (list.Count == 0) return;
-        SendInput((uint)list.Count, list.ToArray(), Marshal.SizeOf<INPUT>());
+        var sent = SendInput((uint)list.Count, list.ToArray(), Marshal.SizeOf<INPUT>());
+        if (sent != list.Count)
+            throw new InvalidOperationException("Windows chặn gửi phím (máy đang khóa, đang hiện hộp thoại UAC, hoặc cửa sổ đích chạy quyền cao hơn)");
     }
 
     public static void SendCombo(ushort[] keys)
@@ -208,24 +207,37 @@ static class Win
         }
     }
 
-    /// <summary>Dua cua so chinh cua tien trinh (vd "acad,acadlt") len truoc. Tra ve false neu khong tim thay.</summary>
-    public static bool FocusProcess(string names)
+    /// <summary>Dua cua so cua tien trinh len truoc; tra ve loi (tieng Viet) neu chua mo hoac khong dua len duoc.</summary>
+    public static string? FocusError(string names, string display) => FocusProcess(names) switch
+    {
+        FocusResult.NotRunning => $"{display} chưa mở",
+        FocusResult.Blocked => $"Không đưa được {display} lên trước (Windows chặn đổi cửa sổ). Bấm vào {display} trên PC một lần rồi thử lại.",
+        _ => null,
+    };
+
+    public enum FocusResult { Ok, NotRunning, Blocked }
+
+    /// <summary>Dua cua so chinh cua tien trinh (vd "acad,acadlt") len truoc va KIEM TRA lai la da len that.</summary>
+    public static FocusResult FocusProcess(string names)
     {
         IntPtr hwnd = IntPtr.Zero;
+        var pids = new HashSet<uint>();
         foreach (var n in names.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             var name = n.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? n[..^4] : n;
             foreach (var p in Process.GetProcessesByName(name))
             {
-                if (p.MainWindowHandle != IntPtr.Zero) { hwnd = p.MainWindowHandle; break; }
+                pids.Add((uint)p.Id);
+                if (hwnd == IntPtr.Zero && p.MainWindowHandle != IntPtr.Zero) hwnd = p.MainWindowHandle;
             }
-            if (hwnd != IntPtr.Zero) break;
         }
-        if (hwnd == IntPtr.Zero) return false;
-        if (GetForegroundWindow() == hwnd) return true;
+        if (hwnd == IntPtr.Zero) return FocusResult.NotRunning;
+        // Cua so dang o truoc thuoc dung chuong trinh (ke ca hop thoai cua no) thi khong doi
+        bool Front() { GetWindowThreadProcessId(GetForegroundWindow(), out var pid); return pids.Contains(pid); }
+        if (Front()) return FocusResult.Ok;
 
         if (IsIconic(hwnd)) ShowWindow(hwnd, 9 /*SW_RESTORE*/);
-        if (SetForegroundWindow(hwnd)) { Thread.Sleep(120); return true; }
+        if (SetForegroundWindow(hwnd) && WaitFront(Front)) return FocusResult.Ok;
 
         // Windows chan doi cua so tu tien trinh nen; gan tam vao luong cua cua so dang hien
         var fg = GetForegroundWindow();
@@ -238,7 +250,13 @@ static class Win
             SetForegroundWindow(hwnd);
         }
         finally { if (attached) AttachThreadInput(me, fgThread, false); }
-        Thread.Sleep(120);
-        return true;
+        return WaitFront(Front) ? FocusResult.Ok : FocusResult.Blocked;
+    }
+
+    // Doi cua so len truoc (Windows doi cua so khong dong bo), toi da ~500 ms
+    static bool WaitFront(Func<bool> front)
+    {
+        for (int i = 0; i < 10; i++) { Thread.Sleep(50); if (front()) return true; }
+        return false;
     }
 }
