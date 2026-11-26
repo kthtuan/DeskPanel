@@ -3,11 +3,15 @@ using System.Text;
 using System.Text.Json;
 using DeskPanel;
 
+// File cai dat: chay tu ngoai thu muc da cai thi cai/cap nhat; --uninstall thi go
+if (Setup.TryRun(args)) return;
+
 // Chi cho phep mot ban DeskPanel chay cung luc
 using var mutex = new Mutex(true, @"Global\DeskPanel_SingleInstance", out bool first);
 if (!first) { Log.Write("DeskPanel da dang chay, thoat ban moi."); return; }
 
 var baseDir = AppContext.BaseDirectory;
+EmbeddedWeb.Extract(baseDir);
 var store = new ConfigStore(Path.Combine(baseDir, "config.json"));
 int port = store.Current.Port;
 
@@ -125,6 +129,7 @@ app.MapPut("/api/config", async (HttpRequest req) =>
     var err = ConfigStore.Validate(cfg);
     if (err != null) return Results.BadRequest(new { error = err });
     cfg!.LanEnabled = store.Current.LanEnabled; // chi doi qua /api/lan
+    cfg.AiWebClaude = store.Current.AiWebClaude; cfg.AiWebChatGpt = store.Current.AiWebChatGpt; // chi doi qua /api/ai/login
     store.Save(cfg!);
     Log.Write($"Da luu cau hinh: {cfg!.Buttons.Count} nut");
     return Results.Ok(new { ok = true, restartNeeded = cfg.Port != port });
@@ -218,6 +223,36 @@ app.MapPost("/api/lan", async (HttpRequest req, CancellationToken ct) =>
     if (on != lanOn) rerr = Updater.ScheduleRestart(baseDir);
     return Results.Json(new { ok = true, restarting = on != lanOn && rerr == null, error = rerr }, Json.Opts);
 });
+// Dang nhap Claude / ChatGPT tren web trong DeskPanel (mo cua so tren PC)
+app.MapGet("/api/ai/web", () => Results.Json(new
+{
+    available = WebAgent.Available, busy = WebAgent.Busy,
+    claude = store.Current.AiWebClaude, chatgpt = store.Current.AiWebChatGpt,
+}, Json.Opts));
+app.MapPost("/api/ai/login/{site}", async (string site) =>
+{
+    if (site is not ("claude" or "chatgpt")) return Results.NotFound();
+    if (!WebAgent.Available) return Results.Json(new { ok = false, error = "Máy chưa có Microsoft Edge WebView2. Tải tại https://go.microsoft.com/fwlink/p/?LinkId=2124703 rồi thử lại." }, Json.Opts, statusCode: 400);
+    bool ok = await WebAgent.LoginAsync(site);
+    if (ok) SetAiWeb(site, true);
+    ai.RefreshSoon();
+    return Results.Json(new { ok }, Json.Opts);
+});
+app.MapPost("/api/ai/logout/{site}", async (string site) =>
+{
+    if (site is not ("claude" or "chatgpt")) return Results.NotFound();
+    await WebAgent.LogoutAsync(site);
+    SetAiWeb(site, false);
+    ai.RefreshSoon();
+    return Results.Json(new { ok = true }, Json.Opts);
+});
+void SetAiWeb(string site, bool on)
+{
+    var cfg = JsonSerializer.Deserialize<PanelConfig>(JsonSerializer.Serialize(store.Current, Json.Opts), Json.Opts)!;
+    if (site == "claude") cfg.AiWebClaude = on; else cfg.AiWebChatGpt = on;
+    store.Save(cfg);
+    Log.Write((on ? "Dang nhap web " : "Dang xuat web ") + site);
+}
 app.MapPost("/api/lan/rotate", () => { lan.Rotate(); Log.Write("Da doi ma ghep noi Wi-Fi"); return Results.Json(new { ok = true }); });
 app.MapPost("/api/restart", () =>
 {

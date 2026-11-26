@@ -256,7 +256,14 @@ dialog h2{margin:0 0 12px;font-size:17px}
         <div><label class="l">Cổng (đổi xong cần khởi động lại DeskPanel)</label><input id="port" type="number" min="1024" max="65535"></div>
         <div><label class="l">Đường dẫn adb.exe (để trống = tự tìm)</label><input id="adbPath" placeholder="C:\DeskPanel\platform-tools\adb.exe"></div>
         <div style="align-self:end"><label><input id="autoAdb" type="checkbox">Tự nối điện thoại qua USB (adb reverse)</label></div>
-        <div style="grid-column:1/-1"><label><input id="aiOnline" type="checkbox">Widget AI: lấy % giới hạn chính thức của gói Claude và ChatGPT (Codex)</label><div class="help">Dùng đăng nhập sẵn có của Claude Code và Codex trên PC này, 3 phút hỏi một lần. Mã đăng nhập chỉ nằm trên PC, không gửi ra điện thoại. Tắt thì widget chỉ đếm token từ nhật ký.</div></div>
+      </div>
+      <div class="box" style="margin-top:14px" id="aiBox">
+        <h3>Theo dõi AI (widget AI)</h3>
+        <label><input id="aiOnline" type="checkbox">Lấy % giới hạn chính thức của gói Claude và ChatGPT</label>
+        <div class="help">Đăng nhập một lần bên dưới (cửa sổ claude.ai / chatgpt.com mở trên PC, tự đóng khi xong). Nếu PC đã đăng nhập Claude Code hoặc Codex thì không cần. DeskPanel hỏi 3 phút một lần; đăng nhập chỉ nằm trên PC, không gửi ra điện thoại.</div>
+        <div class="row" style="margin-top:10px;gap:10px;flex-wrap:wrap;align-items:center"><b style="min-width:70px">Claude</b><span class="help" style="margin:0" id="aiClaudeSt">…</span><button id="aiClaudeBtn" data-site="claude">Đăng nhập Claude</button></div>
+        <div class="row" style="margin-top:8px;gap:10px;flex-wrap:wrap;align-items:center"><b style="min-width:70px">ChatGPT</b><span class="help" style="margin:0" id="aiChatgptSt">…</span><button id="aiChatgptBtn" data-site="chatgpt">Đăng nhập ChatGPT</button></div>
+        <div class="help" id="aiWebMsg"></div>
       </div>
       <div class="box" style="margin-top:14px" id="lanBox">
         <h3>Kết nối qua Wi-Fi</h3>
@@ -1026,6 +1033,31 @@ dialog h2{margin:0 0 12px;font-size:17px}
   // ---------- Wi-Fi ----------
   function lanMsg(t, cls){ var m = $('lanMsg'); m.textContent = t; m.style.color = cls === 'err' ? 'var(--bad)' : cls === 'ok' ? 'var(--ok)' : ''; }
   var lanBusy = false;
+  var aiBusy = false;
+  function loadAiWeb(){
+    return api('GET', 'api/ai/web').then(function(w){
+      [['claude', 'Claude'], ['chatgpt', 'ChatGPT']].forEach(function(x){
+        var on = w[x[0]], st = $(x[0] === 'claude' ? 'aiClaudeSt' : 'aiChatgptSt'), b = $(x[0] === 'claude' ? 'aiClaudeBtn' : 'aiChatgptBtn');
+        st.textContent = on ? 'Đã đăng nhập trong DeskPanel' : 'Chưa đăng nhập';
+        b.textContent = on ? 'Đăng xuất' : 'Đăng nhập ' + x[1];
+        b.dataset.on = on ? '1' : '';
+        b.disabled = aiBusy || !!w.busy;
+      });
+      if (!w.available) $('aiWebMsg').textContent = 'Máy này chưa có Microsoft Edge WebView2 nên chưa mở được cửa sổ đăng nhập.';
+    }).catch(function(){});
+  }
+  ['aiClaudeBtn', 'aiChatgptBtn'].forEach(function(id){
+    $(id).onclick = function(){
+      var b = this, site = b.dataset.site, out = b.dataset.on === '1';
+      aiBusy = true; $('aiClaudeBtn').disabled = $('aiChatgptBtn').disabled = true;
+      $('aiWebMsg').textContent = out ? 'Đang đăng xuất…' : 'Đã mở cửa sổ đăng nhập trên PC (có thể nằm sau trình duyệt). Đăng nhập xong cửa sổ tự đóng.';
+      api('POST', 'api/ai/' + (out ? 'logout/' : 'login/') + site).then(function(r){
+        $('aiWebMsg').textContent = out ? 'Đã đăng xuất.' : r.ok ? 'Đăng nhập xong. Widget AI cập nhật trong khoảng 1 phút.' : 'Chưa đăng nhập (cửa sổ đã đóng).';
+      }).catch(function(e){ $('aiWebMsg').textContent = e.message; })
+        .then(function(){ aiBusy = false; loadAiWeb(); });
+    };
+  });
+
   function loadLan(){
     if (lanBusy) return Promise.resolve();
     return api('GET', 'api/lan').then(function(l){
@@ -1065,7 +1097,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     if (!confirm('Đổi mã ghép nối? Các điện thoại đang nối qua Wi-Fi sẽ phải quét mã QR mới.')) return;
     api('POST', 'api/lan/rotate').then(function(){ lanMsg('Đã đổi mã. Quét lại mã QR trên điện thoại.', 'ok'); return loadLan(); }).catch(function(e){ lanMsg(e.message, 'err'); });
   };
-  loadLan();
+  loadLan(); loadAiWeb();
 
   // ---------- Cập nhật ----------
   function uMsg(t, cls){ var m = $('uMsg'); m.textContent = t; m.style.color = cls === 'err' ? 'var(--bad)' : cls === 'ok' ? 'var(--ok)' : ''; }

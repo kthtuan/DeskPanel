@@ -302,9 +302,12 @@ body.preview #offline,body.preview #gear{display:none!important}
       }
       if (t.note) w.appendChild(el('div', 'ln wn', t.note));
       var ln = el('div', 'ln'); ln.innerHTML = 'Hôm nay <b></b> token · 7 ngày <b></b>';
-      var bs = ln.querySelectorAll('b'); bs[0].textContent = tok(t.today); bs[1].textContent = tok(t.week);
-      if (t.messagesToday != null) ln.appendChild(document.createTextNode(' · ' + t.messagesToday + ' lượt'));
-      w.appendChild(ln);
+      if (!t.today && !t.week && t.limits && t.limits.length) ln = null; // chi dang nhap web: khong co nhat ky token
+      if (ln) {
+        var bs = ln.querySelectorAll('b'); bs[0].textContent = tok(t.today); bs[1].textContent = tok(t.week);
+        if (t.messagesToday != null) ln.appendChild(document.createTextNode(' · ' + t.messagesToday + ' lượt'));
+        w.appendChild(ln);
+      }
       if (t.block != null && !(t.limits && t.limits.length)) w.appendChild(el('div', 'ln mu', 'Khung 5 giờ: ' + tok(t.block) + ' token · ' + untilTxt(t.blockReset)));
       if (t.credits) w.appendChild(el('div', 'ln mu', t.credits));
       return w;
@@ -312,7 +315,7 @@ body.preview #offline,body.preview #gear{display:none!important}
     return { update: function(s){
       list.innerHTML = '';
       var a = s.ai, sm = box.querySelector('.sm');
-      if (!a || (!a.claude && !a.codex)) { list.appendChild(el('div', 'ln', 'Chưa thấy Claude Code hay Codex trên PC này.')); sm.textContent = ''; return; }
+      if (!a || (!a.claude && !a.codex)) { list.appendChild(el('div', 'ln', 'Chưa có dữ liệu AI. Trên PC mở ⚙ Cài đặt → Chung → Đăng nhập Claude hoặc ChatGPT.')); sm.textContent = ''; return; }
       if (a.claude) list.appendChild(tool('Claude', '#d97757', a.claude));
       if (a.codex) list.appendChild(tool('Codex', '#e8ecf2', a.codex));
       var on = (a.claude && a.claude.active) || (a.codex && a.codex.active);

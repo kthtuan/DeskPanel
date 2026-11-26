@@ -1,6 +1,5 @@
-**Sửa trong 0.10.2**
+**Có gì mới trong 0.11.0**
 
-- Cài lần đầu: không còn mở trình duyệt quá sớm (trước đây có thể báo `localhost refused to connect` dù DeskPanel đang khởi động). Nếu DeskPanel không chạy được, cửa sổ cài đặt ghi rõ lý do.
-- Widget AI: ghi rõ cách đăng nhập khi PC chưa đăng nhập Claude Code.
-
-Cập nhật: Cài đặt → Chung → **Cài bản 0.10.2**.
+- **Cài mới:** tải `DeskPanel-Setup-0.11.0.exe`, nhấp đúp, bấm Yes. Không cần giải nén, không cần tải adb hay cài PawnIO bằng tay. Gỡ trong Windows Settings → Apps.
+- **Đăng nhập Claude / ChatGPT trong DeskPanel:** Cài đặt → Chung → Theo dõi AI → Đăng nhập. Widget AI hiện % giới hạn của gói mà không cần Claude Code.
+- File zip vẫn có để DeskPanel tự cập nhật (Cài đặt → Chung → **Cài bản 0.11.0**).

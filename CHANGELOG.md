@@ -1,5 +1,11 @@
 # Nhật ký thay đổi
 
+## 0.11.0 (26/11/2026)
+- **Một file cài duy nhất** `DeskPanel-Setup-0.11.0.exe`: nhấp đúp, bấm Yes là cài xong vào `C:\DeskPanel`, tự chạy khi đăng nhập Windows, mở trang cài đặt. Chạy file cài bản mới là cập nhật tại chỗ. Gỡ trong Windows Settings → Apps.
+- Giao diện và APK Android nằm sẵn trong exe. Tự tải adb của Google (chế độ cáp USB) và tự cài PawnIO (nhiệt độ CPU), không phải tải tay.
+- **Đăng nhập Claude / ChatGPT ngay trong DeskPanel** (Cài đặt → Chung → Theo dõi AI): cửa sổ claude.ai / chatgpt.com mở trên PC, đăng nhập một lần, widget AI tự lấy % giới hạn. Không cần cài Claude Code hay chạy lệnh.
+- Bỏ install.cmd / update.cmd / uninstall.cmd.
+
 ## 0.10.2 (26/11/2026)
 - Cài đặt: đợi DeskPanel chạy hẳn (tối đa 60 giây) rồi mới mở trình duyệt. Nếu không chạy được, cửa sổ cài đặt hiện lý do và các dòng cuối của nhật ký.
 

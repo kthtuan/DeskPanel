@@ -40,8 +40,52 @@ public sealed partial class AiMonitor
         if (_store != null && !_store.Current.AiOnline) { _claudeOn = _codexOn = null; return; }
         if (DateTime.UtcNow < _nextOnline) return;
         _nextOnline = DateTime.UtcNow.AddMinutes(3);
-        _claudeOn = await Safe(() => ClaudeOnline(ct), _claudeOn);
-        _codexOn = await Safe(() => CodexOnline(ct), _codexOn);
+        var cfg = _store?.Current;
+        var claude = await Safe(() => ClaudeOnline(ct), _claudeOn);
+        // Chua co dang nhap Claude Code thi dung dang nhap web trong DeskPanel
+        if (cfg != null && cfg.AiWebClaude && (claude == null || claude.Limits.Count == 0))
+            claude = await Safe(() => WebOnline("claude"), _claudeOn) ?? claude;
+        _claudeOn = claude;
+        var codex = await Safe(() => CodexOnline(ct), _codexOn);
+        if (cfg != null && cfg.AiWebChatGpt && (codex == null || codex.Limits.Count == 0))
+            codex = await Safe(() => WebOnline("chatgpt"), _codexOn) ?? codex;
+        _codexOn = codex;
+    }
+
+    /// <summary>Hoi lai ngay (sau khi dang nhap/dang xuat).</summary>
+    public void RefreshSoon() => _nextOnline = DateTime.MinValue;
+
+    async Task<Online?> WebOnline(string site)
+    {
+        var json = await WebAgent.FetchAsync(site);
+        if (json == null) return null;
+        using var doc = JsonDocument.Parse(json);
+        var r = doc.RootElement;
+        int status = r.TryGetProperty("status", out var st) && st.ValueKind == JsonValueKind.Number ? st.GetInt32() : 0;
+        var res = new Online { At = DateTime.UtcNow };
+        if (status is 401 or 403)
+        {
+            res.Note = "Phiên đăng nhập " + (site == "claude" ? "Claude" : "ChatGPT") + " trong DeskPanel đã hết: vào ⚙ Cài đặt → Chung đăng nhập lại";
+            return res;
+        }
+        var usage = Obj(r, "usage");
+        if (status != 200 || usage.ValueKind != JsonValueKind.Object) throw new Exception("web " + site + " status " + status);
+        if (site == "claude")
+        {
+            ParseClaude(usage, res);
+            var caps = Obj(r, "caps");
+            var capList = caps.ValueKind == JsonValueKind.Array ? caps.EnumerateArray().Select(x => x.GetString() ?? "").ToList() : new List<string>();
+            var tier = Str(r, "tier") ?? "";
+            res.Plan = capList.Contains("claude_max") || tier.Contains("max") ? ClaudePlan("max", tier)
+                     : capList.Contains("claude_pro") ? "Pro" : capList.Contains("raven") ? "Team" : "Free";
+        }
+        else
+        {
+            ParseCodex(usage, res);
+            var plan = Str(r, "plan");
+            if (!string.IsNullOrEmpty(plan)) res.Plan = Title(plan);
+        }
+        return res;
     }
 
     static async Task<Online?> Safe(Func<Task<Online?>> f, Online? old)
@@ -61,12 +105,12 @@ public sealed partial class AiMonitor
     {
         var path = Path.Combine(ClaudeHome, ".credentials.json");
         if (!File.Exists(path))
-            return Directory.Exists(ClaudeHome) ? new Online { Note = "Chưa đăng nhập Claude Code trên PC này: mở Terminal, chạy claude rồi gõ /login", At = DateTime.UtcNow } : null;
+            return Directory.Exists(ClaudeHome) ? new Online { Note = "Chưa đăng nhập Claude Code trên PC này: vào ⚙ Cài đặt → Chung → Đăng nhập Claude", At = DateTime.UtcNow } : null;
         using var cred = JsonDocument.Parse(await File.ReadAllTextAsync(path, ct));
         var o = Obj(cred.RootElement, "claudeAiOauth");
         var token = Str(o, "accessToken");
         if (string.IsNullOrEmpty(token)) // dang nhap bang API key: khong co goi de xem
-            return new Online { Note = "Claude Code chưa đăng nhập bằng tài khoản Claude (Pro/Max): chạy claude rồi gõ /login", At = DateTime.UtcNow };
+            return new Online { Note = "Chưa có tài khoản Claude: vào ⚙ Cài đặt → Chung → Đăng nhập Claude", At = DateTime.UtcNow };
         var res = new Online { Plan = ClaudePlan(Str(o, "subscriptionType"), Str(o, "rateLimitTier")), At = DateTime.UtcNow };
         if (o.TryGetProperty("expiresAt", out var ex) && ex.ValueKind == JsonValueKind.Number &&
             DateTimeOffset.FromUnixTimeMilliseconds(ex.GetInt64()) < DateTimeOffset.UtcNow)

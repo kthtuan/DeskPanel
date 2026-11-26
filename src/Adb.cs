@@ -14,6 +14,38 @@ public sealed class AdbBridge : BackgroundService
 
     public AdbBridge(ConfigStore store, int port) { _store = store; _port = port; }
 
+    DateTime _nextDownload = DateTime.MinValue;
+    volatile bool _downloading;
+    const string PlatformToolsUrl = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip";
+
+    // Tu tai Android Platform Tools tu Google (chi lay adb.exe va 2 DLL) vao thu muc platform-tools
+    async Task DownloadAdb()
+    {
+        _downloading = true;
+        Status = "Đang tải adb từ Google…";
+        var tmp = Path.Combine(Path.GetTempPath(), "deskpanel-platform-tools.zip");
+        try
+        {
+            using (var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) })
+            using (var resp = await http.GetAsync(PlatformToolsUrl, HttpCompletionOption.ResponseHeadersRead))
+            {
+                resp.EnsureSuccessStatusCode();
+                await using var f = File.Create(tmp);
+                await resp.Content.CopyToAsync(f);
+            }
+            var dest = Path.Combine(AppContext.BaseDirectory, "platform-tools");
+            Directory.CreateDirectory(dest);
+            using (var zip = System.IO.Compression.ZipFile.OpenRead(tmp))
+                foreach (var e in zip.Entries)
+                    if (e.Name is "adb.exe" or "AdbWinApi.dll" or "AdbWinUsbApi.dll")
+                        System.IO.Compression.ZipFileExtensions.ExtractToFile(e, Path.Combine(dest, e.Name), true);
+            Log.Write("Da tai adb vao " + dest);
+            Status = "Đã tải adb";
+        }
+        catch (Exception ex) { Log.Write("Khong tai duoc adb: " + ex.Message); Status = "Không tải được adb (" + ex.Message + "). Thử lại sau 1 giờ."; }
+        finally { _downloading = false; try { File.Delete(tmp); } catch { } }
+    }
+
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
@@ -44,7 +76,12 @@ public sealed class AdbBridge : BackgroundService
     {
         if (!_store.Current.AutoAdbReverse) { Status = "Đã tắt tự động adb reverse"; return; }
         var adb = FindAdb();
-        if (adb == null) { Status = "Không tìm thấy adb.exe (đặt thư mục platform-tools cạnh DeskPanel.exe)"; return; }
+        if (adb == null)
+        {
+            if (OperatingSystem.IsWindows() && DateTime.UtcNow >= _nextDownload) { _nextDownload = DateTime.UtcNow.AddHours(1); _ = Task.Run(DownloadAdb); }
+            if (!_downloading) Status = "Không tìm thấy adb.exe (DeskPanel tự tải lại sau ít phút, hoặc đặt thư mục platform-tools cạnh DeskPanel.exe)";
+            return;
+        }
 
         var (_, devOut) = Run(adb, "devices");
         var serials = devOut.Split('\n')

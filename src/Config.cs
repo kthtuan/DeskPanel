@@ -18,6 +18,9 @@ public sealed class PanelConfig
     public bool LanEnabled { get; set; }
     /// <summary>Widget AI lay % gioi han chinh thuc bang dang nhap san co cua Claude Code / Codex tren PC.</summary>
     public bool AiOnline { get; set; } = true;
+    /// <summary>Da dang nhap Claude / ChatGPT tren web trong DeskPanel (cua so WebView2). Chi doi qua /api/ai/login.</summary>
+    public bool AiWebClaude { get; set; }
+    public bool AiWebChatGpt { get; set; }
     public List<ButtonDef> Buttons { get; set; } = new();
     /// <summary>Cac trang tren dien thoai, moi trang la luoi 12 cot x 6 hang chua widget.</summary>
     public List<PageDef>? Pages { get; set; }

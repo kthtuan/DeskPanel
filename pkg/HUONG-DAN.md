@@ -1,19 +1,14 @@
-# DeskPanel 0.7: hướng dẫn cài
+# DeskPanel: hướng dẫn cài
 
 DeskPanel biến điện thoại Android thành màn hình phụ cho PC Windows. Màn hình hiển thị CPU, GPU, RAM, nhiệt độ và sức khỏe ổ cứng, kèm các nút bấm (lệnh AutoCAD, Calculator, phím tắt). Điện thoại nối với PC qua cáp USB, hoặc qua Wi-Fi nếu bạn bật (mục B2).
 
 ## A. Trên PC (làm một lần)
 
-1. **Giải nén** thư mục `DeskPanel` vào `C:\DeskPanel`. Không đặt trong Downloads hoặc Desktop để tránh xóa nhầm.
-2. **Tải Android Platform Tools cho Windows** tại https://developer.android.com/tools/releases/platform-tools. Giải nén rồi chép nguyên thư mục `platform-tools` vào `C:\DeskPanel\`, để có file `C:\DeskPanel\platform-tools\adb.exe`.
-3. **Cài PawnIO** để đọc được nhiệt độ CPU (GPU, RAM và ổ cứng không cần bước này). Mở PowerShell rồi chạy:
-   ```
-   winget install namazso.PawnIO
-   ```
-   Cài xong thì khởi động lại máy.
-4. Nhấp đúp **`install.cmd`**, rồi bấm **Yes** khi Windows hỏi quyền admin.
+1. Tải **`DeskPanel-Setup-….exe`** ở trang Releases, nhấp đúp, bấm **Yes** khi Windows hỏi quyền admin, rồi bấm **Yes** để cài.
    - Nếu Windows SmartScreen chặn (file chưa có chữ ký số), bấm **More info → Run anyway**.
-   - Từ đây DeskPanel tự chạy ngầm mỗi khi bạn đăng nhập Windows.
+   - DeskPanel tự chép vào `C:\DeskPanel`, tự chạy ngầm mỗi khi bạn đăng nhập Windows, rồi mở trang cài đặt trong trình duyệt.
+   - Lần đầu DeskPanel tự cài **PawnIO** để đọc nhiệt độ CPU (cần khởi động lại máy một lần) và tự tải **adb** của Google cho chế độ cáp USB.
+2. Gỡ cài đặt: Windows **Settings → Apps → DeskPanel → Uninstall**.
 
 ## B. Trên điện thoại (làm một lần)
 
@@ -27,7 +22,7 @@ DeskPanel biến điện thoại Android thành màn hình phụ cho PC Windows.
 
 ## B2. Dùng Wi-Fi thay cho cáp (tùy chọn, từ bản 0.7)
 
-Không cần bật gỡ lỗi USB hay cài Platform Tools. Điện thoại và PC phải cùng một mạng (cùng modem Wi-Fi, PC cắm dây LAN cũng được).
+Không cần bật gỡ lỗi USB. Điện thoại và PC phải cùng một mạng (cùng modem Wi-Fi, PC cắm dây LAN cũng được).
 
 1. Trên PC mở `http://localhost:8765/settings.html` → thẻ **Chung** → tích **Cho điện thoại kết nối qua Wi-Fi**. DeskPanel tự chạy lại trong vài giây và hiện 2 mã QR.
 2. **Cài app** (lần đầu): mở camera điện thoại, quét mã **"1. Cài app DeskPanel"**, tải file APK rồi mở ra cài. Android sẽ hỏi cho phép cài ứng dụng ngoài Play Store: bấm **Cài đặt → Cho phép từ nguồn này**. File APK cũng có trong mục Releases trên GitHub.
@@ -56,7 +51,7 @@ Bộ trang mặc định gồm Tổng quan (đồng hồ, thời tiết, nhạc 
 
 - Thời tiết lấy từ Open-Meteo qua mạng của PC. Nếu Open-Meteo từ chối (ví dụ lỗi 429 do IP dùng chung), DeskPanel tự chuyển sang MET Norway, rồi wttr.in. Cả ba đều miễn phí, không cần tài khoản. Đổi thành phố ở thẻ **Chung** trong trang cài đặt, để trống nếu muốn tắt.
 - Thẻ nhạc đọc bài đang phát trên Windows (Spotify, YouTube trên Chrome/Edge…).
-- Widget **Theo dõi AI** (từ bản 0.9): đọc nhật ký Claude Code (`%USERPROFILE%\.claude\projects`) và Codex (`%USERPROFILE%\.codex\sessions`) trên PC, cập nhật mỗi 20 giây. Hiện token hôm nay, 7 ngày, khung 5 giờ của Claude Code, thanh giới hạn 5 giờ/tuần của Codex và phiên nào đang chạy. Số token của Claude Code là ước tính từ nhật ký, không phải con số chính thức của Anthropic. Từ bản 0.10, nếu PC đã đăng nhập Claude Code hoặc Codex, widget hiện thêm % giới hạn chính thức của gói (giống trang Mức sử dụng trên web), hỏi 3 phút một lần. Giới hạn Claude dùng chung cho web, app và Claude Code. Chat thường của ChatGPT không tính vào hạn mức Codex. Nếu báo đăng nhập hết hạn, mở Claude Code hoặc Codex một lần. Tắt ở Cài đặt → Chung.
+- Widget **Theo dõi AI** (từ bản 0.9): đọc nhật ký Claude Code (`%USERPROFILE%\.claude\projects`) và Codex (`%USERPROFILE%\.codex\sessions`) trên PC, cập nhật mỗi 20 giây. Hiện token hôm nay, 7 ngày, khung 5 giờ của Claude Code, thanh giới hạn 5 giờ/tuần của Codex và phiên nào đang chạy. Số token của Claude Code là ước tính từ nhật ký, không phải con số chính thức của Anthropic. Widget hiện % giới hạn chính thức của gói (giống trang Mức sử dụng trên web), hỏi 3 phút một lần. Từ bản 0.11, đăng nhập ngay trong DeskPanel: Cài đặt → Chung → **Theo dõi AI** → **Đăng nhập Claude** / **Đăng nhập ChatGPT**; một cửa sổ claude.ai / chatgpt.com mở trên PC, đăng nhập như bình thường, cửa sổ tự đóng khi xong. Nếu PC đã đăng nhập Claude Code hoặc Codex thì không cần bước này. Giới hạn Claude dùng chung cho web, app và Claude Code. Chat thường của ChatGPT không tính vào hạn mức Codex. Nếu báo đăng nhập hết hạn, đăng nhập lại ở Cài đặt → Chung. Tắt ở Cài đặt → Chung.
 
 ## D. Trang cài đặt
 
@@ -103,11 +98,9 @@ Nếu repo để **private**, DeskPanel cần một token chỉ đọc:
 
 Token được mã hóa theo tài khoản Windows (DPAPI) trong file `update-token.bin`, không nằm trong `config.json` và không gửi ra điện thoại. Hết hạn thì tạo token mới và dán lại.
 
-**Cách 3: update.cmd** (dùng khi nút ở trên báo lỗi, hoặc khi đang ở bản cũ hơn 0.6):
-1. Giải nén bản mới vào một thư mục bất kỳ, ví dụ `Downloads\DeskPanel-moi`. Không giải nén đè thẳng vào thư mục đã cài vì lúc đó DeskPanel đang chạy và khóa file `.exe`.
-2. Trong thư mục vừa giải nén, nhấp đúp **`update.cmd`** và bấm **Yes**. Xong thì xóa thư mục vừa giải nén.
+**Cách 3: chạy file cài mới.** Tải `DeskPanel-Setup-….exe` bản mới, nhấp đúp và bấm **Yes**. File cài nhận ra bản đang có và cập nhật tại chỗ.
 
-Cả ba cách đều giữ nguyên `config.json` (nút, trang, giao diện) và `platform-tools`. Nhật ký cập nhật nằm ở `update.log` trong thư mục cài.
+Cả ba cách đều giữ nguyên `config.json` (nút, trang, giao diện), `platform-tools` và đăng nhập AI. Nhật ký cập nhật nằm ở `update.log` trong thư mục cài.
 
 ## F. Khi có trục trặc
 
@@ -118,8 +111,8 @@ Cả ba cách đều giữ nguyên `config.json` (nút, trang, giao diện) và 
 - Nhật ký lỗi nằm ở `C:\DeskPanel\deskpanel.log`.
 - **App báo "Chưa kết nối được"** (Wi-Fi): kiểm tra PC và điện thoại cùng mạng, mạng trên PC đặt là Private, và địa chỉ trong app trùng địa chỉ dưới mã QR trên PC. PC có nhiều card mạng (VPN, máy ảo) thì trang cài đặt liệt kê hết, thử địa chỉ cùng dải với điện thoại.
 - **App báo "chưa nhận điện thoại này"**: mã ghép nối đã đổi, quét lại mã QR.
-- **Trình duyệt báo `localhost refused to connect` / `ERR_CONNECTION_REFUSED`**: DeskPanel không chạy. Lần đầu có thể mất 10–30 giây, đợi rồi tải lại. Nếu vẫn lỗi: mở Task Manager xem có `DeskPanel.exe` không; vào Windows Security → Protection history xem có bị chặn không; chắc chắn đã giải nén zip ra thư mục (không chạy thẳng trong zip) và chạy `install.cmd` bấm **Yes** khi Windows hỏi quyền admin; gửi file `deskpanel.log` trong thư mục DeskPanel nếu có.
-- **Gỡ cài đặt**: chạy `uninstall.cmd` (gỡ luôn quy tắc tường lửa), sau đó xóa thư mục.
+- **Trình duyệt báo `localhost refused to connect` / `ERR_CONNECTION_REFUSED`**: DeskPanel không chạy. Lần đầu có thể mất 10–30 giây, đợi rồi tải lại. Nếu vẫn lỗi: mở Task Manager xem có `DeskPanel.exe` không; vào Windows Security → Protection history xem có bị chặn không; chạy lại `DeskPanel-Setup-….exe` và bấm **Yes** khi Windows hỏi quyền admin; gửi file `deskpanel.log` trong thư mục DeskPanel nếu có.
+- **Gỡ cài đặt**: Windows Settings → Apps → DeskPanel → Uninstall (gỡ luôn tác vụ tự chạy và quy tắc tường lửa).
 
 ## Về an toàn
 

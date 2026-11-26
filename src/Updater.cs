@@ -147,7 +147,7 @@ try {
 } catch { W ("Loi: " + $_) }
 finally {
     if (Get-ScheduledTask -TaskName 'DeskPanel' -ErrorAction SilentlyContinue) { Start-ScheduledTask -TaskName 'DeskPanel' }
-    else { Start-Process (Join-Path $Dst 'DeskPanel.exe') -WorkingDirectory $Dst }
+    else { Start-Process (Join-Path $Dst 'DeskPanel.exe') -ArgumentList '--serve' -WorkingDirectory $Dst }
     W "Da chay lai DeskPanel"
     Unregister-ScheduledTask -TaskName $Task -Confirm:$false -ErrorAction SilentlyContinue
 }

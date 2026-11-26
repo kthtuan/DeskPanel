@@ -56,10 +56,8 @@ Bạn cần PC **Windows 10/11 64-bit**, điện thoại **Android có Chrome** 
 
 ### 1. Trên PC
 
-1. Tải `DeskPanel-x.y.z-win-x64.zip` ở mục [Releases](../../releases/latest), giải nén vào `C:\DeskPanel`.
-2. Tải [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools), chép thư mục `platform-tools` vào `C:\DeskPanel\`.
-3. Muốn đọc nhiệt độ CPU thì cài PawnIO: `winget install namazso.PawnIO`, rồi khởi động lại máy.
-4. Nhấp đúp `install.cmd`, bấm **Yes**. DeskPanel tự chạy mỗi khi đăng nhập Windows.
+1. Tải `DeskPanel-Setup-x.y.z.exe` ở mục [Releases](../../releases/latest), nhấp đúp, bấm **Yes**. Xong: DeskPanel nằm ở `C:\DeskPanel`, tự chạy mỗi khi đăng nhập Windows, tự tải adb và cài PawnIO (nhiệt độ CPU, khởi động lại máy một lần).
+2. Gỡ: Windows Settings → Apps → DeskPanel → Uninstall.
 
 > **SmartScreen:** file chưa có chữ ký số nên Windows có thể cảnh báo. Bấm **More info → Run anyway**.
 > DeskPanel chạy với quyền admin để đọc cảm biến và SMART; các chương trình nó mở vẫn chạy với quyền thường.
@@ -108,10 +106,12 @@ src/                 Chương trình PC (C# .NET 8, ASP.NET Core minimal API)
   Apps.cs            Danh sách phần mềm (Start Menu) và icon thật
   AiMonitor.cs       Đọc nhật ký Claude Code và Codex (token, giới hạn)
   AiUsage.cs         % giới hạn chính thức của gói Claude / ChatGPT
+  WebAgent.cs        Cửa sổ đăng nhập claude.ai / chatgpt.com (WebView2)
+  Setup.cs           File cài một exe: cài, cập nhật, gỡ
   Lan.cs             Chế độ Wi-Fi: mã ghép nối, mã QR, tường lửa
   wwwroot/           index.html (điện thoại), settings.html (cài đặt)
 android/             App Android (Kotlin, một WebView toàn màn hình, quét QR bằng ZXing)
-pkg/                 install / update / uninstall và hướng dẫn tiếng Việt
+pkg/                 Hướng dẫn tiếng Việt, ghi chú phát hành
 .github/workflows/   Tăng <Version> và đẩy lên main là GitHub tự build và phát hành
 ```
 

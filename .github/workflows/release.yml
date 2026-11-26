@@ -1,5 +1,6 @@
 # Moi lan doi <Version> trong src/DeskPanel.csproj va day len nhanh main:
-# GitHub build app Android (APK) va ban Windows (APK nam san trong zip), tao tag vX.Y.Z va Release kem 2 file.
+# GitHub build app Android (APK) va ban Windows (APK nam san trong exe), tao tag vX.Y.Z va Release kem
+# DeskPanel-Setup-X.Y.Z.exe (cai moi), zip (de DeskPanel tu cap nhat) va APK.
 # DeskPanel tren may nguoi dung doc Release moi nhat de hien nut "Cai ban ...".
 name: Release
 
@@ -81,16 +82,18 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Test-Path out/DeskPanel/wwwroot/deskpanel.apk)) { throw "Thieu deskpanel.apk trong ban Windows" }
-          Copy-Item pkg/*.cmd, pkg/*.ps1, pkg/HUONG-DAN.md out/DeskPanel/
+          Copy-Item pkg/HUONG-DAN.md out/DeskPanel/
           Remove-Item out/DeskPanel/*.pdb -ErrorAction SilentlyContinue
           Compress-Archive -Path out/DeskPanel -DestinationPath "out/DeskPanel-$env:VER-win-x64.zip"
           Copy-Item src/wwwroot/deskpanel.apk "out/DeskPanel-$env:VER.apk"
+          # Mot file cai dat duy nhat: giao dien va APK da nam trong exe
+          Copy-Item out/DeskPanel/DeskPanel.exe "out/DeskPanel-Setup-$env:VER.exe"
 
       - name: Tao Release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release create "v$env:VER" "out/DeskPanel-$env:VER-win-x64.zip" "out/DeskPanel-$env:VER.apk" `
+          gh release create "v$env:VER" "out/DeskPanel-Setup-$env:VER.exe" "out/DeskPanel-$env:VER-win-x64.zip" "out/DeskPanel-$env:VER.apk" `
             --repo "${{ github.repository }}" --target "${{ github.sha }}" `
             --title "DeskPanel $env:VER" --notes-file pkg/CHANGELOG-latest.md
