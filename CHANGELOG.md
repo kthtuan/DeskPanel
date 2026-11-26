@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## 0.6.4 (26/11/2026)
+- Sửa lỗi "Đường dẫn thư mục tạm quá dài" khi bấm Cập nhật / Cài bản (lệnh của tác vụ Task Scheduler vượt 261 ký tự).
+
 ## 0.6.3 (26/11/2026)
 - Ô repo GitHub nhận cả link đầy đủ (`https://github.com/chu/repo` hoặc `.git`), tự cắt về dạng `chu/repo`.
 

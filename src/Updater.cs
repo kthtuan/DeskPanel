@@ -51,11 +51,24 @@ public static class Updater
             var curVer = typeof(Updater).Assembly.GetName().Version?.ToString(3);
             if (!OperatingSystem.IsWindows()) return new(true, $"Zip hợp lệ (chế độ thử, không phải Windows nên không cài)", newVer);
 
-            var script = Path.Combine(work, "apply.ps1");
-            File.WriteAllText(script, ApplyScript, new System.Text.UTF8Encoding(true));
+            // Lenh cua tac vu Task Scheduler bi gioi han 261 ky tu, nen dat script o thu muc cai (duong dan ngan)
+            // va ghi san duong dan nguon/dich vao trong script thay vi truyen tham so.
             var dst = baseDir.TrimEnd('\\', '/');
-            var cmd = $"powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{script}\" -Src \"{root}\" -Dst \"{dst}\"";
-            if (cmd.Length > 261) return new(false, "Đường dẫn thư mục tạm quá dài");
+            var scriptDir = Path.Combine(dst, "_update");
+            Directory.CreateDirectory(scriptDir);
+            var script = Path.Combine(scriptDir, "apply.ps1");
+            static string Q(string x) => "'" + x.Replace("'", "''") + "'";
+            File.WriteAllText(script, $"$Src = {Q(root)}\r\n$Dst = {Q(dst)}\r\n" + ApplyScript, new System.Text.UTF8Encoding(true));
+            var cmd = $"powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{script}\"";
+            if (cmd.Length > 261)
+            {
+                // Thu muc cai qua sau: dung ProgramData
+                scriptDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "DeskPanel");
+                Directory.CreateDirectory(scriptDir);
+                var s2 = Path.Combine(scriptDir, "apply.ps1");
+                File.Copy(script, s2, true); script = s2;
+                cmd = $"powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{script}\"";
+            }
             Run("schtasks.exe", "/Create", "/F", "/TN", "DeskPanelUpdate", "/SC", "ONCE", "/ST", "00:00", "/RL", "HIGHEST", "/TR", cmd);
             Run("schtasks.exe", "/Run", "/TN", "DeskPanelUpdate");
             Log.Write($"Cap nhat: {curVer} -> {newVer ?? "?"} tu {root}");
@@ -99,7 +112,6 @@ public static class Updater
     }
 
     const string ApplyScript = """
-param([string]$Src, [string]$Dst)
 $log = Join-Path $Dst 'update.log'
 function W($m) { Add-Content -Path $log -Value ((Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' ' + $m) -Encoding UTF8 }
 try {

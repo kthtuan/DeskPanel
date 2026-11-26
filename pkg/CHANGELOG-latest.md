@@ -1,1 +1,1 @@
-- Ô repo GitHub nhận cả link đầy đủ (https://github.com/chu/repo hoặc .git), tự cắt về dạng chu/repo.
+- Sửa lỗi "Đường dẫn thư mục tạm quá dài" khi bấm Cập nhật / Cài bản: lệnh tác vụ cập nhật giờ luôn ngắn.
