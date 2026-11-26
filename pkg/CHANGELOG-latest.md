@@ -1,6 +1,6 @@
-**Sửa lỗi trong 0.7.1**
+**Mới trong 0.8.0**
 
-- Nút AutoCAD (và nút phím có chọn chương trình) kiểm tra lại cửa sổ đã thật sự lên trước rồi mới gõ lệnh. Nếu Windows chặn đổi cửa sổ, điện thoại báo "Không đưa được AutoCAD lên trước…" thay vì gõ nhầm vào cửa sổ khác.
-- Nếu Windows chặn gửi phím (máy đang khóa, hộp thoại UAC), điện thoại báo lỗi thay vì báo thành công.
+- Cài đặt → Nút bấm → **+ Thêm phần mềm**: danh sách phần mềm đã cài trên PC (lấy từ Start Menu), có ô tìm, tích chọn nhiều cái một lần. DeskPanel tự tạo nhóm và trang "Phần mềm". Bấm **Lưu** là điện thoại có tab mới.
+- Nút mở phần mềm hiện **icon thật** của phần mềm thay cho emoji. Nút tự thêm bằng tay: tích "Dùng icon thật của chương trình" trong hộp sửa nút.
 
-Cập nhật: Cài đặt → Chung → **Cài bản 0.7.1**.
+Cập nhật: Cài đặt → Chung → **Cài bản 0.8.0**.

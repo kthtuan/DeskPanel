@@ -58,7 +58,7 @@ public sealed class LanAccess
         path = path.ToLowerInvariant();
         if (HttpMethods.IsGet(method) || HttpMethods.IsHead(method))
         {
-            if (path.StartsWith("/api/")) return path is "/api/config" or "/api/stats" or "/api/status" or "/api/media/art";
+            if (path.StartsWith("/api/")) return path is "/api/config" or "/api/stats" or "/api/status" or "/api/media/art" || path.StartsWith("/api/icon/");
             if (path.Contains("settings")) return false;
             return true; // index.html, manifest, /ws, deskpanel.apk
         }

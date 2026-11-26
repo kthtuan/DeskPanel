@@ -1,5 +1,9 @@
 # Nhật ký thay đổi
 
+## 0.8.0 (26/11/2026)
+- Nút bấm → **+ Thêm phần mềm**: chọn nhiều phần mềm đã cài (đọc từ Start Menu) trong một lần, tự tạo nhóm và trang "Phần mềm".
+- Nút mở chương trình hiện **icon thật** của phần mềm trên điện thoại và trong trang cài đặt (tùy chọn "Dùng icon thật của chương trình").
+
 ## 0.7.1 (26/11/2026)
 - Nút AutoCAD và nút phím có chọn chương trình: kiểm tra lại cửa sổ đã thật sự lên trước rồi mới gõ. Nếu Windows chặn đổi cửa sổ, điện thoại báo lỗi thay vì gõ nhầm vào cửa sổ khác.
 - Kiểm tra kết quả gửi phím: nếu Windows chặn (máy khóa, hộp thoại UAC), điện thoại báo lỗi thay vì báo thành công.

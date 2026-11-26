@@ -78,6 +78,8 @@ public sealed class ButtonDef
     public string? Focus { get; set; }
     /// <summary>Chi dung cho Type=text: nhan Enter sau khi go.</summary>
     public bool Enter { get; set; }
+    /// <summary>Type=run/url: hien icon that cua chuong trinh thay cho emoji.</summary>
+    public bool AppIcon { get; set; }
 }
 
 public static class Json

@@ -62,6 +62,7 @@ Trên PC, mở `http://localhost:8765/settings.html` (hoặc bấm ⚙ trên đi
 - Phím tắt: mũi tên dịch widget, Shift + mũi tên đổi kích thước, Delete xóa, Ctrl+Z / Ctrl+Y hoàn tác / làm lại, Ctrl+S lưu.
 
 **2. Nút bấm**: thư viện nút theo nhóm. Thêm, sửa, thử, xóa, đổi thứ tự, đổi tên nhóm. Nhóm nào chưa nằm trên trang nào sẽ có nút **Tạo trang cho nhóm**.
+   - **+ Thêm phần mềm** (từ 0.8): liệt kê phần mềm đã cài trong Start Menu, tìm và tích chọn nhiều cái một lần. Nút tạo ra dùng icon thật của phần mềm, tự vào nhóm "Phần mềm" và tự có trang riêng. Bấm **Lưu** để điện thoại cập nhật. Với nút tự thêm bằng tay, tích **Dùng icon thật của chương trình** trong hộp sửa nút.
 
 | Loại nút | Ví dụ nội dung | Tác dụng |
 |---|---|---|

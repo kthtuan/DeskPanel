@@ -168,6 +168,15 @@ app.MapPost("/api/update/github", async (CancellationToken ct) =>
     var r = await updater.InstallLatestAsync(baseDir, ct);
     return Results.Json(new { ok = r.Ok, message = r.Message, version = r.NewVersion }, Json.Opts, statusCode: r.Ok ? 200 : 400);
 });
+// --- Phan mem da cai va icon ---
+app.MapGet("/api/apps", () => Results.Json(AppCatalog.List(), Json.Opts));
+app.MapGet("/api/icon", (string path, HttpContext ctx) => IconResult(AppCatalog.IconPng(path), ctx)); // chi tren PC (trang cai dat)
+app.MapGet("/api/icon/{id}", (string id, HttpContext ctx) =>
+{
+    var b = store.Current.Buttons.FirstOrDefault(x => x.Id == id);
+    return b == null || b.Type is not ("run" or "url") ? Results.NotFound() : IconResult(AppCatalog.IconPng(b.Value), ctx);
+});
+
 // --- Wi-Fi (chi goi duoc tu chinh PC) ---
 app.MapGet("/api/lan", () =>
 {
@@ -224,6 +233,13 @@ app.Map("/ws", async ctx =>
 
 Log.Write($"DeskPanel {typeof(Program).Assembly.GetName().Version?.ToString(3)} chay tai http://localhost:{port}");
 app.Run();
+
+static IResult IconResult(byte[]? png, HttpContext ctx)
+{
+    if (png == null) return Results.NotFound();
+    ctx.Response.Headers.CacheControl = "max-age=86400";
+    return Results.Bytes(png, "image/png");
+}
 
 static async Task Deny(HttpContext ctx, string msg)
 {

@@ -78,7 +78,7 @@ Bạn cần PC **Windows 10/11 64-bit**, điện thoại **Android có Chrome** 
 Mở `http://localhost:8765/settings.html` trên PC (hoặc chạm ⚙ trên điện thoại):
 
 - **Trang & widget**: thêm trang từ mẫu, kéo thả và đổi cỡ 16 loại widget, xem trước với số liệu thật.
-- **Nút bấm**: thư viện nút theo nhóm, 5 loại lệnh, thử nút ngay trên PC.
+- **Nút bấm**: thư viện nút theo nhóm, 5 loại lệnh, thử nút ngay trên PC; **thêm phần mềm từ Start Menu** với icon thật.
 - **Giao diện**: màu nhấn, nền cực quang / tối / đen AMOLED, kiểu thẻ, bo góc, khoảng cách, cỡ chữ.
 - **Chung**: thời tiết, cổng, adb, **Wi-Fi** (mã QR ghép nối) và **cập nhật** (tải zip lên hoặc tự lấy bản mới từ GitHub).
 
@@ -104,6 +104,7 @@ src/                 Chương trình PC (C# .NET 8, ASP.NET Core minimal API)
   Actions.cs         Gửi phím, gõ chữ, mở chương trình, lệnh AutoCAD
   Extras.cs          Nhạc đang phát (Windows Media Session), thời tiết
   Updater.cs         Cập nhật từ zip / GitHub Releases
+  Apps.cs            Danh sách phần mềm (Start Menu) và icon thật
   Lan.cs             Chế độ Wi-Fi: mã ghép nối, mã QR, tường lửa
   wwwroot/           index.html (điện thoại), settings.html (cài đặt)
 android/             App Android (Kotlin, một WebView toàn màn hình, quét QR bằng ZXing)

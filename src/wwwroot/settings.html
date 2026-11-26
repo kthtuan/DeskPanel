@@ -130,6 +130,10 @@ main{flex:1;min-height:0;overflow:auto}
 .tile{border-radius:12px;padding:10px;background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--c,#4a5568);display:flex;flex-direction:column;gap:4px;min-width:0}
 .tile .top{display:flex;align-items:center;gap:8px}
 .tile .ic{font-size:20px}
+.ic img,.app img{width:24px;height:24px;object-fit:contain;vertical-align:middle}
+.applist{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:8px 0}
+.app{display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--line);cursor:pointer}
+.app:last-child{border-bottom:0}.app.had{opacity:.5}.app .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tile .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile .ds{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile .acts{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
@@ -216,6 +220,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       <div class="row" style="margin-bottom:12px">
         <div class="help" style="flex:1;margin:0">Thư viện nút. Mỗi nhóm hiện trên điện thoại qua widget <b>Nhóm nút</b>; từng nút lẻ có thể đặt riêng bằng widget <b>Một nút</b>.
           Trong AutoCAD, dấu cách tương đương Enter, nên lệnh <code>Z E</code> = ZOOM rồi Extents.</div>
+        <button id="addApps">+ Thêm phần mềm</button>
         <button class="primary" id="addBtn">+ Thêm nút</button>
       </div>
       <div id="blist"></div>
@@ -301,6 +306,19 @@ dialog h2{margin:0 0 12px;font-size:17px}
   </form>
 </dialog>
 
+<dialog id="dlgApps">
+  <form method="dialog">
+    <h2>Thêm phần mềm</h2>
+    <div class="help" style="margin-top:0">Danh sách lấy từ Start Menu trên PC. Tích các phần mềm muốn mở từ điện thoại; nút sẽ hiện icon thật của phần mềm.</div>
+    <div class="grid2">
+      <div><label class="l">Tìm</label><input id="aSearch" placeholder="autocad, chrome, excel…" autocomplete="off"></div>
+      <div><label class="l">Cho vào nhóm</label><input id="aGroup" maxlength="30" list="groups" value="Phần mềm"></div>
+    </div>
+    <div class="applist" id="aList"><div class="help" style="padding:10px">Đang tải…</div></div>
+    <div class="row"><span class="help" id="aCount" style="flex:1;margin:0"></span><button value="cancel">Hủy</button><button class="primary" id="aOk" value="ok">Thêm</button></div>
+  </form>
+</dialog>
+
 <dialog id="dlg">
   <form method="dialog" id="form">
     <h2 id="dlgTitle">Sửa nút</h2>
@@ -322,6 +340,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     <div class="f"><label class="l" id="fValueLabel">Nội dung</label><input id="fValue" maxlength="1000" required><div class="help" id="fHelp"></div></div>
     <div class="f" id="rowArgs"><label class="l">Tham số (không bắt buộc)</label><input id="fArgs" maxlength="1000">
       <div class="help">Để trống thì chương trình mở với quyền thường. Có tham số thì chương trình sẽ chạy với quyền admin.</div></div>
+    <div class="f" id="rowAppIcon"><label><input id="fAppIcon" type="checkbox">Dùng icon thật của chương trình (thay cho emoji)</label></div>
     <div class="f" id="rowFocus"><label class="l">Đưa chương trình này lên trước khi gửi (tên tiến trình, không bắt buộc)</label><input id="fFocus" placeholder="acad,acadlt">
       <div class="help">Ví dụ <code>acad</code> cho AutoCAD, <code>chrome</code>, <code>EXCEL</code>. Để trống thì gửi vào cửa sổ đang mở.</div></div>
     <div class="f" id="rowEnter"><label><input type="checkbox" id="fEnter">Nhấn Enter sau khi gõ</label></div>
@@ -484,7 +503,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       var col = d.color || (b && b.color);
       if (col) { inner.style.background = col + '33'; inner.style.borderColor = col + '99'; }
       inner.appendChild(el('span', 'sz', d.w + '×' + d.h));
-      inner.appendChild(el('div', 'ic', b && b.icon ? b.icon : t.ic));
+      if (b && b.appIcon) { var bi = btnIc(b, 'div'); inner.appendChild(bi); } else inner.appendChild(el('div', 'ic', b && b.icon ? b.icon : t.ic));
       inner.appendChild(el('div', 'nm', d.title || t.nm));
       var rt = refText(d); if (rt) inner.appendChild(el('div', 'rf', rt));
       inner.appendChild(el('div', 'hdl'));
@@ -855,7 +874,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
       cfg.buttons.forEach(function(b, i){
         if (b.group !== g) return;
         var t = el('div', 'tile'); t.style.setProperty('--c', b.color || '#4a5568');
-        var top = el('div', 'top'); top.appendChild(el('span', 'ic', b.icon || '●')); top.appendChild(el('span', 'nm', b.label)); t.appendChild(top);
+        var top = el('div', 'top'); top.appendChild(btnIc(b)); top.appendChild(el('span', 'nm', b.label)); t.appendChild(top);
         t.appendChild(el('div', 'ds', TYPE_TEXT[b.type] + ': ' + b.value));
         var a = el('div', 'acts');
         a.appendChild(btn('←', function(){ moveBtn(i, -1); }, 'sm', 'Lên trước'));
@@ -894,6 +913,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     var t = $('fType').value;
     $('fValueLabel').textContent = HELP[t][0]; $('fHelp').textContent = HELP[t][1];
     $('rowArgs').classList.toggle('hide', t !== 'run');
+    $('rowAppIcon').classList.toggle('hide', !(t === 'run' || t === 'url'));
     $('rowFocus').classList.toggle('hide', !(t === 'keys' || t === 'text' || t === 'cad'));
     $('rowEnter').classList.toggle('hide', t !== 'text');
     $('fFocus').placeholder = t === 'cad' ? 'acad,acadlt (mặc định)' : 'vd: acad';
@@ -905,7 +925,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     $('dlgTitle').textContent = i >= 0 ? 'Sửa nút' : 'Thêm nút';
     $('fLabel').value = b.label; $('fGroup').value = b.group; $('fIcon').value = b.icon || '';
     $('fColor').value = b.color || '#4a5568'; $('fType').value = b.type; $('fValue').value = b.value;
-    $('fArgs').value = b.args || ''; $('fFocus').value = b.focus || ''; $('fEnter').checked = !!b.enter;
+    $('fArgs').value = b.args || ''; $('fFocus').value = b.focus || ''; $('fEnter').checked = !!b.enter; $('fAppIcon').checked = !!b.appIcon;
     syncType(); $('dlg').showModal();
   }
   function slug(s){
@@ -923,6 +943,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     b.args = t === 'run' && $('fArgs').value.trim() ? $('fArgs').value.trim() : null;
     b.focus = (t === 'keys' || t === 'text' || t === 'cad') && $('fFocus').value.trim() ? $('fFocus').value.trim() : null;
     b.enter = t === 'text' && $('fEnter').checked;
+    b.appIcon = (t === 'run' || t === 'url') && $('fAppIcon').checked;
     if (!b.id) b.id = slug(b.label);
     change(function(){
       if (editing >= 0) cfg.buttons[editing] = b;
@@ -931,6 +952,58 @@ dialog h2{margin:0 0 12px;font-size:17px}
     });
   });
   $('addBtn').onclick = function(){ edit(-1); };
+
+  // ---------- Icon thật & thêm phần mềm ----------
+  function btnIc(b, tag){
+    var d = el(tag || 'span', 'ic');
+    if (b.appIcon && (b.type === 'run' || b.type === 'url')) {
+      var im = document.createElement('img'); im.alt = '';
+      im.onerror = function(){ d.textContent = b.icon || '●'; };
+      im.src = 'api/icon?path=' + encodeURIComponent(b.value || ''); d.appendChild(im);
+    } else d.textContent = b.icon || '●';
+    return d;
+  }
+  var apps = null, appPick = {};
+  function renderApps(){
+    var box = $('aList'), q = $('aSearch').value.trim().toLowerCase();
+    box.innerHTML = '';
+    if (!apps) { box.appendChild(el('div', 'help', 'Đang tải…')); return; }
+    var have = {}; cfg.buttons.forEach(function(b){ if (b.type === 'run') have[(b.value || '').toLowerCase()] = 1; });
+    var shown = apps.filter(function(a){ return !q || a.name.toLowerCase().indexOf(q) >= 0; });
+    if (!shown.length) box.appendChild(el('div', 'help', apps.length ? 'Không tìm thấy' : 'Không đọc được Start Menu'));
+    shown.slice(0, 300).forEach(function(a){
+      var had = !!have[a.path.toLowerCase()];
+      var row = el('label', 'app' + (had ? ' had' : ''));
+      var cb = el('input'); cb.type = 'checkbox'; cb.checked = had || !!appPick[a.path]; cb.disabled = had;
+      cb.onchange = function(){ if (cb.checked) appPick[a.path] = a; else delete appPick[a.path]; countApps(); };
+      var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = 'api/icon?path=' + encodeURIComponent(a.path);
+      im.onerror = function(){ im.style.visibility = 'hidden'; };
+      row.appendChild(cb); row.appendChild(im); row.appendChild(el('span', 'nm', a.name));
+      if (had) row.appendChild(el('span', 'help', 'đã có'));
+      row.title = a.path; box.appendChild(row);
+    });
+  }
+  function countApps(){ var n = Object.keys(appPick).length; $('aCount').textContent = n ? 'Đã chọn ' + n : ''; $('aOk').textContent = n ? 'Thêm ' + n + ' phần mềm' : 'Thêm'; }
+  $('aSearch').oninput = renderApps;
+  $('addApps').onclick = function(){
+    appPick = {}; $('aSearch').value = ''; countApps(); renderApps(); $('dlgApps').showModal();
+    api('GET', 'api/apps').then(function(l){ apps = l; renderApps(); }).catch(function(e){ apps = []; renderApps(); msg(e.message, 'err'); });
+  };
+  $('dlgApps').addEventListener('close', function(){
+    var picked = Object.keys(appPick).map(function(k){ return appPick[k]; });
+    if ($('dlgApps').returnValue !== 'ok' || !picked.length) return;
+    var g = ($('aGroup').value.trim() || 'Phần mềm').slice(0, 30);
+    change(function(){
+      editing = -1;
+      picked.forEach(function(a){
+        var b = { id: slug(a.name), label: a.name.slice(0, 40), group: g, icon: '🗔', color: '#30363d', type: 'run', value: a.path, appIcon: true };
+        var last = -1; cfg.buttons.forEach(function(x, k){ if (x.group === g) last = k; });
+        if (last < 0) cfg.buttons.push(b); else cfg.buttons.splice(last + 1, 0, b);
+      });
+      if (!groupUsed(g)) { var pg = { id: pid(), name: g, icon: '🗂️', hidden: false, widgets: [] }; var w = W('buttons', 0, 0, 12, 6, g); w.id = wid(pg); pg.widgets.push(w); cfg.pages.push(pg); }
+    });
+    msg('Đã thêm ' + picked.length + ' phần mềm vào nhóm "' + g + '". Bấm Lưu để điện thoại cập nhật.', 'ok');
+  });
 
   // ---------- Chung ----------
   function renderGeneral(){
