@@ -1,6 +1,6 @@
-# DeskPanel 0.6: hướng dẫn cài
+# DeskPanel 0.7: hướng dẫn cài
 
-DeskPanel biến điện thoại Android thành màn hình phụ cho PC Windows. Màn hình hiển thị CPU, GPU, RAM, nhiệt độ và sức khỏe ổ cứng, kèm các nút bấm (lệnh AutoCAD, Calculator, phím tắt). Điện thoại nối với PC qua cáp USB và không mở cổng nào ra mạng LAN.
+DeskPanel biến điện thoại Android thành màn hình phụ cho PC Windows. Màn hình hiển thị CPU, GPU, RAM, nhiệt độ và sức khỏe ổ cứng, kèm các nút bấm (lệnh AutoCAD, Calculator, phím tắt). Điện thoại nối với PC qua cáp USB, hoặc qua Wi-Fi nếu bạn bật (mục B2).
 
 ## A. Trên PC (làm một lần)
 
@@ -24,6 +24,22 @@ DeskPanel biến điện thoại Android thành màn hình phụ cho PC Windows.
 3. Cắm cáp USB vào PC. Khi điện thoại hỏi **"Cho phép gỡ lỗi USB?"**, tích **Luôn cho phép từ máy tính này** rồi bấm **Cho phép**.
 4. Mở **Chrome**, vào `http://localhost:8765`.
 5. Bấm menu **⋮ → Thêm vào màn hình chính**. Từ lần sau, mở DeskPanel bằng biểu tượng này để chạy toàn màn hình.
+
+## B2. Dùng Wi-Fi thay cho cáp (tùy chọn, từ bản 0.7)
+
+Không cần bật gỡ lỗi USB hay cài Platform Tools. Điện thoại và PC phải cùng một mạng (cùng modem Wi-Fi, PC cắm dây LAN cũng được).
+
+1. Trên PC mở `http://localhost:8765/settings.html` → thẻ **Chung** → tích **Cho điện thoại kết nối qua Wi-Fi**. DeskPanel tự chạy lại trong vài giây và hiện 2 mã QR.
+2. **Cài app** (lần đầu): mở camera điện thoại, quét mã **"1. Cài app DeskPanel"**, tải file APK rồi mở ra cài. Android sẽ hỏi cho phép cài ứng dụng ngoài Play Store: bấm **Cài đặt → Cho phép từ nguồn này**. File APK cũng có trong mục Releases trên GitHub.
+3. Mở app **DeskPanel** → **Quét mã QR (Wi-Fi)** → quét mã **"2. Mở app → Quét mã QR"**. Xong. App nhớ địa chỉ, lần sau mở là vào thẳng.
+4. Nếu điện thoại không vào được: trên PC vào **Settings → Network & internet → Wi-Fi (hoặc Ethernet) → chọn mạng đang dùng → Private network**. DeskPanel chỉ mở cổng cho mạng Private, không mở trên mạng công cộng (quán cà phê, sân bay).
+
+Ghi chú:
+- App giữ màn hình luôn sáng và chạy toàn màn hình. Nút **Back** mở menu: Tải lại, Đổi kết nối, Thoát.
+- Mất kết nối (PC tắt, đổi mạng), app tự thử lại 3 giây một lần.
+- App dùng được cả với cáp: chọn **Dùng cáp USB** (vẫn cần các bước ở mục B).
+- Modem cấp lại địa chỉ khác cho PC thì quét lại mã QR. Muốn địa chỉ cố định, đặt "IP tĩnh/DHCP reservation" cho PC trong trang quản trị modem.
+- Lỡ để người khác chụp được mã QR: bấm **Đổi mã ghép nối**, rồi quét lại trên điện thoại của bạn.
 
 ## C. Các trang trên điện thoại
 
@@ -91,11 +107,14 @@ Cả ba cách đều giữ nguyên `config.json` (nút, trang, giao diện) và 
 - **Nhiệt độ CPU hiện `--`**: chưa cài PawnIO, hoặc chưa khởi động lại máy sau khi cài.
 - **Muốn xem toàn bộ cảm biến đọc được**: mở `http://localhost:8765/api/sensors`.
 - Nhật ký lỗi nằm ở `C:\DeskPanel\deskpanel.log`.
-- **Gỡ cài đặt**: chạy `uninstall.cmd`, sau đó xóa thư mục.
+- **App báo "Chưa kết nối được"** (Wi-Fi): kiểm tra PC và điện thoại cùng mạng, mạng trên PC đặt là Private, và địa chỉ trong app trùng địa chỉ dưới mã QR trên PC. PC có nhiều card mạng (VPN, máy ảo) thì trang cài đặt liệt kê hết, thử địa chỉ cùng dải với điện thoại.
+- **App báo "chưa nhận điện thoại này"**: mã ghép nối đã đổi, quét lại mã QR.
+- **Gỡ cài đặt**: chạy `uninstall.cmd` (gỡ luôn quy tắc tường lửa), sau đó xóa thư mục.
 
 ## Về an toàn
 
-- DeskPanel chỉ nhận kết nối từ chính PC (localhost). Điện thoại vào được là nhờ `adb reverse` qua cáp USB, còn các máy khác trong mạng không vào được.
+- Mặc định DeskPanel chỉ nhận kết nối từ chính PC (localhost). Điện thoại vào được là nhờ `adb reverse` qua cáp USB.
+- Khi bật Wi-Fi: thiết bị trong mạng phải có mã ghép nối (24 ký tự ngẫu nhiên, nằm trong mã QR, lưu ở `lan-key.txt` trên PC). Từ Wi-Fi chỉ xem bảng và bấm nút; trang cài đặt, đổi cấu hình và cập nhật chỉ làm được trên chính PC. Cổng chỉ mở trên Windows Firewall cho mạng Private. Kết nối là `http` thường (không mã hóa), nên chỉ bật Wi-Fi ở mạng nhà/văn phòng bạn tin cậy.
 - Mọi lệnh được lưu trong `config.json` trên PC. Điện thoại chỉ gửi mã nút.
 - Trang web lạ mở trên PC không gọi được DeskPanel: mọi yêu cầu thay đổi phải kèm header riêng và đúng tên máy `localhost`.
 - DeskPanel chạy với quyền admin vì cần đọc nhiệt độ và SMART. Các chương trình nó mở (không kèm tham số) vẫn chạy với quyền thường.

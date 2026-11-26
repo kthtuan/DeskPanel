@@ -17,13 +17,13 @@ Không cần root, không cần tài khoản, không qua dịch vụ đám mây 
   <img src="https://img.shields.io/badge/Windows-10%20%C2%B7%2011-0078d4" alt="Windows 10, 11">
   <img src="https://img.shields.io/badge/.NET-8-512bd4" alt=".NET 8">
   <img src="https://img.shields.io/badge/Android-Chrome-3ddc84" alt="Android, Chrome">
-  <img src="https://img.shields.io/badge/k%E1%BA%BFt%20n%E1%BB%91i-USB%20(adb)-f0a43a" alt="Kết nối USB">
+  <img src="https://img.shields.io/badge/k%E1%BA%BFt%20n%E1%BB%91i-USB%20%7C%20Wi--Fi-f0a43a" alt="Kết nối USB hoặc Wi-Fi">
 </p>
 
 <p align="center"><img src="docs/images/hero.png" width="900" alt="DeskPanel trên điện thoại: trang Tổng quan và bảng nút AutoCAD"><br>
 <sub>Ảnh chụp với dữ liệu mẫu.</sub></p>
 
-DeskPanel gồm một **chương trình nhỏ chạy ngầm trên PC** và một **trang web toàn màn hình trên điện thoại**. Điện thoại nối với PC qua cáp USB (`adb reverse`), nên không mở cổng nào ra mạng LAN. Bạn tự xếp các trang và widget bằng trình chỉnh sửa kéo thả ngay trên PC, có xem trước trực tiếp.
+DeskPanel gồm một **chương trình nhỏ chạy ngầm trên PC** và một **trang web toàn màn hình trên điện thoại**. Điện thoại nối với PC qua cáp USB (`adb reverse`), hoặc qua Wi-Fi bằng app Android DeskPanel (ghép nối một lần bằng mã QR). Bạn tự xếp các trang và widget bằng trình chỉnh sửa kéo thả ngay trên PC, có xem trước trực tiếp.
 
 ## Làm được gì
 
@@ -33,6 +33,7 @@ DeskPanel gồm một **chương trình nhỏ chạy ngầm trên PC** và một
 | **Ổ cứng** | Sức khỏe SMART từng ổ (Tốt / Chú ý / Hỏng), nhiệt độ, tuổi thọ SSD, số giờ chạy, dung lượng đã ghi |
 | **Làm việc với AutoCAD** | Nút lệnh `L`, `TR`, `O`, `Z E`… bấm một chạm: tự đưa AutoCAD lên trước, Esc, gõ lệnh, Enter |
 | **Phím tắt, chương trình** | Tổ hợp phím (`Ctrl+S`, `Win+Shift+S`), mở chương trình, thư mục, trang web, gõ sẵn đoạn chữ |
+| **Không dây** | App Android quét QR, toàn màn hình, giữ màn hình sáng, tự kết nối lại khi PC khởi động lại |
 | **Hằng ngày** | Đồng hồ lớn, thời tiết (Open-Meteo, dự phòng MET Norway và wttr.in), nhạc đang phát kèm ảnh bìa và nút điều khiển |
 
 ## Ảnh chụp
@@ -70,6 +71,8 @@ Bạn cần PC **Windows 10/11 64-bit**, điện thoại **Android có Chrome** 
 | Cắm cáp | Khi điện thoại hỏi, tích **Luôn cho phép từ máy tính này** → **Cho phép** |
 | Mở bảng | Chrome → `http://localhost:8765` → ⋮ → **Thêm vào màn hình chính** |
 
+**Hoặc dùng Wi-Fi (từ 0.7):** trên PC vào ⚙ → Chung → bật **Kết nối qua Wi-Fi**. Quét mã QR thứ nhất bằng camera để cài app (`DeskPanel-x.y.z.apk`), mở app rồi quét mã thứ hai. Không cần bật gỡ lỗi USB. Chi tiết ở [hướng dẫn](pkg/HUONG-DAN.md#b2-dùng-wi-fi-thay-cho-cáp-tùy-chọn-từ-bản-07).
+
 ### 3. Tùy biến
 
 Mở `http://localhost:8765/settings.html` trên PC (hoặc chạm ⚙ trên điện thoại):
@@ -77,7 +80,7 @@ Mở `http://localhost:8765/settings.html` trên PC (hoặc chạm ⚙ trên đi
 - **Trang & widget**: thêm trang từ mẫu, kéo thả và đổi cỡ 16 loại widget, xem trước với số liệu thật.
 - **Nút bấm**: thư viện nút theo nhóm, 5 loại lệnh, thử nút ngay trên PC.
 - **Giao diện**: màu nhấn, nền cực quang / tối / đen AMOLED, kiểu thẻ, bo góc, khoảng cách, cỡ chữ.
-- **Chung**: thời tiết, cổng, adb, và **cập nhật** (tải zip lên hoặc tự lấy bản mới từ GitHub).
+- **Chung**: thời tiết, cổng, adb, **Wi-Fi** (mã QR ghép nối) và **cập nhật** (tải zip lên hoặc tự lấy bản mới từ GitHub).
 
 Bấm **Lưu**, điện thoại tự tải lại.
 
@@ -87,7 +90,8 @@ Từ bản 0.6, vào **⚙ → Chung → Cập nhật DeskPanel**: điền repo 
 
 ## An toàn
 
-- Chỉ nghe tại `localhost`. Điện thoại vào được nhờ `adb reverse` qua cáp; máy khác trong mạng không vào được.
+- Mặc định chỉ nghe tại `localhost`; điện thoại vào nhờ `adb reverse` qua cáp.
+- Bật Wi-Fi thì thiết bị trong mạng phải có mã ghép nối (trong mã QR), và chỉ xem bảng, bấm nút được. Trang cài đặt và cập nhật chỉ mở trên chính PC. Cổng chỉ mở cho mạng Private.
 - Mọi lệnh nằm trong `config.json` trên PC. Điện thoại chỉ gửi mã nút, không gửi được lệnh tùy ý.
 - Trang web lạ mở trên PC không gọi được DeskPanel: yêu cầu thay đổi phải kèm header riêng và đúng tên máy `localhost`.
 - Token GitHub (nếu có) được mã hóa theo tài khoản Windows (DPAPI), không nằm trong `config.json`.
@@ -100,7 +104,9 @@ src/                 Chương trình PC (C# .NET 8, ASP.NET Core minimal API)
   Actions.cs         Gửi phím, gõ chữ, mở chương trình, lệnh AutoCAD
   Extras.cs          Nhạc đang phát (Windows Media Session), thời tiết
   Updater.cs         Cập nhật từ zip / GitHub Releases
+  Lan.cs             Chế độ Wi-Fi: mã ghép nối, mã QR, tường lửa
   wwwroot/           index.html (điện thoại), settings.html (cài đặt)
+android/             App Android (Kotlin, một WebView toàn màn hình, quét QR bằng ZXing)
 pkg/                 install / update / uninstall và hướng dẫn tiếng Việt
 .github/workflows/   Tăng <Version> và đẩy lên main là GitHub tự build và phát hành
 ```
@@ -114,4 +120,4 @@ dotnet publish src/DeskPanel.csproj -c Release -r win-x64 -o out/DeskPanel
 ## Nguồn
 
 Bố cục giao diện lấy cảm hứng từ [PhoneBox](https://github.com/ersinkoc/phonebox) (MIT, © 2026 Ersin KOÇ). DeskPanel không chép mã của PhoneBox; toàn bộ được viết lại.
-Cảm biến: [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) (MPL-2.0). Thời tiết: [Open-Meteo](https://open-meteo.com), [MET Norway](https://api.met.no), [wttr.in](https://wttr.in).
+Mã QR: [QRCoder](https://github.com/codebude/QRCoder) (MIT), [ZXing Android Embedded](https://github.com/journeyapps/zxing-android-embedded) (Apache-2.0). Cảm biến: [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) (MPL-2.0). Thời tiết: [Open-Meteo](https://open-meteo.com), [MET Norway](https://api.met.no), [wttr.in](https://wttr.in).

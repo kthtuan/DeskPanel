@@ -155,6 +155,8 @@ body.preview #offline,body.preview #gear{display:none!important}
   var widgets = []; // [{update(s)}]
   var last = null;  // snapshot gần nhất
   if (PREVIEW) document.body.classList.add('preview');
+  // Qua Wi-Fi khong mo duoc trang cai dat (chi mo tren chinh PC)
+  if (!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) { var gear = $('gear'); if (gear) gear.style.display = 'none'; }
 
   function api(method, url, body){
     var opt = { method: method, headers: { 'X-DeskPanel': '1' } };

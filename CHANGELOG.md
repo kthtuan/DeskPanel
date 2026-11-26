@@ -1,5 +1,11 @@
 # Nhật ký thay đổi
 
+## 0.7.0 (26/11/2026)
+- Kết nối qua Wi-Fi, không cần cáp: bật trong Cài đặt → Chung → **Kết nối qua Wi-Fi**. Điện thoại ghép nối một lần bằng mã QR. Từ mạng LAN chỉ xem bảng và bấm nút được, không mở được trang cài đặt hay cập nhật.
+- App Android **DeskPanel** (file APK, Android 5 trở lên): quét mã QR, toàn màn hình, giữ màn hình sáng, mất kết nối tự thử lại. Dùng được cả với cáp USB.
+- GitHub tự build APK; APK có sẵn trong bản Windows nên điện thoại tải được thẳng từ PC bằng mã QR.
+- Sửa lỗi kiểm tra Origin của WebSocket không chạy (thứ tự middleware).
+
 ## 0.6.4 (26/11/2026)
 - Sửa lỗi "Đường dẫn thư mục tạm quá dài" khi bấm Cập nhật / Cài bản (lệnh của tác vụ Task Scheduler vượt 261 ký tự).
 

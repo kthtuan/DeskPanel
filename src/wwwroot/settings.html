@@ -31,6 +31,7 @@ label.l{display:block;font-size:12px;color:var(--muted);margin:0 0 4px}
 .row{display:flex;gap:8px;align-items:center}
 .row>*{min-width:0}
 .row>button{flex:none}
+.qrs{display:flex;gap:18px;flex-wrap:wrap}.qrs>div{flex:1 1 220px;max-width:300px}.qr{background:#fff;border-radius:10px;padding:8px;width:200px;height:200px;margin:6px 0}.qr svg{width:100%;height:100%;display:block}
 .hide{display:none!important}
 .help{font-size:12px;color:var(--muted);margin-top:4px}
 h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600}
@@ -250,6 +251,21 @@ dialog h2{margin:0 0 12px;font-size:17px}
         <div><label class="l">Cổng (đổi xong cần khởi động lại DeskPanel)</label><input id="port" type="number" min="1024" max="65535"></div>
         <div><label class="l">Đường dẫn adb.exe (để trống = tự tìm)</label><input id="adbPath" placeholder="C:\DeskPanel\platform-tools\adb.exe"></div>
         <div style="align-self:end"><label><input id="autoAdb" type="checkbox">Tự nối điện thoại qua USB (adb reverse)</label></div>
+      </div>
+      <div class="box" style="margin-top:14px" id="lanBox">
+        <h3>Kết nối qua Wi-Fi</h3>
+        <label><input id="lanOn" type="checkbox">Cho điện thoại kết nối qua Wi-Fi (cùng mạng với PC, không cần cáp)</label>
+        <div class="help" id="lanInfo">Bật xong DeskPanel tự chạy lại trong vài giây. Cáp USB vẫn dùng được như cũ.</div>
+        <div id="lanPair" class="hide" style="margin-top:12px">
+          <div class="qrs">
+            <div id="lanApkBox"><div class="l">1. Cài app DeskPanel (chỉ lần đầu)</div><div class="qr" id="lanApkQr"></div><div class="help">Quét bằng camera điện thoại để tải file APK rồi mở ra cài. <a id="lanApkLink" href="deskpanel.apk" download>Tải APK về PC</a></div></div>
+            <div><div class="l">2. Mở app → Quét mã QR</div><div class="qr" id="lanQr"></div><div class="help">Hoặc nhập địa chỉ: <code id="lanUrl"></code></div></div>
+          </div>
+          <div class="row" style="margin-top:10px;flex-wrap:wrap"><button id="lanRotate">Đổi mã ghép nối</button><span class="help" style="margin:0">Đổi mã thì mọi điện thoại đã ghép phải quét lại. Dùng khi lỡ lộ mã.</span></div>
+          <div class="help" id="lanIps"></div>
+        </div>
+        <div class="help">Nếu điện thoại không vào được: trên PC vào Settings → Network → Wi-Fi/Ethernet → chọn <b>Private network</b>. DeskPanel chỉ mở cổng cho mạng Private, không mở cho mạng công cộng.</div>
+        <div id="lanMsg" class="help" style="font-size:13px"></div>
       </div>
       <div class="box" style="margin-top:14px" id="updBox">
         <h3>Cập nhật DeskPanel</h3>
@@ -930,6 +946,50 @@ dialog h2{margin:0 0 12px;font-size:17px}
     var m = v.match(/^([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)/); return m ? m[1] + '/' + m[2] : v;
   }
   $('updateRepo').onchange = function(){ var v = normRepo(this.value) || null; this.value = v || ''; change(function(){ cfg.updateRepo = v; }); };
+
+  // ---------- Wi-Fi ----------
+  function lanMsg(t, cls){ var m = $('lanMsg'); m.textContent = t; m.style.color = cls === 'err' ? 'var(--bad)' : cls === 'ok' ? 'var(--ok)' : ''; }
+  var lanBusy = false;
+  function loadLan(){
+    if (lanBusy) return Promise.resolve();
+    return api('GET', 'api/lan').then(function(l){
+      $('lanOn').checked = l.enabled;
+      var show = l.enabled && l.active && l.url;
+      $('lanPair').classList.toggle('hide', !show);
+      if (l.enabled && !l.active) $('lanInfo').textContent = 'Đã bật, cần chạy lại DeskPanel để có hiệu lực.';
+      else if (l.enabled && !l.url) $('lanInfo').textContent = 'PC chưa có mạng LAN/Wi-Fi nào.';
+      else if (l.enabled) $('lanInfo').textContent = 'Đang bật. Điện thoại cần ghép nối một lần bằng mã QR dưới đây.';
+      else $('lanInfo').textContent = 'Bật xong DeskPanel tự chạy lại trong vài giây. Cáp USB vẫn dùng được như cũ.';
+      if (l.error) lanMsg(l.error, 'err');
+      if (show) {
+        $('lanQr').innerHTML = l.qr; $('lanUrl').textContent = l.url;
+        $('lanApkBox').classList.toggle('hide', !l.hasApk); if (l.hasApk) $('lanApkQr').innerHTML = l.apkQr;
+        $('lanIps').textContent = l.addresses.length > 1 ? 'PC có nhiều địa chỉ: ' + l.addresses.join(', ') + '. Mã QR dùng ' + l.addresses[0] + '; nếu không vào được, thử thay bằng địa chỉ khác cùng dải với điện thoại.' : '';
+      }
+    }).catch(function(){});
+  }
+  $('lanOn').onchange = function(){
+    var on = this.checked;
+    if (dirty() && !confirm('Có thay đổi chưa lưu sẽ mất khi DeskPanel chạy lại. Vẫn tiếp tục?')) { this.checked = !on; return; }
+    lanBusy = true; $('lanOn').disabled = true; lanMsg('Đang lưu…');
+    api('POST', 'api/lan', { enabled: on }).then(function(r){
+      if (r.error) { lanMsg('Đã lưu nhưng chưa tự chạy lại được (' + r.error + '). Hãy tắt rồi mở lại DeskPanel.', 'err'); lanBusy = false; $('lanOn').disabled = false; return loadLan(); }
+      if (!r.restarting) { lanBusy = false; $('lanOn').disabled = false; lanMsg(''); return loadLan(); }
+      lanMsg('Đang chạy lại DeskPanel…');
+      var t0 = Date.now(), down = false;
+      var iv = setInterval(function(){
+        fetch('api/status', { cache: 'no-store' }).then(function(x){ return x.json(); }).then(function(s){
+          if (s.lan === on || down) { clearInterval(iv); lanMsg('Xong. Đang tải lại trang…', 'ok'); setTimeout(function(){ location.reload(); }, 800); }
+        }).catch(function(){ down = true; });
+        if (Date.now() - t0 > 60000) { clearInterval(iv); lanMsg('Quá 1 phút chưa thấy DeskPanel chạy lại. Xem deskpanel.log và update.log trong thư mục cài.', 'err'); }
+      }, 1500);
+    }).catch(function(e){ lanMsg(e.message, 'err'); lanBusy = false; $('lanOn').disabled = false; });
+  };
+  $('lanRotate').onclick = function(){
+    if (!confirm('Đổi mã ghép nối? Các điện thoại đang nối qua Wi-Fi sẽ phải quét mã QR mới.')) return;
+    api('POST', 'api/lan/rotate').then(function(){ lanMsg('Đã đổi mã. Quét lại mã QR trên điện thoại.', 'ok'); return loadLan(); }).catch(function(e){ lanMsg(e.message, 'err'); });
+  };
+  loadLan();
 
   // ---------- Cập nhật ----------
   function uMsg(t, cls){ var m = $('uMsg'); m.textContent = t; m.style.color = cls === 'err' ? 'var(--bad)' : cls === 'ok' ? 'var(--ok)' : ''; }

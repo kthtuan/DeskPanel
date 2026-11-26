@@ -5,3 +5,4 @@ out*/
 *.user
 .vs/
 update-token.bin
+src/wwwroot/deskpanel.apk

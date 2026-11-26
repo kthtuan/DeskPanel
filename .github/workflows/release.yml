@@ -1,60 +1,96 @@
 # Moi lan doi <Version> trong src/DeskPanel.csproj va day len nhanh main:
-# GitHub tu build ban Windows, tao tag vX.Y.Z va Release kem file zip.
+# GitHub build app Android (APK) va ban Windows (APK nam san trong zip), tao tag vX.Y.Z va Release kem 2 file.
 # DeskPanel tren may nguoi dung doc Release moi nhat de hien nut "Cai ban ...".
 name: Release
 
 on:
   push:
     branches: [main]
-    paths: ['src/**', 'pkg/**', '.github/workflows/release.yml']
+    paths: ['src/**', 'pkg/**', 'android/**', '.github/workflows/release.yml']
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: windows-latest
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      exists: ${{ steps.ver.outputs.exists }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Doc so phien ban
         id: ver
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $v = (Select-Xml -Path src/DeskPanel.csproj -XPath '//Version').Node.InnerText
-          "version=$v" >> $env:GITHUB_OUTPUT
-          gh release view "v$v" --repo "${{ github.repository }}" *> $null
-          if ($LASTEXITCODE -eq 0) { "exists=true" >> $env:GITHUB_OUTPUT; Write-Host "Da co Release v$v, bo qua." }
-          else { "exists=false" >> $env:GITHUB_OUTPUT }
-          exit 0
+          v=$(grep -oP '(?<=<Version>)[^<]+' src/DeskPanel.csproj)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if gh release view "v$v" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"; echo "Da co Release v$v, bo qua."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  android:
+    needs: version
+    if: needs.version.outputs.exists == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease -PappVersion=${{ needs.version.outputs.version }}
+          cp app/build/outputs/apk/release/app-release.apk ../deskpanel.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: deskpanel.apk
+
+  build:
+    needs: [version, android]
+    if: needs.version.outputs.exists == 'false'
+    runs-on: windows-latest
+    env:
+      VER: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+          path: src/wwwroot
 
       - uses: actions/setup-dotnet@v4
-        if: steps.ver.outputs.exists == 'false'
         with:
           dotnet-version: '8.0.x'
 
       - name: Build
-        if: steps.ver.outputs.exists == 'false'
         shell: pwsh
         run: dotnet publish src/DeskPanel.csproj -c Release -r win-x64 -o out/DeskPanel
 
       - name: Dong goi
-        if: steps.ver.outputs.exists == 'false'
         shell: pwsh
         run: |
+          if (-not (Test-Path out/DeskPanel/wwwroot/deskpanel.apk)) { throw "Thieu deskpanel.apk trong ban Windows" }
           Copy-Item pkg/*.cmd, pkg/*.ps1, pkg/HUONG-DAN.md out/DeskPanel/
           Remove-Item out/DeskPanel/*.pdb -ErrorAction SilentlyContinue
-          Compress-Archive -Path out/DeskPanel -DestinationPath "out/DeskPanel-${{ steps.ver.outputs.version }}-win-x64.zip"
+          Compress-Archive -Path out/DeskPanel -DestinationPath "out/DeskPanel-$env:VER-win-x64.zip"
+          Copy-Item src/wwwroot/deskpanel.apk "out/DeskPanel-$env:VER.apk"
 
       - name: Tao Release
-        if: steps.ver.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release create "v${{ steps.ver.outputs.version }}" "out/DeskPanel-${{ steps.ver.outputs.version }}-win-x64.zip" `
+          gh release create "v$env:VER" "out/DeskPanel-$env:VER-win-x64.zip" "out/DeskPanel-$env:VER.apk" `
             --repo "${{ github.repository }}" --target "${{ github.sha }}" `
-            --title "DeskPanel ${{ steps.ver.outputs.version }}" --notes-file pkg/CHANGELOG-latest.md
+            --title "DeskPanel $env:VER" --notes-file pkg/CHANGELOG-latest.md

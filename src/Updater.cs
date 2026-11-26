@@ -51,26 +51,9 @@ public static class Updater
             var curVer = typeof(Updater).Assembly.GetName().Version?.ToString(3);
             if (!OperatingSystem.IsWindows()) return new(true, $"Zip hợp lệ (chế độ thử, không phải Windows nên không cài)", newVer);
 
-            // Lenh cua tac vu Task Scheduler bi gioi han 261 ky tu, nen dat script o thu muc cai (duong dan ngan)
-            // va ghi san duong dan nguon/dich vao trong script thay vi truyen tham so.
             var dst = baseDir.TrimEnd('\\', '/');
-            var scriptDir = Path.Combine(dst, "_update");
-            Directory.CreateDirectory(scriptDir);
-            var script = Path.Combine(scriptDir, "apply.ps1");
             static string Q(string x) => "'" + x.Replace("'", "''") + "'";
-            File.WriteAllText(script, $"$Src = {Q(root)}\r\n$Dst = {Q(dst)}\r\n" + ApplyScript, new System.Text.UTF8Encoding(true));
-            var cmd = $"powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{script}\"";
-            if (cmd.Length > 261)
-            {
-                // Thu muc cai qua sau: dung ProgramData
-                scriptDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "DeskPanel");
-                Directory.CreateDirectory(scriptDir);
-                var s2 = Path.Combine(scriptDir, "apply.ps1");
-                File.Copy(script, s2, true); script = s2;
-                cmd = $"powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{script}\"";
-            }
-            Run("schtasks.exe", "/Create", "/F", "/TN", "DeskPanelUpdate", "/SC", "ONCE", "/ST", "00:00", "/RL", "HIGHEST", "/TR", cmd);
-            Run("schtasks.exe", "/Run", "/TN", "DeskPanelUpdate");
+            Schedule(dst, "DeskPanelUpdate", "apply.ps1", $"$Src = {Q(root)}\r\n$Dst = {Q(dst)}\r\n$Task = 'DeskPanelUpdate'\r\n" + ApplyScript);
             Log.Write($"Cap nhat: {curVer} -> {newVer ?? "?"} tu {root}");
             return new(true, $"Đang cài bản {newVer ?? "mới"} (bản hiện tại {curVer}). DeskPanel sẽ tắt và chạy lại trong khoảng 10–20 giây.", newVer);
         }
@@ -80,6 +63,41 @@ public static class Updater
             return new(false, "Cập nhật lỗi: " + ex.Message);
         }
         finally { Interlocked.Exchange(ref _busy, 0); }
+    }
+
+    /// <summary>Tat va chay lai DeskPanel (vd sau khi bat/tat Wi-Fi) qua mot tac vu rieng.</summary>
+    public static string? ScheduleRestart(string baseDir)
+    {
+        if (!OperatingSystem.IsWindows()) return "Không phải Windows: hãy tự chạy lại DeskPanel";
+        try
+        {
+            var dst = baseDir.TrimEnd('\\', '/');
+            static string Q(string x) => "'" + x.Replace("'", "''") + "'";
+            Schedule(dst, "DeskPanelRestart", "restart.ps1", $"$Src = $null\r\n$Dst = {Q(dst)}\r\n$Task = 'DeskPanelRestart'\r\n" + ApplyScript);
+            return null;
+        }
+        catch (Exception ex) { Log.Write("Khong chay lai duoc: " + ex); return ex.Message; }
+    }
+
+    // Lenh cua tac vu Task Scheduler bi gioi han 261 ky tu, nen dat script o thu muc cai (duong dan ngan)
+    // va ghi san tham so vao dau script thay vi truyen qua dong lenh.
+    static void Schedule(string dst, string task, string fileName, string content)
+    {
+        var scriptDir = Path.Combine(dst, "_update");
+        Directory.CreateDirectory(scriptDir);
+        var script = Path.Combine(scriptDir, fileName);
+        File.WriteAllText(script, content, new System.Text.UTF8Encoding(true));
+        string Cmd() => $"powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{script}\"";
+        if (Cmd().Length > 261)
+        {
+            // Thu muc cai qua sau: dung ProgramData
+            scriptDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "DeskPanel");
+            Directory.CreateDirectory(scriptDir);
+            var s2 = Path.Combine(scriptDir, fileName);
+            File.Copy(script, s2, true); script = s2;
+        }
+        Run("schtasks.exe", "/Create", "/F", "/TN", task, "/SC", "ONCE", "/ST", "00:00", "/RL", "HIGHEST", "/TR", Cmd());
+        Run("schtasks.exe", "/Run", "/TN", task);
     }
 
     // Xoa thu muc tam cua cac lan cap nhat truoc (qua 1 ngay)
@@ -115,21 +133,23 @@ public static class Updater
 $log = Join-Path $Dst 'update.log'
 function W($m) { Add-Content -Path $log -Value ((Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' ' + $m) -Encoding UTF8 }
 try {
-    W "Bat dau cap nhat tu $Src"
+    if ($Src) { W "Bat dau cap nhat tu $Src" } else { W "Chay lai DeskPanel" }
     Start-Sleep -Seconds 2
     Stop-ScheduledTask -TaskName 'DeskPanel' -ErrorAction SilentlyContinue
     for ($i = 0; $i -lt 20 -and (Get-Process DeskPanel -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 500 }
     Get-Process DeskPanel -ErrorAction SilentlyContinue | Stop-Process -Force
     Start-Sleep -Seconds 1
-    Get-ChildItem -Path $Src -Recurse | Unblock-File -ErrorAction SilentlyContinue
-    robocopy $Src $Dst /E /XF config.json config.bad.json deskpanel.log deskpanel.log.old update.log /XD platform-tools /R:5 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
-    W "robocopy ma $LASTEXITCODE"
+    if ($Src) {
+        Get-ChildItem -Path $Src -Recurse | Unblock-File -ErrorAction SilentlyContinue
+        robocopy $Src $Dst /E /XF config.json config.bad.json deskpanel.log deskpanel.log.old update.log lan-key.txt update-token.bin /XD platform-tools /R:5 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+        W "robocopy ma $LASTEXITCODE"
+    }
 } catch { W ("Loi: " + $_) }
 finally {
     if (Get-ScheduledTask -TaskName 'DeskPanel' -ErrorAction SilentlyContinue) { Start-ScheduledTask -TaskName 'DeskPanel' }
     else { Start-Process (Join-Path $Dst 'DeskPanel.exe') -WorkingDirectory $Dst }
     W "Da chay lai DeskPanel"
-    Unregister-ScheduledTask -TaskName 'DeskPanelUpdate' -Confirm:$false -ErrorAction SilentlyContinue
+    Unregister-ScheduledTask -TaskName $Task -Confirm:$false -ErrorAction SilentlyContinue
 }
 """;
 }

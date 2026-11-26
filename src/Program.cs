@@ -18,8 +18,13 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     WebRootPath = Path.Combine(baseDir, "wwwroot"),
 });
 builder.Logging.SetMinimumLevel(LogLevel.Warning);
-// Chi nghe tren localhost: mang LAN khong truy cap duoc. Dien thoai toi qua "adb reverse" (cap USB).
-builder.WebHost.ConfigureKestrel(o => o.ListenLocalhost(port));
+// Mac dinh chi nghe tren localhost: dien thoai toi qua "adb reverse" (cap USB).
+// Bat che do Wi-Fi thi nghe them tren mang LAN; thiet bi LAN phai co ma ghep noi.
+bool lanOn = store.Current.LanEnabled;
+builder.WebHost.ConfigureKestrel(o => { if (lanOn) o.ListenAnyIP(port); else o.ListenLocalhost(port); });
+var lan = new LanAccess(baseDir);
+string? lanError = null;
+_ = Task.Run(() => { lanError = LanAccess.SetFirewall(lanOn, port); if (lanError != null) Log.Write(lanError); });
 
 var adb = new AdbBridge(store, port);
 builder.Services.AddSingleton(store);
@@ -36,14 +41,42 @@ builder.Services.AddHostedService(_ => hub);
 
 var app = builder.Build();
 
-// --- Bao ve: chong trang web la tren PC goi vao localhost (DNS rebinding, CSRF) ---
+// Phai dang ky truoc lop bao ve, neu khong IsWebSocketRequest luon la false va kiem tra Origin bi bo qua
+app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(15) });
+
+// --- Bao ve ---
+// May nay (localhost/adb reverse): chong trang web la tren PC goi vao (DNS rebinding, CSRF).
+// Thiet bi LAN: phai bat che do Wi-Fi, co ma ghep noi, va chi duoc xem/bam nut.
 app.Use(async (ctx, next) =>
 {
     var host = ctx.Request.Host.Host;
-    if (host is not ("localhost" or "127.0.0.1" or "[::1]" or "::1"))
+    bool local = LanAccess.IsLoopback(ctx.Connection.RemoteIpAddress);
+    if (local)
     {
-        ctx.Response.StatusCode = 403;
-        return;
+        if (host is not ("localhost" or "127.0.0.1" or "[::1]" or "::1")) { ctx.Response.StatusCode = 403; return; }
+    }
+    else
+    {
+        // Host phai la dia chi IP (QR luon dung IP), chan ten mien tro lai (DNS rebinding)
+        if (!lanOn || !System.Net.IPAddress.TryParse(host.Trim('[', ']'), out _)) { ctx.Response.StatusCode = 403; return; }
+        var path = ctx.Request.Path.Value ?? "/";
+        bool apk = path.Equals("/deskpanel.apk", StringComparison.OrdinalIgnoreCase);
+        if (!apk)
+        {
+            var qk = ctx.Request.Query["key"].ToString();
+            if (qk.Length > 0)
+            {
+                if (!lan.Matches(qk)) { await Deny(ctx, "Mã ghép nối không đúng hoặc đã đổi. Hãy quét lại mã QR trong trang cài đặt DeskPanel trên PC."); return; }
+                ctx.Response.Cookies.Append(LanAccess.CookieName, qk, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Strict, MaxAge = TimeSpan.FromDays(400), Path = "/" });
+                if (!ctx.WebSockets.IsWebSocketRequest && HttpMethods.IsGet(ctx.Request.Method)) { ctx.Response.Redirect(path); return; }
+            }
+            else if (!lan.Matches(ctx.Request.Cookies[LanAccess.CookieName]) && !lan.Matches(ctx.Request.Headers["X-DeskPanel-Key"]))
+            {
+                await Deny(ctx, "Thiết bị này chưa được ghép nối. Hãy quét mã QR trong trang cài đặt DeskPanel trên PC (tab Chung → Wi-Fi).");
+                return;
+            }
+            if (!LanAccess.Allowed(ctx.Request.Method, path)) { ctx.Response.StatusCode = 403; return; }
+        }
     }
     var m = ctx.Request.Method;
     if ((HttpMethods.IsPost(m) || HttpMethods.IsPut(m) || HttpMethods.IsDelete(m))
@@ -56,16 +89,17 @@ app.Use(async (ctx, next) =>
     if (ctx.WebSockets.IsWebSocketRequest)
     {
         var origin = ctx.Request.Headers.Origin.ToString();
-        if (origin.Length > 0 && !IsLocalOrigin(origin)) { ctx.Response.StatusCode = 403; return; }
+        if (origin.Length > 0 && !(local ? IsLocalOrigin(origin) : SameHostOrigin(origin, ctx.Request.Host))) { ctx.Response.StatusCode = 403; return; }
     }
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
     ctx.Response.Headers["Cache-Control"] = "no-cache";
     await next();
 });
 
-app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(15) });
 app.UseDefaultFiles();
-app.UseStaticFiles();
+var ctp = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+ctp.Mappings[".apk"] = "application/vnd.android.package-archive";
+app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = ctp });
 
 app.MapGet("/api/config", () => Results.Json(store.Current, Json.Opts));
 
@@ -77,6 +111,7 @@ app.MapPut("/api/config", async (HttpRequest req) =>
     if (cfg != null && (cfg.Pages == null || cfg.Pages.Count == 0)) cfg.Pages = ConfigStore.DefaultPages(cfg);
     var err = ConfigStore.Validate(cfg);
     if (err != null) return Results.BadRequest(new { error = err });
+    cfg!.LanEnabled = store.Current.LanEnabled; // chi doi qua /api/lan
     store.Save(cfg!);
     Log.Write($"Da luu cau hinh: {cfg!.Buttons.Count} nut");
     return Results.Ok(new { ok = true, restartNeeded = cfg.Port != port });
@@ -133,6 +168,40 @@ app.MapPost("/api/update/github", async (CancellationToken ct) =>
     var r = await updater.InstallLatestAsync(baseDir, ct);
     return Results.Json(new { ok = r.Ok, message = r.Message, version = r.NewVersion }, Json.Opts, statusCode: r.Ok ? 200 : 400);
 });
+// --- Wi-Fi (chi goi duoc tu chinh PC) ---
+app.MapGet("/api/lan", () =>
+{
+    var ips = LanAccess.Addresses();
+    var ip = ips.FirstOrDefault();
+    var url = ip == null ? null : $"http://{ip}:{port}/?key={lan.Key}";
+    return Results.Json(new
+    {
+        enabled = store.Current.LanEnabled, active = lanOn, port, addresses = ips, url,
+        qr = url == null ? null : LanAccess.QrSvg(url),
+        apkUrl = ip == null ? null : $"http://{ip}:{port}/deskpanel.apk",
+        apkQr = ip == null ? null : LanAccess.QrSvg($"http://{ip}:{port}/deskpanel.apk"),
+        hasApk = File.Exists(Path.Combine(baseDir, "wwwroot", "deskpanel.apk")),
+        error = lanError,
+    }, Json.Opts);
+});
+app.MapPost("/api/lan", async (HttpRequest req, CancellationToken ct) =>
+{
+    var j = await JsonSerializer.DeserializeAsync<Dictionary<string, bool>>(req.Body, Json.Opts, ct);
+    bool on = j != null && j.TryGetValue("enabled", out var v) && v;
+    var cfg = JsonSerializer.Deserialize<PanelConfig>(JsonSerializer.Serialize(store.Current, Json.Opts), Json.Opts)!;
+    cfg.LanEnabled = on;
+    store.Save(cfg);
+    Log.Write(on ? "Bat che do Wi-Fi" : "Tat che do Wi-Fi");
+    string? rerr = null;
+    if (on != lanOn) rerr = Updater.ScheduleRestart(baseDir);
+    return Results.Json(new { ok = true, restarting = on != lanOn && rerr == null, error = rerr }, Json.Opts);
+});
+app.MapPost("/api/lan/rotate", () => { lan.Rotate(); Log.Write("Da doi ma ghep noi Wi-Fi"); return Results.Json(new { ok = true }); });
+app.MapPost("/api/restart", () =>
+{
+    var e = Updater.ScheduleRestart(baseDir);
+    return Results.Json(new { ok = e == null, error = e }, Json.Opts, statusCode: e == null ? 200 : 400);
+});
 app.MapGet("/api/stats", () => Results.Json(hub.Latest, Json.Opts));
 app.MapGet("/api/sensors", async () => Results.Json(await hub.DumpAsync(), Json.Opts));
 app.MapGet("/api/status", () => Results.Json(new
@@ -143,6 +212,7 @@ app.MapGet("/api/status", () => Results.Json(new
     note = hub.Latest?.Note,
     weather = weather.Status,
     windows = OperatingSystem.IsWindows(),
+    lan = lanOn,
 }, Json.Opts));
 
 app.Map("/ws", async ctx =>
@@ -154,6 +224,16 @@ app.Map("/ws", async ctx =>
 
 Log.Write($"DeskPanel {typeof(Program).Assembly.GetName().Version?.ToString(3)} chay tai http://localhost:{port}");
 app.Run();
+
+static async Task Deny(HttpContext ctx, string msg)
+{
+    ctx.Response.StatusCode = 401;
+    ctx.Response.ContentType = "text/html; charset=utf-8";
+    await ctx.Response.WriteAsync("<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><body style='font:16px system-ui;background:#0d1117;color:#e6edf3;padding:24px'><h2>DeskPanel</h2><p>" + System.Net.WebUtility.HtmlEncode(msg) + "</p>");
+}
+
+static bool SameHostOrigin(string origin, HostString host) =>
+    Uri.TryCreate(origin, UriKind.Absolute, out var u) && string.Equals(u.Authority, host.Value, StringComparison.OrdinalIgnoreCase);
 
 static bool IsLocalOrigin(string origin) =>
     Uri.TryCreate(origin, UriKind.Absolute, out var u) && u.Host is "localhost" or "127.0.0.1" or "[::1]" or "::1";
