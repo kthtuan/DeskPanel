@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<style>
+body{font:13px system-ui,sans-serif;width:280px;margin:0;padding:12px;background:#0f1115;color:#e8ecf2}
+h1{font-size:14px;margin:0 0 8px}
+.r{display:flex;justify-content:space-between;margin:4px 0}
+.ok{color:#3fb950}.bad{color:#f85149}.mu{color:#8a93a2;font-size:12px;margin-top:8px;line-height:1.4}
+button{margin-top:10px;width:100%;padding:7px;border:0;border-radius:8px;background:#2f81f7;color:#fff;font-weight:600;cursor:pointer}
+input{width:70px;background:#1b1f27;border:1px solid #30363d;color:#e8ecf2;border-radius:6px;padding:3px 6px}
+</style></head>
+<body>
+<h1>DeskPanel · Theo dõi giới hạn AI</h1>
+<div class="r"><span>Claude</span><span id="c">…</span></div>
+<div class="r"><span>ChatGPT</span><span id="g">…</span></div>
+<div class="r"><span>DeskPanel</span><span id="d">…</span></div>
+<button id="now">Gửi ngay</button>
+<div class="r" style="margin-top:10px"><span>Cổng DeskPanel</span><input id="port" type="number" min="1024" max="65535"></div>
+<div class="mu">Tiện ích dùng phiên claude.ai / chatgpt.com bạn đã đăng nhập trong trình duyệt này, 3 phút một lần lấy % giới hạn và chỉ gửi về DeskPanel trên máy này (localhost). Không đọc trò chuyện, không gửi đi nơi khác.</div>
+<script src="popup.js"></script>
+</body></html>

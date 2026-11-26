@@ -110,6 +110,7 @@ src/                 Chương trình PC (C# .NET 8, ASP.NET Core minimal API)
   Setup.cs           File cài một exe: cài, cập nhật, gỡ
   Lan.cs             Chế độ Wi-Fi: mã ghép nối, mã QR, tường lửa
   wwwroot/           index.html (điện thoại), settings.html (cài đặt)
+extension/           Tiện ích Chrome/Edge gửi % giới hạn Claude/ChatGPT về DeskPanel
 android/             App Android (Kotlin, một WebView toàn màn hình, quét QR bằng ZXing)
 pkg/                 Hướng dẫn tiếng Việt, ghi chú phát hành
 .github/workflows/   Tăng <Version> và đẩy lên main là GitHub tự build và phát hành

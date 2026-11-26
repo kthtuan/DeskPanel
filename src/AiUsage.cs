@@ -42,11 +42,13 @@ public sealed partial class AiMonitor
         _nextOnline = DateTime.UtcNow.AddMinutes(3);
         var cfg = _store?.Current;
         var claude = await Safe(() => ClaudeOnline(ct), _claudeOn);
+        if (claude == null || claude.Limits.Count == 0) claude = FromPush("claude") ?? claude;
         // Chua co dang nhap Claude Code thi dung dang nhap web trong DeskPanel
         if (cfg != null && cfg.AiWebClaude && (claude == null || claude.Limits.Count == 0))
             claude = await Safe(() => WebOnline("claude"), _claudeOn) ?? claude;
         _claudeOn = claude;
         var codex = await Safe(() => CodexOnline(ct), _codexOn);
+        if (codex == null || codex.Limits.Count == 0) codex = FromPush("chatgpt") ?? codex;
         if (cfg != null && cfg.AiWebChatGpt && (codex == null || codex.Limits.Count == 0))
             codex = await Safe(() => WebOnline("chatgpt"), _codexOn) ?? codex;
         _codexOn = codex;
@@ -58,14 +60,37 @@ public sealed partial class AiMonitor
     async Task<Online?> WebOnline(string site)
     {
         var json = await WebAgent.FetchAsync(site);
-        if (json == null) return null;
+        return json == null ? null : ParseWeb(site, json, "DeskPanel");
+    }
+
+    // So lieu tu tien ich trinh duyet (POST /api/ai/push)
+    readonly Dictionary<string, (string json, DateTime at)> _push = new();
+    public DateTime? PushAt { get; private set; }
+    public void Push(string site, string json)
+    {
+        lock (_push) _push[site] = (json, DateTime.UtcNow);
+        PushAt = DateTime.UtcNow;
+    }
+    Online? FromPush(string site)
+    {
+        (string json, DateTime at) p;
+        lock (_push) if (!_push.TryGetValue(site, out p)) return null;
+        if (DateTime.UtcNow - p.at > TimeSpan.FromMinutes(15)) return null; // tien ich da tat/trinh duyet da dong
+        try { var r = ParseWeb(site, p.json, "trình duyệt"); if (r == null || r.Limits.Count == 0) return null; r.At = p.at; return r; }
+        catch { return null; }
+    }
+
+    static Online? ParseWeb(string site, string json, string where)
+    {
         using var doc = JsonDocument.Parse(json);
         var r = doc.RootElement;
         int status = r.TryGetProperty("status", out var st) && st.ValueKind == JsonValueKind.Number ? st.GetInt32() : 0;
         var res = new Online { At = DateTime.UtcNow };
         if (status is 401 or 403)
         {
-            res.Note = "Phiên đăng nhập " + (site == "claude" ? "Claude" : "ChatGPT") + " trong DeskPanel đã hết: vào ⚙ Cài đặt → Chung đăng nhập lại";
+            res.Note = where == "trình duyệt"
+                ? "Trình duyệt chưa đăng nhập " + (site == "claude" ? "claude.ai" : "chatgpt.com")
+                : "Phiên đăng nhập " + (site == "claude" ? "Claude" : "ChatGPT") + " trong DeskPanel đã hết: vào ⚙ Cài đặt → Chung đăng nhập lại";
             return res;
         }
         var usage = Obj(r, "usage");

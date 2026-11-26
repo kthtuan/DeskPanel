@@ -227,6 +227,8 @@ app.MapPost("/api/lan", async (HttpRequest req, CancellationToken ct) =>
 app.MapGet("/api/ai/web", () => Results.Json(new
 {
     available = WebAgent.Available, busy = WebAgent.Busy,
+    extensionAt = ai.PushAt == null ? (long?)null : new DateTimeOffset(ai.PushAt.Value).ToUnixTimeMilliseconds(),
+    hasExtension = File.Exists(Path.Combine(baseDir, "wwwroot", "deskpanel-extension.zip")),
     claude = store.Current.AiWebClaude, chatgpt = store.Current.AiWebChatGpt,
 }, Json.Opts));
 app.MapPost("/api/ai/login/{site}", async (string site) =>
@@ -237,6 +239,15 @@ app.MapPost("/api/ai/login/{site}", async (string site) =>
     if (ok) SetAiWeb(site, true);
     ai.RefreshSoon();
     return Results.Json(new { ok }, Json.Opts);
+});
+// Tien ich Chrome/Edge gui so lieu tu phien claude.ai / chatgpt.com cua trinh duyet
+app.MapPost("/api/ai/push", async (HttpRequest req, CancellationToken ct) =>
+{
+    using var doc = await JsonDocument.ParseAsync(req.Body, cancellationToken: ct);
+    foreach (var site in new[] { "claude", "chatgpt" })
+        if (doc.RootElement.TryGetProperty(site, out var v) && v.ValueKind == JsonValueKind.Object) ai.Push(site, v.GetRawText());
+    ai.RefreshSoon();
+    return Results.Json(new { ok = true }, Json.Opts);
 });
 app.MapPost("/api/ai/logout/{site}", async (string site) =>
 {

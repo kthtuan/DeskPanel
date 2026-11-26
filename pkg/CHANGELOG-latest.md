@@ -1,5 +1,5 @@
-**Có gì mới trong 0.11.0**
+**Có gì mới trong 0.12.0**
 
-- **Cài mới:** tải `DeskPanel-Setup-0.11.0.exe`, nhấp đúp, bấm Yes. Không cần giải nén, không cần tải adb hay cài PawnIO bằng tay. Gỡ trong Windows Settings → Apps.
-- **Đăng nhập Claude / ChatGPT trong DeskPanel:** Cài đặt → Chung → Theo dõi AI → Đăng nhập. Widget AI hiện % giới hạn của gói mà không cần Claude Code.
-- File zip vẫn có để DeskPanel tự cập nhật (Cài đặt → Chung → **Cài bản 0.11.0**).
+- **Tiện ích Chrome / Edge** cho widget AI: dùng phiên claude.ai / chatgpt.com bạn đã đăng nhập sẵn trong trình duyệt, không phải gõ mật khẩu ở đâu khác. Cài: Cài đặt → Chung → Theo dõi AI → Tải tiện ích, giải nén, `chrome://extensions` → Developer mode → Load unpacked.
+- Tiện ích chỉ xin quyền trên claude.ai, chatgpt.com và localhost; không đọc trò chuyện, chỉ gửi số liệu về DeskPanel trên chính máy đó.
+- Cài mới: `DeskPanel-Setup-0.12.0.exe`. Đang dùng bản cũ: Cài đặt → Chung → **Cài bản 0.12.0**.

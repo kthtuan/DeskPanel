@@ -1,5 +1,9 @@
 # Nhật ký thay đổi
 
+## 0.12.0 (26/11/2026)
+- **Tiện ích Chrome / Edge "DeskPanel AI"**: dùng luôn phiên claude.ai và chatgpt.com đã đăng nhập trong trình duyệt, 3 phút một lần gửi % giới hạn về DeskPanel trên máy (localhost). Không phải đăng nhập ở cửa sổ khác. Tải và hướng dẫn cài ở Cài đặt → Chung → Theo dõi AI.
+- Cửa sổ đăng nhập trong DeskPanel vẫn giữ làm cách dự phòng.
+
 ## 0.11.0 (26/11/2026)
 - **Một file cài duy nhất** `DeskPanel-Setup-0.11.0.exe`: nhấp đúp, bấm Yes là cài xong vào `C:\DeskPanel`, tự chạy khi đăng nhập Windows, mở trang cài đặt. Chạy file cài bản mới là cập nhật tại chỗ. Gỡ trong Windows Settings → Apps.
 - Giao diện và APK Android nằm sẵn trong exe. Tự tải adb của Google (chế độ cáp USB) và tự cài PawnIO (nhiệt độ CPU), không phải tải tay.

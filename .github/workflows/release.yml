@@ -7,7 +7,7 @@ name: Release
 on:
   push:
     branches: [main]
-    paths: ['src/**', 'pkg/**', 'android/**', '.github/workflows/release.yml']
+    paths: ['src/**', 'pkg/**', 'android/**', 'extension/**', '.github/workflows/release.yml']
   workflow_dispatch:
 
 permissions:
@@ -74,6 +74,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Tien ich Chrome/Edge
+        shell: pwsh
+        run: Compress-Archive -Path extension/* -DestinationPath src/wwwroot/deskpanel-extension.zip
+
       - name: Build
         shell: pwsh
         run: dotnet publish src/DeskPanel.csproj -c Release -r win-x64 -o out/DeskPanel
@@ -88,12 +92,13 @@ jobs:
           Copy-Item src/wwwroot/deskpanel.apk "out/DeskPanel-$env:VER.apk"
           # Mot file cai dat duy nhat: giao dien va APK da nam trong exe
           Copy-Item out/DeskPanel/DeskPanel.exe "out/DeskPanel-Setup-$env:VER.exe"
+          Copy-Item src/wwwroot/deskpanel-extension.zip "out/DeskPanel-extension-$env:VER.zip"
 
       - name: Tao Release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release create "v$env:VER" "out/DeskPanel-Setup-$env:VER.exe" "out/DeskPanel-$env:VER-win-x64.zip" "out/DeskPanel-$env:VER.apk" `
+          gh release create "v$env:VER" "out/DeskPanel-Setup-$env:VER.exe" "out/DeskPanel-$env:VER-win-x64.zip" "out/DeskPanel-$env:VER.apk" "out/DeskPanel-extension-$env:VER.zip" `
             --repo "${{ github.repository }}" --target "${{ github.sha }}" `
             --title "DeskPanel $env:VER" --notes-file pkg/CHANGELOG-latest.md

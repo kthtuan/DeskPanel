@@ -51,6 +51,7 @@ nav.tabs button.on{background:var(--panel3);color:var(--text)}
 .spacer{flex:1}
 .save{display:flex;gap:8px;align-items:center}
 #msg{color:var(--muted);font-size:13px;max-width:420px;text-align:right}
+.help.ok{color:var(--ok)}
 #msg.err{color:var(--bad)} #msg.ok{color:var(--ok)} #msg.dirty{color:var(--warn)}
 
 main{flex:1;min-height:0;overflow:auto}
@@ -260,7 +261,17 @@ dialog h2{margin:0 0 12px;font-size:17px}
       <div class="box" style="margin-top:14px" id="aiBox">
         <h3>Theo dõi AI (widget AI)</h3>
         <label><input id="aiOnline" type="checkbox">Lấy % giới hạn chính thức của gói Claude và ChatGPT</label>
-        <div class="help">Đăng nhập một lần bên dưới (cửa sổ claude.ai / chatgpt.com mở trên PC, tự đóng khi xong). Nếu PC đã đăng nhập Claude Code hoặc Codex thì không cần. DeskPanel hỏi 3 phút một lần; đăng nhập chỉ nằm trên PC, không gửi ra điện thoại.</div>
+        <div class="help">Chọn một trong các cách dưới. Nếu PC đã đăng nhập Claude Code hoặc Codex thì không cần làm gì. Số liệu chỉ nằm trên PC, không gửi ra ngoài.</div>
+        <div style="margin-top:12px"><b>Cách 1 (khuyên dùng): tiện ích cho Chrome / Edge</b> <span class="help" style="margin:0 0 0 6px" id="aiExtSt"></span></div>
+        <div class="help" style="margin-top:4px">Dùng luôn phiên claude.ai và chatgpt.com bạn đã đăng nhập trong trình duyệt, không phải đăng nhập ở đâu khác.
+          <ol style="margin:6px 0 0 18px;padding:0;line-height:1.6">
+            <li><a id="aiExtLink" href="deskpanel-extension.zip" download>Tải tiện ích (deskpanel-extension.zip)</a> rồi giải nén ra một thư mục, ví dụ <code>C:\DeskPanel\extension</code>.</li>
+            <li>Mở <code>chrome://extensions</code> (Edge: <code>edge://extensions</code>), bật <b>Developer mode</b>.</li>
+            <li>Bấm <b>Load unpacked</b> và chọn thư mục vừa giải nén.</li>
+            <li>Đăng nhập claude.ai / chatgpt.com trong trình duyệt như bình thường (nếu chưa). Khoảng 1 phút sau widget AI có số liệu.</li>
+          </ol>
+        </div>
+        <div style="margin-top:12px"><b>Cách 2: đăng nhập trong cửa sổ của DeskPanel</b></div>
         <div class="row" style="margin-top:10px;gap:10px;flex-wrap:wrap;align-items:center"><b style="min-width:70px">Claude</b><span class="help" style="margin:0" id="aiClaudeSt">…</span><button id="aiClaudeBtn" data-site="claude">Đăng nhập Claude</button></div>
         <div class="row" style="margin-top:8px;gap:10px;flex-wrap:wrap;align-items:center"><b style="min-width:70px">ChatGPT</b><span class="help" style="margin:0" id="aiChatgptSt">…</span><button id="aiChatgptBtn" data-site="chatgpt">Đăng nhập ChatGPT</button></div>
         <div class="help" id="aiWebMsg"></div>
@@ -1044,6 +1055,10 @@ dialog h2{margin:0 0 12px;font-size:17px}
         b.disabled = aiBusy || !!w.busy;
       });
       if (!w.available) $('aiWebMsg').textContent = 'Máy này chưa có Microsoft Edge WebView2 nên chưa mở được cửa sổ đăng nhập.';
+      var ago = w.extensionAt ? Math.round((Date.now() - w.extensionAt) / 60000) : null;
+      $('aiExtSt').textContent = ago == null ? 'Chưa kết nối' : ago <= 10 ? 'Đã kết nối (gửi lần cuối ' + (ago < 1 ? 'vừa xong' : ago + ' phút trước') + ')' : 'Mất kết nối ' + ago + ' phút';
+      $('aiExtSt').className = 'help ' + (ago != null && ago <= 10 ? 'ok' : '');
+      $('aiExtLink').classList.toggle('hide', !w.hasExtension);
     }).catch(function(){});
   }
   ['aiClaudeBtn', 'aiChatgptBtn'].forEach(function(id){
@@ -1097,7 +1112,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     if (!confirm('Đổi mã ghép nối? Các điện thoại đang nối qua Wi-Fi sẽ phải quét mã QR mới.')) return;
     api('POST', 'api/lan/rotate').then(function(){ lanMsg('Đã đổi mã. Quét lại mã QR trên điện thoại.', 'ok'); return loadLan(); }).catch(function(e){ lanMsg(e.message, 'err'); });
   };
-  loadLan(); loadAiWeb();
+  loadLan(); loadAiWeb(); setInterval(loadAiWeb, 30000);
 
   // ---------- Cập nhật ----------
   function uMsg(t, cls){ var m = $('uMsg'); m.textContent = t; m.style.color = cls === 'err' ? 'var(--bad)' : cls === 'ok' ? 'var(--ok)' : ''; }
