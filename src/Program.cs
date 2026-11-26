@@ -36,7 +36,9 @@ builder.Services.AddHostedService(_ => weather);
 var tokens = new TokenStore(baseDir);
 var updater = new UpdateChecker(store, tokens);
 builder.Services.AddHostedService(_ => updater);
-var hub = new StatsHub(store, media, weather);
+var ai = new AiMonitor();
+builder.Services.AddHostedService(_ => ai);
+var hub = new StatsHub(store, media, weather, ai);
 builder.Services.AddHostedService(_ => hub);
 
 var app = builder.Build();
@@ -276,9 +278,9 @@ sealed class StatsHub : BackgroundService
     // Doi moi lan build: dien thoai thay khac thi tu tai lai trang
     static readonly string AppVer = (typeof(StatsHub).Assembly.GetName().Version?.ToString(3) ?? "0") + "-" + File.GetLastWriteTimeUtc(Path.Combine(AppContext.BaseDirectory, "wwwroot", "index.html")).Ticks;
 
-    readonly MediaWatcher _media; readonly WeatherService _weather;
+    readonly MediaWatcher _media; readonly WeatherService _weather; readonly AiMonitor _ai;
     static readonly string HostName = Environment.MachineName;
-    public StatsHub(ConfigStore store, MediaWatcher media, WeatherService weather) { _store = store; _media = media; _weather = weather; }
+    public StatsHub(ConfigStore store, MediaWatcher media, WeatherService weather, AiMonitor ai) { _store = store; _media = media; _weather = weather; _ai = ai; }
 
     public Task<object> DumpAsync()
     {
@@ -303,6 +305,7 @@ sealed class StatsHub : BackgroundService
                 snap.AppVer = AppVer;
                 snap.Media = _media.Current;
                 snap.Weather = _weather.Latest;
+                snap.Ai = _ai.Latest;
                 snap.Host = HostName;
                 Latest = snap;
                 Broadcast(JsonSerializer.SerializeToUtf8Bytes(snap, Json.Opts));

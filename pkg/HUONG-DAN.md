@@ -56,6 +56,7 @@ Bộ trang mặc định gồm Tổng quan (đồng hồ, thời tiết, nhạc 
 
 - Thời tiết lấy từ Open-Meteo qua mạng của PC. Nếu Open-Meteo từ chối (ví dụ lỗi 429 do IP dùng chung), DeskPanel tự chuyển sang MET Norway, rồi wttr.in. Cả ba đều miễn phí, không cần tài khoản. Đổi thành phố ở thẻ **Chung** trong trang cài đặt, để trống nếu muốn tắt.
 - Thẻ nhạc đọc bài đang phát trên Windows (Spotify, YouTube trên Chrome/Edge…).
+- Widget **Theo dõi AI** (từ bản 0.9): đọc nhật ký Claude Code (`%USERPROFILE%\.claude\projects`) và Codex (`%USERPROFILE%\.codex\sessions`) trên PC, cập nhật mỗi 20 giây. Hiện token hôm nay, 7 ngày, khung 5 giờ của Claude Code, thanh giới hạn 5 giờ/tuần của Codex và phiên nào đang chạy. Số token của Claude Code là ước tính từ nhật ký, không phải con số chính thức của Anthropic. Không theo dõi được ChatGPT hay Claude dùng trên trình duyệt.
 
 ## D. Trang cài đặt
 

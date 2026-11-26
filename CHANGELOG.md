@@ -1,5 +1,12 @@
 # Nhật ký thay đổi
 
+## 0.9.0 (26/11/2026)
+- Widget mới **Theo dõi AI** (danh mục → nhóm Chung) và mẫu trang **AI**: xem mức dùng Claude Code và Codex trên PC.
+  - Claude Code: token hôm nay, 7 ngày, số lượt, khung 5 giờ hiện tại và giờ làm mới.
+  - Codex: token hôm nay, 7 ngày, thanh giới hạn 5 giờ và tuần (theo % Codex ghi lại) kèm giờ làm mới.
+  - Chấm xanh khi phiên đang chạy, kèm tên thư mục dự án.
+- Số liệu đọc từ nhật ký trên máy (`.claude\projects`, `.codex\sessions`), không gửi đi đâu, không cần đăng nhập.
+
 ## 0.8.2 (26/11/2026)
 - Sửa mã QR trong Cài đặt → Chung bị cắt mất phần bên phải và bên dưới (ảnh QR không co theo khung).
 

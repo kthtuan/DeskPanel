@@ -24,6 +24,7 @@ public sealed class Snapshot
     public string? AppVer { get; set; }
     public MediaInfo? Media { get; set; }
     public WeatherInfo? Weather { get; set; }
+    public AiInfo? Ai { get; set; }
     public string? Host { get; set; }
     public double? RamLoad { get; set; }
     public double? RamUsed { get; set; }

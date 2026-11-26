@@ -41,6 +41,15 @@ body.sf-flat .card{border-color:transparent;background:#161a22}
 body.sf-content .card{border-color:transparent;background:transparent}
 .bare{padding:4px 8px}
 .card>*:not(.spark){position:relative;z-index:1}
+.ai{display:flex;flex-direction:column;gap:10px;margin-top:8px;overflow:hidden}
+.ai .tl{display:flex;align-items:center;gap:8px;font-weight:700}
+.ai .tl .st{margin-left:auto;font-weight:400;font-size:.78rem;color:var(--muted,#8b949e)}
+.ai .dot{width:8px;height:8px;border-radius:50%;background:#6e7681;flex:none}
+.ai .dot.on{background:#3fb950;box-shadow:0 0 8px #3fb950}
+.ai .ln{font-size:.85rem;color:#c9d1d9;margin-top:2px}
+.ai .ln b{color:#fff}
+.ai .bar{margin-top:4px}
+.ai .bar .b i{transition:none}
 .lab{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .hd .r{font-size:.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -225,6 +234,45 @@ body.preview #offline,body.preview #gear{display:none!important}
       if (w && !w.error) { q('.wx .ic').textContent = w.icon || ''; q('.wx .t').textContent = num(w.temp) + '°';
         q('.dd').textContent = [w.desc, w.city].filter(Boolean).join(' · '); q('.ds').textContent = '↑' + num(w.max) + '° ↓' + num(w.min) + '° · Cảm giác ' + num(w.feels) + '°'; }
       q('.note').textContent = s.note || '';
+    } };
+  };
+
+  // ---------- Theo doi AI (Claude Code, Codex) ----------
+  function tok(n){ n = n || 0; return n >= 1e9 ? (n / 1e9).toFixed(1) + 'B' : n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(n); }
+  function hm(ms){ var d = new Date(ms); return p2(d.getHours()) + ':' + p2(d.getMinutes()); }
+  function untilTxt(ms){ var m = Math.max(0, Math.round((ms - Date.now()) / 60000)); if (m >= 1440) { var d = new Date(ms); return 'làm mới ' + d.getDate() + '/' + (d.getMonth() + 1) + ' ' + hm(ms); } return 'làm mới ' + hm(ms) + ' (còn ' + (m >= 60 ? Math.floor(m / 60) + 'g' + p2(m % 60) : m + ' phút') + ')'; }
+  W.ai = function(box, d){
+    box.classList.add('card');
+    box.innerHTML = '<div class="hd"><span class="lab" style="color:#d2a8ff"></span><span class="r sm"></span></div><div class="ai"></div>';
+    box.querySelector('.lab').textContent = d.title || 'AI';
+    var list = box.querySelector('.ai');
+    function tool(name, color, t){
+      var w = el('div');
+      var tl = el('div', 'tl'); var dot = el('span', 'dot' + (t.active ? ' on' : '')); tl.appendChild(dot);
+      var nm = el('span', null, name); nm.style.color = color; tl.appendChild(nm);
+      tl.appendChild(el('span', 'st', t.active ? 'Đang chạy' + (t.project ? ' · ' + t.project : '') : 'Nghỉ'));
+      w.appendChild(tl);
+      var ln = el('div', 'ln'); ln.innerHTML = 'Hôm nay <b></b> token · 7 ngày <b></b>';
+      var bs = ln.querySelectorAll('b'); bs[0].textContent = tok(t.today); bs[1].textContent = tok(t.week);
+      if (t.messagesToday != null) ln.appendChild(document.createTextNode(' · ' + t.messagesToday + ' lượt'));
+      w.appendChild(ln);
+      if (t.block != null) { var bl = el('div', 'ln'); bl.textContent = 'Khung 5 giờ: ' + tok(t.block) + ' token · ' + untilTxt(t.blockReset); w.appendChild(bl); }
+      (t.limits || []).forEach(function(l){
+        var c = l.used >= 90 ? 'var(--bad,#f85149)' : l.used >= 70 ? 'var(--warn,#d29922)' : color;
+        var b = el('div', 'bar'); b.innerHTML = '<div class="t"><span></span><span></span></div><div class="b"><i></i></div>';
+        var sp = b.querySelectorAll('.t span'); sp[0].textContent = 'Giới hạn ' + l.label + (l.reset ? ' · ' + untilTxt(l.reset) : ''); sp[1].textContent = Math.round(l.used) + '%';
+        var i = b.querySelector('i'); i.style.width = Math.min(100, l.used) + '%'; i.style.background = c; w.appendChild(b);
+      });
+      return w;
+    }
+    return { update: function(s){
+      list.innerHTML = '';
+      var a = s.ai, sm = box.querySelector('.sm');
+      if (!a || (!a.claude && !a.codex)) { list.appendChild(el('div', 'ln', 'Chưa thấy Claude Code hay Codex trên PC này.')); sm.textContent = ''; return; }
+      if (a.claude) list.appendChild(tool('Claude Code', '#d97757', a.claude));
+      if (a.codex) list.appendChild(tool('Codex', '#10a37f', a.codex));
+      var on = (a.claude && a.claude.active) || (a.codex && a.codex.active);
+      sm.textContent = on ? 'Đang làm việc' : ''; sm.className = 'r sm ' + (on ? 'ok' : '');
     } };
   };
 

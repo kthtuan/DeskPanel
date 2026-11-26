@@ -164,7 +164,7 @@ public sealed class ConfigStore
     public static readonly string[] WidgetTypes =
     {
         "clock", "weather", "media", "cpu", "gpu", "ram", "net", "gauge",
-        "cpuDetail", "gpuDetail", "memory", "netDetail", "disks", "diskSummary", "buttons", "button",
+        "cpuDetail", "gpuDetail", "memory", "netDetail", "disks", "diskSummary", "buttons", "button", "ai",
     };
     public static readonly string[] Metrics = { "cpuLoad", "cpuTemp", "gpuLoad", "gpuTemp", "ramLoad", "vram" };
     public const int GridW = 12, GridH = 6;

@@ -362,6 +362,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
   var WT = {
     clock:       { ic: '🕒', nm: 'Đồng hồ',          ds: 'Giờ, ngày, thời tiết',      g: 'Chung',     w: 6, h: 4 },
     weather:     { ic: '⛅', nm: 'Thời tiết',         ds: 'Nhiệt độ, cao/thấp',        g: 'Chung',     w: 4, h: 2 },
+    ai:          { ic: '🤖', nm: 'Theo dõi AI',       ds: 'Claude Code, Codex: token, giới hạn', g: 'Chung', w: 6, h: 4 },
     media:       { ic: '🎵', nm: 'Nhạc đang phát',    ds: 'Spotify, YouTube…',         g: 'Chung',     w: 6, h: 4 },
     cpu:         { ic: '🧠', nm: 'CPU',               ds: 'Tải + đồ thị',              g: 'Ô số liệu', w: 3, h: 2 },
     gpu:         { ic: '🎮', nm: 'GPU',               ds: 'Tải + đồ thị',              g: 'Ô số liệu', w: 3, h: 2 },
@@ -736,6 +737,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
     { nm: 'Hệ thống', ds: 'CPU, GPU, bộ nhớ, mạng chi tiết', ic: '📊', ws: function(){ return [W('cpuDetail', 0, 0, 6, 3), W('gpuDetail', 6, 0, 6, 3), W('memory', 0, 3, 6, 3), W('netDetail', 6, 3, 6, 3)]; } },
     { nm: 'Vòng đo', ds: '6 vòng đo nhiệt độ và tải', ic: '🎯', ws: function(){ var k = Object.keys(METRICS); return k.map(function(m, i){ return W('gauge', i * 2, 0, 2, 3, m); }).concat([W('cpu', 0, 3, 4, 3), W('gpu', 4, 3, 4, 3), W('ram', 8, 3, 4, 3)]); } },
     { nm: 'Ổ cứng', ds: 'Thẻ sức khỏe từng ổ', ic: '💽', ws: function(){ return [W('disks', 0, 0, 12, 6)]; } },
+    { nm: 'AI', ds: 'Theo dõi Claude Code, Codex + số liệu máy', ic: '🤖', ws: function(){ return [W('ai', 0, 0, 8, 6), W('cpu', 8, 0, 4, 2), W('ram', 8, 2, 4, 2), W('net', 8, 4, 4, 2)]; } },
     { nm: 'Làm việc + nút', ds: 'Số liệu nhỏ ở trên, nhóm nút ở dưới', ic: '🛠️', ws: function(){ return [W('cpu', 0, 0, 3, 2), W('gpu', 3, 0, 3, 2), W('ram', 6, 0, 3, 2), W('diskSummary', 9, 0, 3, 2), W('buttons', 0, 2, 12, 4, groups()[0])]; } },
   ];
   function addPage(name, icon, ws){
