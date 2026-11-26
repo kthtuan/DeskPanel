@@ -48,4 +48,6 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0") { isTransitive = false }
     // zxing core 3.3.0 chay duoc tren Android 5/6 (3.4+ can Android 7)
     implementation("com.google.zxing:core:3.3.0")
+    // Man hinh quet (CaptureManager) goi androidx.core de xin quyen camera; thieu thu vien nay app bi dong khi bam Quet
+    implementation("androidx.core:core:1.13.1")
 }

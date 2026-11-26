@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## 0.12.1 (26/11/2026)
+- App Android: sửa lỗi app tự đóng khi bấm **Quét mã QR** (thiếu thư viện xin quyền camera).
+
 ## 0.12.0 (26/11/2026)
 - **Tiện ích Chrome / Edge "DeskPanel AI"**: dùng luôn phiên claude.ai và chatgpt.com đã đăng nhập trong trình duyệt, 3 phút một lần gửi % giới hạn về DeskPanel trên máy (localhost). Không phải đăng nhập ở cửa sổ khác. Tải và hướng dẫn cài ở Cài đặt → Chung → Theo dõi AI.
 - Cửa sổ đăng nhập trong DeskPanel vẫn giữ làm cách dự phòng.
