@@ -34,7 +34,14 @@ Không cần bật gỡ lỗi USB hay cài Platform Tools. Điện thoại và P
 3. Mở app **DeskPanel** → **Quét mã QR (Wi-Fi)** → quét mã **"2. Mở app → Quét mã QR"**. Xong. App nhớ địa chỉ, lần sau mở là vào thẳng.
 4. Nếu điện thoại không vào được: trên PC vào **Settings → Network & internet → Wi-Fi (hoặc Ethernet) → chọn mạng đang dùng → Private network**. DeskPanel chỉ mở cổng cho mạng Private, không mở trên mạng công cộng (quán cà phê, sân bay).
 
+**iPhone / iPad** (không có app, dùng Safari):
+1. iPhone bắt cùng Wi-Fi với PC, mở **Camera** quét mã **"2. Ghép nối"**, bấm vào đường link hiện ra.
+2. Trong Safari bấm **Chia sẻ → Thêm vào MH chính** để có biểu tượng chạy toàn màn hình.
+3. Vào **Cài đặt → Màn hình & Độ sáng → Tự động khóa → Không bao giờ** (và cắm sạc) để màn hình không tắt.
+iPhone không dùng được cáp USB (cách nối cáp dựa vào adb, chỉ có trên Android).
+
 Ghi chú:
+- Ai có mã QR ghép nối đều bấm được các nút trên PC của bạn. Chỉ đưa cho người bạn tin; muốn thu hồi thì **Đổi mã ghép nối** (mọi máy phải quét lại).
 - App giữ màn hình luôn sáng và chạy toàn màn hình. Nút **Back** mở menu: Tải lại, Đổi kết nối, Thoát.
 - Mất kết nối (PC tắt, đổi mạng), app tự thử lại 3 giây một lần.
 - App dùng được cả với cáp: chọn **Dùng cáp USB** (vẫn cần các bước ở mục B).

@@ -1,5 +1,9 @@
 # Nhật ký thay đổi
 
+## 0.8.1 (26/11/2026)
+- iPhone: quét mã ghép nối bằng Camera rồi "Thêm vào MH chính" là chạy toàn màn hình và tự kết nối (biểu tượng mang theo mã ghép nối).
+- Nhãn mã QR ghi rõ mã nào cho Android, mã nào dùng được cho cả iPhone.
+
 ## 0.8.0 (26/11/2026)
 - Nút bấm → **+ Thêm phần mềm**: chọn nhiều phần mềm đã cài (đọc từ Start Menu) trong một lần, tự tạo nhóm và trang "Phần mềm".
 - Nút mở chương trình hiện **icon thật** của phần mềm trên điện thoại và trong trang cài đặt (tùy chọn "Dùng icon thật của chương trình").

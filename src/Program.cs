@@ -68,7 +68,8 @@ app.Use(async (ctx, next) =>
             {
                 if (!lan.Matches(qk)) { await Deny(ctx, "Mã ghép nối không đúng hoặc đã đổi. Hãy quét lại mã QR trong trang cài đặt DeskPanel trên PC."); return; }
                 ctx.Response.Cookies.Append(LanAccess.CookieName, qk, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Strict, MaxAge = TimeSpan.FromDays(400), Path = "/" });
-                if (!ctx.WebSockets.IsWebSocketRequest && HttpMethods.IsGet(ctx.Request.Method)) { ctx.Response.Redirect(path); return; }
+                // Giu ?key= tren dia chi (khong chuyen huong): iPhone "Them vao MH chinh" luu dung dia chi nay,
+                // ma app tren man hinh chinh cua iOS khong dung chung cookie voi Safari.
             }
             else if (!lan.Matches(ctx.Request.Cookies[LanAccess.CookieName]) && !lan.Matches(ctx.Request.Headers["X-DeskPanel-Key"]))
             {
@@ -76,6 +77,16 @@ app.Use(async (ctx, next) =>
                 return;
             }
             if (!LanAccess.Allowed(ctx.Request.Method, path)) { ctx.Response.StatusCode = 403; return; }
+            if (path.Equals("/manifest.json", StringComparison.OrdinalIgnoreCase))
+            {
+                // Bieu tuong cai len man hinh chinh mo kem ma ghep noi
+                var mf = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(baseDir, "wwwroot", "manifest.json")))!;
+                mf["start_url"] = "./?key=" + lan.Key;
+                ctx.Response.ContentType = "application/manifest+json; charset=utf-8";
+                ctx.Response.Headers.CacheControl = "no-store";
+                await ctx.Response.WriteAsync(mf.ToJsonString());
+                return;
+            }
         }
     }
     var m = ctx.Request.Method;
