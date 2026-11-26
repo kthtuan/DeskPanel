@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## 0.8.2 (26/11/2026)
+- Sửa mã QR trong Cài đặt → Chung bị cắt mất phần bên phải và bên dưới (ảnh QR không co theo khung).
+
 ## 0.8.1 (26/11/2026)
 - iPhone: quét mã ghép nối bằng Camera rồi "Thêm vào MH chính" là chạy toàn màn hình và tự kết nối (biểu tượng mang theo mã ghép nối).
 - Nhãn mã QR ghi rõ mã nào cho Android, mã nào dùng được cho cả iPhone.

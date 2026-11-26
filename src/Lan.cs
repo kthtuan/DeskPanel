@@ -98,7 +98,7 @@ public sealed class LanAccess
     {
         using var gen = new QRCodeGenerator();
         using var data = gen.CreateQrCode(text, QRCodeGenerator.ECCLevel.M);
-        return new SvgQRCode(data).GetGraphic(6, "#000000", "#ffffff", true);
+        return new SvgQRCode(data).GetGraphic(6, "#000000", "#ffffff", true, SvgQRCode.SizingMode.ViewBoxAttribute);
     }
 
     /// <summary>Mo/dong cong tren Windows Firewall (chi mang Private/Domain). Tra ve loi neu co.</summary>
