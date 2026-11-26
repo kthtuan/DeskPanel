@@ -60,11 +60,13 @@ public sealed partial class AiMonitor
     async Task<Online?> ClaudeOnline(CancellationToken ct)
     {
         var path = Path.Combine(ClaudeHome, ".credentials.json");
-        if (!File.Exists(path)) return null;
+        if (!File.Exists(path))
+            return Directory.Exists(ClaudeHome) ? new Online { Note = "Chưa đăng nhập Claude Code trên PC này: mở Terminal, chạy claude rồi gõ /login", At = DateTime.UtcNow } : null;
         using var cred = JsonDocument.Parse(await File.ReadAllTextAsync(path, ct));
         var o = Obj(cred.RootElement, "claudeAiOauth");
         var token = Str(o, "accessToken");
-        if (string.IsNullOrEmpty(token)) return null; // dang nhap bang API key: khong co goi de xem
+        if (string.IsNullOrEmpty(token)) // dang nhap bang API key: khong co goi de xem
+            return new Online { Note = "Claude Code chưa đăng nhập bằng tài khoản Claude (Pro/Max): chạy claude rồi gõ /login", At = DateTime.UtcNow };
         var res = new Online { Plan = ClaudePlan(Str(o, "subscriptionType"), Str(o, "rateLimitTier")), At = DateTime.UtcNow };
         if (o.TryGetProperty("expiresAt", out var ex) && ex.ValueKind == JsonValueKind.Number &&
             DateTimeOffset.FromUnixTimeMilliseconds(ex.GetInt64()) < DateTimeOffset.UtcNow)

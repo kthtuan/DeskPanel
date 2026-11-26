@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## 0.10.1 (26/11/2026)
+- Widget AI: khi PC chưa đăng nhập Claude Code bằng tài khoản Claude, widget ghi rõ cách đăng nhập thay vì để trống.
+
 ## 0.10.0 (26/11/2026)
 - Widget **Theo dõi AI** hiện % giới hạn chính thức của gói, giống trang "Mức sử dụng" trên web:
   - Claude (Pro/Max): phiên 5 giờ, tuần, tuần theo từng model, kèm tên gói (vd. Max 5x). Giới hạn này dùng chung cho Claude trên web, app và Claude Code.
