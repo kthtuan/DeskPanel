@@ -1,0 +1,27 @@
+# Xoa cac Release cu (kem tag). Chay tay: Actions -> "Don release cu" -> Run workflow, nhap danh sach tag.
+name: Don release cu
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Cac tag can xoa, cach nhau dau cach (vd: v0.6.0 v0.6.1)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Xoa release va tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAGS: ${{ inputs.tags }}
+        run: |
+          latest=$(gh release view --repo "${{ github.repository }}" --json tagName -q .tagName)
+          for t in $TAGS; do
+            if [ "$t" = "$latest" ]; then echo "Bo qua $t (ban moi nhat)"; continue; fi
+            gh release delete "$t" --repo "${{ github.repository }}" --yes --cleanup-tag && echo "Da xoa $t" || echo "Khong xoa duoc $t"
+          done
