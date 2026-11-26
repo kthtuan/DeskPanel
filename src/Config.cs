@@ -165,6 +165,18 @@ public sealed class ConfigStore
     public static readonly string[] Metrics = { "cpuLoad", "cpuTemp", "gpuLoad", "gpuTemp", "ramLoad", "vram" };
     public const int GridW = 12, GridH = 6;
 
+    /// <summary>Nhan ca link: https://github.com/chu/repo(.git) -> chu/repo</summary>
+    public static string? NormRepo(string? v)
+    {
+        if (string.IsNullOrWhiteSpace(v)) return null;
+        v = v.Trim();
+        v = Regex.Replace(v, @"^git@github\.com:", "", RegexOptions.IgnoreCase);
+        v = Regex.Replace(v, @"^(https?://)?(www\.)?github\.com/", "", RegexOptions.IgnoreCase);
+        v = Regex.Replace(v, @"\.git$", "", RegexOptions.IgnoreCase).TrimEnd('/');
+        var m = Regex.Match(v, @"^([A-Za-z0-9-]+)/([A-Za-z0-9._-]+)");
+        return m.Success ? m.Groups[1].Value + "/" + m.Groups[2].Value : v;
+    }
+
     static string? ValidatePages(PanelConfig c)
     {
         var t = c.Theme ??= new ThemeDef();
@@ -232,6 +244,7 @@ public sealed class ConfigStore
         if (c.Columns < 2 || c.Columns > 8) return "Số cột phải từ 2 đến 8";
         if (c.AdbPath != null && c.AdbPath.Length > 260) return "Đường dẫn adb quá dài";
         if (c.WeatherCity != null && c.WeatherCity.Length > 60) return "Tên thành phố quá dài";
+        c.UpdateRepo = NormRepo(c.UpdateRepo);
         if (!string.IsNullOrWhiteSpace(c.UpdateRepo) && !Regex.IsMatch(c.UpdateRepo.Trim(), @"^[A-Za-z0-9-]{1,39}/[A-Za-z0-9._-]{1,100}$")) return "Repo GitHub phải có dạng chu-repo/ten-repo";
         var perr = ValidatePages(c);
         if (perr != null) return perr;

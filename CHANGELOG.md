@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## 0.6.3 (26/11/2026)
+- Ô repo GitHub nhận cả link đầy đủ (`https://github.com/chu/repo` hoặc `.git`), tự cắt về dạng `chu/repo`.
+
 ## 0.6.2 (26/11/2026)
 - Nhóm nhiều nút (ví dụ 17 nút AutoCAD) tự tăng số cột cho vừa trang, không còn hàng cuối bị cắt.
 - README mới có ảnh chụp, logo và nhật ký thay đổi.

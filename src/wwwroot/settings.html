@@ -261,8 +261,8 @@ dialog h2{margin:0 0 12px;font-size:17px}
             <div class="help">Không cần giải nén. DeskPanel tự thay bản cũ, giữ nguyên các nút và trang, rồi chạy lại. Điện thoại tự tải lại.</div>
           </div>
           <div>
-            <label class="l">Tự kiểm tra bản mới trên GitHub (dạng chu/ten-repo)</label>
-            <div class="row"><input id="updateRepo" maxlength="140" placeholder="vd: tentoi/deskpanel"><button id="uCheck">Kiểm tra</button></div>
+            <label class="l">Tự kiểm tra bản mới trên GitHub (dạng chu/ten-repo, dán link cũng được)</label>
+            <div class="row"><input id="updateRepo" maxlength="140" placeholder="kthtuan/DeskPanel"><button id="uCheck">Kiểm tra</button></div>
             <div class="help" id="uGh">Điền repo rồi bấm Lưu. DeskPanel kiểm tra 6 giờ một lần.</div>
             <button class="primary hide" id="uGhInstall" style="margin-top:8px"></button>
             <label class="l" style="margin-top:12px">Token GitHub (chỉ cần khi repo để private)</label>
@@ -924,7 +924,12 @@ dialog h2{margin:0 0 12px;font-size:17px}
   $('port').onchange = function(){ var v = parseInt(this.value, 10) || 0; change(function(){ cfg.port = v; }); };
   $('adbPath').onchange = function(){ var v = this.value.trim() || null; change(function(){ cfg.adbPath = v; }); };
   $('weatherCity').onchange = function(){ var v = this.value.trim() || null; change(function(){ cfg.weatherCity = v; }); };
-  $('updateRepo').onchange = function(){ var v = this.value.trim() || null; change(function(){ cfg.updateRepo = v; }); };
+  // Nhan ca link day du: https://github.com/chu/repo(.git) -> chu/repo
+  function normRepo(v){
+    v = (v || '').trim().replace(/^git@github\.com:/i, '').replace(/^(https?:\/\/)?(www\.)?github\.com\//i, '').replace(/\.git$/i, '').replace(/\/+$/, '');
+    var m = v.match(/^([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)/); return m ? m[1] + '/' + m[2] : v;
+  }
+  $('updateRepo').onchange = function(){ var v = normRepo(this.value) || null; this.value = v || ''; change(function(){ cfg.updateRepo = v; }); };
 
   // ---------- Cập nhật ----------
   function uMsg(t, cls){ var m = $('uMsg'); m.textContent = t; m.style.color = cls === 'err' ? 'var(--bad)' : cls === 'ok' ? 'var(--ok)' : ''; }
