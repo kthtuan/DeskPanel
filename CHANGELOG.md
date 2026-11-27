@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## 0.13.5 (27/11/2026)
+- Bật Wi-Fi và cập nhật trong ứng dụng không còn dùng PowerShell hay Task Scheduler: DeskPanel tự chạy bản mới rồi tắt bản cũ. Chạy được trên máy công ty chặn script/tác vụ. Cách cũ chỉ còn làm dự phòng.
+
 ## 0.13.4 (27/11/2026)
 - Bật Wi-Fi / cập nhật: nếu Task Scheduler trên máy không chạy được DeskPanel, DeskPanel tự chạy lại theo cách khác thay vì tắt luôn.
 - Có lối tắt **DeskPanel** trong Start Menu: mở DeskPanel (nếu chưa chạy) và trang cài đặt.

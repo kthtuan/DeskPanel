@@ -1,11 +1,9 @@
-**Sửa trong 0.13.4**
+**Sửa trong 0.13.5**
 
-- Bật Wi-Fi hoặc cập nhật không còn làm DeskPanel tắt luôn trên máy có Task Scheduler lỗi.
-- Lối tắt **DeskPanel** trong Start Menu để mở lại DeskPanel và trang cài đặt.
+- Bật Wi-Fi và cập nhật trong ứng dụng chạy được cả trên máy công ty chặn PowerShell / Task Scheduler.
+- Máy đang bị kẹt: chạy DeskPanel-Setup-0.13.5.exe một lần. Từ bản này, cập nhật trong ứng dụng dùng cách mới.
 
-**Fixed in 0.13.4**
+**Fixed in 0.13.5**
 
-- Turning on Wi-Fi or updating no longer leaves DeskPanel stopped on PCs where Task Scheduler fails.
-- **DeskPanel** shortcut in the Start Menu opens DeskPanel and its settings page.
-
-Máy đang bị tắt DeskPanel: chạy lại DeskPanel-Setup-0.13.4.exe. / If DeskPanel is stopped: run DeskPanel-Setup-0.13.4.exe again.
+- Turning on Wi-Fi and in-app updates now work on managed PCs that block PowerShell / Task Scheduler.
+- If a PC is stuck: run DeskPanel-Setup-0.13.5.exe once.

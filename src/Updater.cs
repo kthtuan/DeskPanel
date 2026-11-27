@@ -52,8 +52,18 @@ public static class Updater
             if (!OperatingSystem.IsWindows()) return new(true, $"Zip hợp lệ (chế độ thử, không phải Windows nên không cài)", newVer);
 
             var dst = baseDir.TrimEnd('\\', '/');
-            static string Q(string x) => "'" + x.Replace("'", "''") + "'";
-            Schedule(dst, "DeskPanelUpdate", "apply.ps1", $"$Src = {Q(root)}\r\n$Dst = {Q(dst)}\r\n$Task = 'DeskPanelUpdate'\r\n" + ApplyScript);
+            var newExe = Path.Combine(root, "DeskPanel.exe");
+            try
+            {
+                // Ban moi tu chep minh vao thu muc cai roi chay lai (khong can PowerShell / Task Scheduler)
+                Handoff(newExe, root, "--apply", dst);
+            }
+            catch (Exception hx)
+            {
+                Log.Write("Khong tu chuyen giao duoc, dung tac vu: " + hx.Message);
+                static string Q(string x) => "'" + x.Replace("'", "''") + "'";
+                Schedule(dst, "DeskPanelUpdate", "apply.ps1", $"$Src = {Q(root)}\r\n$Dst = {Q(dst)}\r\n$Task = 'DeskPanelUpdate'\r\n" + ApplyScript);
+            }
             Log.Write($"Cap nhat: {curVer} -> {newVer ?? "?"} tu {root}");
             return new(true, $"Đang cài bản {newVer ?? "mới"} (bản hiện tại {curVer}). DeskPanel sẽ tắt và chạy lại trong khoảng 10–20 giây.", newVer);
         }
@@ -72,11 +82,30 @@ public static class Updater
         try
         {
             var dst = baseDir.TrimEnd('\\', '/');
+            try { Handoff(Environment.ProcessPath!, dst, "--serve", null); return null; }
+            catch (Exception hx) { Log.Write("Khong tu chay lai duoc, dung tac vu: " + hx.Message); }
             static string Q(string x) => "'" + x.Replace("'", "''") + "'";
             Schedule(dst, "DeskPanelRestart", "restart.ps1", $"$Src = $null\r\n$Dst = {Q(dst)}\r\n$Task = 'DeskPanelRestart'\r\n" + ApplyScript);
             return null;
         }
         catch (Exception ex) { Log.Write("Khong chay lai duoc: " + ex); return ex.Message; }
+    }
+
+    /// <summary>
+    /// Chay mot ban DeskPanel moi (cho ban nay thoat roi moi lam viec), sau do ban nay tu tat.
+    /// Khong dung PowerShell hay Task Scheduler, vi may cong ty thuong chan hai thu do.
+    /// </summary>
+    static void Handoff(string exe, string workDir, string mode, string? dst)
+    {
+        if (!File.Exists(exe)) throw new FileNotFoundException(exe);
+        var psi = new ProcessStartInfo(exe) { UseShellExecute = false, WorkingDirectory = workDir };
+        psi.ArgumentList.Add(mode);
+        if (dst != null) psi.ArgumentList.Add(dst);
+        psi.ArgumentList.Add("--after");
+        psi.ArgumentList.Add(Environment.ProcessId.ToString());
+        Process.Start(psi);
+        Log.Write("Chuyen giao cho tien trinh moi: " + mode);
+        _ = Task.Run(async () => { await Task.Delay(1500); Environment.Exit(0); });
     }
 
     // Lenh cua tac vu Task Scheduler bi gioi han 261 ky tu, nen dat script o thu muc cai (duong dan ngan)

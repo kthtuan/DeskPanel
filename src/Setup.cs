@@ -38,6 +38,8 @@ public static class Setup
     public static bool TryRun(string[] args)
     {
         if (!OperatingSystem.IsWindows()) return false;
+        WaitForParent(args);
+        if (args.Length >= 2 && args[0] == "--apply") { ApplySelf(args[1]); return true; }
         if (args.Contains("--serve")) return false;
         if (args.Contains("--uninstall")) { Uninstall(); return true; }
         var self = Environment.ProcessPath;
@@ -48,6 +50,60 @@ public static class Setup
         try { Install(self, taskExe); }
         catch (Exception ex) { Log.Write("Loi cai dat: " + ex); Box(L("Cài đặt không thành công:\n\n", "Setup failed:\n\n") + ex.Message, 0x10); }
         return true;
+    }
+
+    // "--after PID": cho ban cu (dang tat) thoat han truoc khi lam tiep
+    static void WaitForParent(string[] args)
+    {
+        int i = Array.IndexOf(args, "--after");
+        if (i < 0 || i + 1 >= args.Length || !int.TryParse(args[i + 1], out var pid)) return;
+        try { using var p = Process.GetProcessById(pid); if (!p.WaitForExit(20000)) { p.Kill(); p.WaitForExit(5000); } } catch { }
+    }
+
+    // Cap nhat trong ung dung: ban moi (o thu muc tam) tu chep vao thu muc cai, giu du lieu nguoi dung, roi chay
+    static readonly HashSet<string> Keep = new(StringComparer.OrdinalIgnoreCase)
+        { "config.json", "config.bad.json", "deskpanel.log", "deskpanel.log.old", "update.log", "lan-key.txt", "update-token.bin" };
+    static void ApplySelf(string dst)
+    {
+        var src = Path.GetDirectoryName(Environment.ProcessPath!)!;
+        var log = Path.Combine(dst, "update.log");
+        void W(string m) { try { File.AppendAllText(log, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {m}\r\n"); } catch { } }
+        try
+        {
+            W("Cap nhat tu " + src);
+            foreach (var p in Process.GetProcessesByName("DeskPanel"))
+                if (p.Id != Environment.ProcessId) { try { p.Kill(); p.WaitForExit(5000); } catch { } }
+            CopyDir(src, dst, true);
+            try { File.Delete(Path.Combine(dst, "DeskPanel.exe") + ":Zone.Identifier"); } catch { }
+            W("Da chep xong");
+        }
+        catch (Exception ex) { W("Loi: " + ex); }
+        finally
+        {
+            try { Process.Start(new ProcessStartInfo(Path.Combine(dst, "DeskPanel.exe")) { UseShellExecute = false, WorkingDirectory = dst, ArgumentList = { "--serve" } }); W("Da chay lai DeskPanel"); }
+            catch (Exception ex) { W("Khong chay lai duoc: " + ex.Message); }
+        }
+    }
+    static void CopyDir(string src, string dst, bool top)
+    {
+        Directory.CreateDirectory(dst);
+        foreach (var f in Directory.GetFiles(src))
+        {
+            var name = Path.GetFileName(f);
+            if (top && Keep.Contains(name)) continue;
+            var to = Path.Combine(dst, name);
+            for (int i = 0; ; i++)
+            {
+                try { File.Copy(f, to, true); break; }
+                catch (IOException) when (i < 20) { Thread.Sleep(500); }
+            }
+        }
+        foreach (var d in Directory.GetDirectories(src))
+        {
+            var name = Path.GetFileName(d);
+            if (top && (name.Equals("platform-tools", StringComparison.OrdinalIgnoreCase) || name.Equals("webview", StringComparison.OrdinalIgnoreCase) || name.Equals("_update", StringComparison.OrdinalIgnoreCase))) continue;
+            CopyDir(d, Path.Combine(dst, name), false);
+        }
     }
 
     static bool SameDir(string a, string b) =>
