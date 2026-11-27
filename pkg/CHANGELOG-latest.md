@@ -1,9 +1,7 @@
-**Sửa trong 0.13.5**
+**Sửa trong 0.13.6**
 
-- Bật Wi-Fi và cập nhật trong ứng dụng chạy được cả trên máy công ty chặn PowerShell / Task Scheduler.
-- Máy đang bị kẹt: chạy DeskPanel-Setup-0.13.5.exe một lần. Từ bản này, cập nhật trong ứng dụng dùng cách mới.
+- Màn hình dọc: đồng hồ, nhạc và các widget rộng hiện hết bề ngang.
 
-**Fixed in 0.13.5**
+**Fixed in 0.13.6**
 
-- Turning on Wi-Fi and in-app updates now work on managed PCs that block PowerShell / Task Scheduler.
-- If a PC is stuck: run DeskPanel-Setup-0.13.5.exe once.
+- Portrait: clock, music and wide widgets use the full width.

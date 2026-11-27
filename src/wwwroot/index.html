@@ -551,7 +551,7 @@ body.preview #offline,body.preview #gear{display:none!important}
       var ws = (p.widgets || []).slice().sort(function(a, b){ return a.y - b.y || a.x - b.x; });
       ws.forEach(function(d){
         var box = el('div', 'w w-' + d.type);
-        if (portrait) { box.style.gridColumn = 'span ' + (d.w >= 7 || d.type === 'buttons' || d.type === 'disks' ? 2 : 1); box.style.gridRow = 'span ' + Math.max(2, d.h); }
+        if (portrait) { box.style.gridColumn = 'span ' + (d.w >= 6 || d.type === 'buttons' || d.type === 'disks' || d.type === 'clock' || d.type === 'media' || d.type === 'ai' ? 2 : 1); box.style.gridRow = 'span ' + Math.max(2, d.h); }
         else { box.style.gridColumn = (d.x + 1) + ' / span ' + d.w; box.style.gridRow = (d.y + 1) + ' / span ' + d.h; }
         sec.appendChild(box);
         try { var w = (W[d.type] || function(b){ b.classList.add('card', 'empty'); b.textContent = d.type; return {}; })(box, d); w.def = d; widgets.push(w); }

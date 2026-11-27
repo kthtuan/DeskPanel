@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## 0.13.6 (27/11/2026)
+- Màn hình dọc: đồng hồ, nhạc, widget AI và các widget rộng chiếm cả bề ngang thay vì bị ép còn nửa màn hình.
+
 ## 0.13.5 (27/11/2026)
 - Bật Wi-Fi và cập nhật trong ứng dụng không còn dùng PowerShell hay Task Scheduler: DeskPanel tự chạy bản mới rồi tắt bản cũ. Chạy được trên máy công ty chặn script/tác vụ. Cách cũ chỉ còn làm dự phòng.
 
