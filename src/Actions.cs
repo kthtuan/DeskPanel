@@ -103,8 +103,9 @@ public static class ActionRunner
     }
 
     /// <summary>
-    /// DeskPanel chay voi quyen admin. De chuong trinh duoc mo KHONG mang quyen admin,
-    /// nho explorer.exe mo ho (explorer chay quyen thuong). Neu co tham so thi buoc phai mo truc tiep.
+    /// DeskPanel chay voi quyen admin. Chuong trinh duoc mo KHONG duoc mang quyen admin:
+    /// khong co tham so thi nho explorer.exe mo; co tham so thi tao tien trinh voi explorer lam tien trinh cha,
+    /// nen no nhan quyen thuong cua explorer. Chi khi ca hai cach deu loi moi mo truc tiep (va ghi log).
     /// </summary>
     static ActionResult Launch(string target, string? args)
     {
@@ -112,15 +113,95 @@ public static class ActionRunner
         {
             var explorer = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
             Process.Start(new ProcessStartInfo(explorer) { ArgumentList = { target }, UseShellExecute = false });
+            return new(true);
         }
+        var dir = Path.GetDirectoryName(target);
+        if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir)) dir = null;
+        string cmd;
+        bool hidden = false;
+        if (target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && File.Exists(target))
+            cmd = Quote(target) + " " + args;
         else
         {
-            var psi = new ProcessStartInfo(target, args) { UseShellExecute = true };
-            var dir = Path.GetDirectoryName(target);
-            if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir)) psi.WorkingDirectory = dir;
-            Process.Start(psi);
+            // .bat, .lnk, tai lieu, ten chuong trinh trong PATH: de cmd "start" mo (cmd cung chay quyen thuong)
+            var comspec = Path.Combine(Environment.SystemDirectory, "cmd.exe");
+            cmd = Quote(comspec) + " /d /c start \"\" " + Quote(target) + " " + args;
+            hidden = true;
         }
+        var err = Unelevated.Start(cmd, dir, hidden);
+        if (err == null) return new(true);
+        Log.Write("Khong mo duoc voi quyen thuong (" + err + "), mo truc tiep: " + target);
+        var psi = new ProcessStartInfo(target, args!) { UseShellExecute = true };
+        if (dir != null) psi.WorkingDirectory = dir;
+        Process.Start(psi);
         return new(true);
+    }
+
+    static string Quote(string s) => "\"" + s.Replace("\"", "") + "\"";
+}
+
+/// <summary>Tao tien trinh voi explorer.exe lam tien trinh cha, de no nhan token quyen thuong cua explorer.</summary>
+static class Unelevated
+{
+    const uint EXTENDED_STARTUPINFO_PRESENT = 0x00080000, CREATE_NO_WINDOW = 0x08000000, PROCESS_CREATE_PROCESS = 0x0080;
+    static readonly IntPtr PROC_THREAD_ATTRIBUTE_PARENT_PROCESS = (IntPtr)0x00020000;
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct STARTUPINFO
+    {
+        public int cb; public string? lpReserved, lpDesktop, lpTitle;
+        public int dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars, dwFillAttribute, dwFlags;
+        public short wShowWindow, cbReserved2; public IntPtr lpReserved2, hStdInput, hStdOutput, hStdError;
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    struct STARTUPINFOEX { public STARTUPINFO StartupInfo; public IntPtr lpAttributeList; }
+    [StructLayout(LayoutKind.Sequential)]
+    struct PROCESS_INFORMATION { public IntPtr hProcess, hThread; public int dwProcessId, dwThreadId; }
+
+    [DllImport("user32.dll")] static extern IntPtr GetShellWindow();
+    [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+    [DllImport("kernel32.dll", SetLastError = true)] static extern IntPtr OpenProcess(uint access, bool inherit, uint pid);
+    [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr h);
+    [DllImport("kernel32.dll", SetLastError = true)] static extern bool InitializeProcThreadAttributeList(IntPtr list, int count, int flags, ref IntPtr size);
+    [DllImport("kernel32.dll", SetLastError = true)] static extern bool UpdateProcThreadAttribute(IntPtr list, uint flags, IntPtr attr, IntPtr value, IntPtr size, IntPtr prev, IntPtr retSize);
+    [DllImport("kernel32.dll")] static extern void DeleteProcThreadAttributeList(IntPtr list);
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    static extern bool CreateProcessW(string? app, System.Text.StringBuilder cmd, IntPtr pa, IntPtr ta, bool inherit, uint flags, IntPtr env, string? dir, ref STARTUPINFOEX si, out PROCESS_INFORMATION pi);
+
+    /// <summary>Tra ve null neu thanh cong, nguoc lai la mo ta loi.</summary>
+    public static string? Start(string cmdLine, string? dir, bool hidden)
+    {
+        if (!OperatingSystem.IsWindows()) return "not windows";
+        var shell = GetShellWindow();
+        if (shell == IntPtr.Zero) return "khong thay explorer";
+        GetWindowThreadProcessId(shell, out var pid);
+        var parent = OpenProcess(PROCESS_CREATE_PROCESS, false, pid);
+        if (parent == IntPtr.Zero) return "OpenProcess " + Marshal.GetLastWin32Error();
+        IntPtr list = IntPtr.Zero, val = IntPtr.Zero;
+        try
+        {
+            IntPtr size = IntPtr.Zero;
+            InitializeProcThreadAttributeList(IntPtr.Zero, 1, 0, ref size);
+            list = Marshal.AllocHGlobal(size);
+            if (!InitializeProcThreadAttributeList(list, 1, 0, ref size)) return "InitAttr " + Marshal.GetLastWin32Error();
+            val = Marshal.AllocHGlobal(IntPtr.Size);
+            Marshal.WriteIntPtr(val, parent);
+            if (!UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_PARENT_PROCESS, val, IntPtr.Size, IntPtr.Zero, IntPtr.Zero)) return "UpdateAttr " + Marshal.GetLastWin32Error();
+            var si = new STARTUPINFOEX { lpAttributeList = list };
+            si.StartupInfo.cb = Marshal.SizeOf<STARTUPINFOEX>();
+            uint flags = EXTENDED_STARTUPINFO_PRESENT | (hidden ? CREATE_NO_WINDOW : 0);
+            // Moi truong: de trong (IntPtr.Zero) thi lay cua DeskPanel; cung nguoi dung nen dung duoc
+            if (!CreateProcessW(null, new System.Text.StringBuilder(cmdLine), IntPtr.Zero, IntPtr.Zero, false, flags, IntPtr.Zero, dir, ref si, out var pi))
+                return "CreateProcess " + Marshal.GetLastWin32Error();
+            CloseHandle(pi.hThread); CloseHandle(pi.hProcess);
+            return null;
+        }
+        finally
+        {
+            if (list != IntPtr.Zero) { DeleteProcThreadAttributeList(list); Marshal.FreeHGlobal(list); }
+            if (val != IntPtr.Zero) Marshal.FreeHGlobal(val);
+            CloseHandle(parent);
+        }
     }
 }
 

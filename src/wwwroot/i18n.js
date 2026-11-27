@@ -462,11 +462,29 @@
     'Tên thành phố quá dài': 'The city name is too long',
     'Repo GitHub phải có dạng chu-repo/ten-repo': 'The GitHub repo must look like owner/repo',
     'Tối đa # nút': 'At most # buttons',
+    'Thiết bị đã ghép nối': 'Paired devices',
+    'Chưa có thiết bị nào.': 'No devices yet.',
+    '{0} giờ trước': '{0} h ago',
+    '{0} ngày trước': '{0} days ago',
+    'lần cuối: {0}': 'last seen: {0}',
+    ' · đã thu hồi': ' · revoked',
+    'Đổi tên': 'Rename',
+    'Tên thiết bị': 'Device name',
+    'Thu hồi': 'Revoke',
+    'Thu hồi "{0}"? Thiết bị này bị ngắt ngay và không tự kết nối lại được.': 'Revoke "{0}"? It is disconnected right away and cannot reconnect by itself.',
+    'Xóa khỏi danh sách': 'Remove from list',
+    '+ Phần mềm đang mở': '+ Running app',
+    'Chọn phần mềm…': 'Choose an app…',
+    'Gợi ý: AutoCAD': 'Suggest: AutoCAD',
+    'Tự mở trang này khi dùng phần mềm': 'Open this page when using an app',
+    'Tên tiến trình trên PC, cách nhau dấu phẩy. Khi bạn chuyển sang phần mềm đó trên PC, điện thoại tự chuyển sang trang này.': 'Process names on the PC, separated by commas. When you switch to that app on the PC, the phone jumps to this page.',
+    'Bật tự chuyển trang (áp dụng mọi trang)': 'Auto-switch pages (all pages)',
     'Tối đa # trang': 'At most # pages'
   };
 
   // Mau co phan chu thay doi (ten nguon, ten file...): [regex tieng Viet, ban dich]
   var RX = [
+    [/^Trang '(.+)': danh sách phần mềm tự chuyển trang không hợp lệ \(tên tiến trình, cách nhau dấu phẩy, tối đa 10\)$/, "Page '$1': invalid app list for auto-switch (process names, comma separated, at most 10)"],
     [/^OK \((.+)\), cập nhật lúc (.+)$/, 'OK ($1), updated at $2'],
     [/^(.+): tạm nghỉ tới (.+)$/, '$1: paused until $2'],
     [/^Không tải được adb \((.*)\)\. Thử lại sau 1 giờ\.$/, 'Could not download adb ($1). Retrying in 1 hour.'],

@@ -598,6 +598,18 @@ body.preview #offline,body.preview #gear{display:none!important}
     if (PREVIEW) return;
     if (s.appVer) { if (appVer && appVer !== s.appVer) { location.reload(); return; } appVer = s.appVer; }
     if (s.cfgVer !== cfgVer) { cfgVer = s.cfgVer; loadConfig().catch(function(){}); }
+    autoPage(s.fg);
+  }
+  // Doi phan mem dang dung tren PC thi chuyen sang trang gan voi phan mem do (chi khi vua doi, khong gianh voi thao tac vuot)
+  var lastFg;
+  function autoPage(fg){
+    if (fg === lastFg || !cfg) return;
+    lastFg = fg;
+    if (!fg || cfg.autoPage === false) return;
+    for (var i = 0; i < pages.length; i++) {
+      var a = (pages[i].apps || '').split(',');
+      if (a.indexOf(fg) >= 0) { if (i !== page) go(i); return; }
+    }
   }
   function loadConfig(){ return api('GET', 'api/config').then(function(c){ if (I18N.sync(c.lang)) return; cfg = c; build(); }); }
 
@@ -609,7 +621,12 @@ body.preview #offline,body.preview #gear{display:none!important}
       lastMsg = Date.now(); document.body.classList.add('online'); $('offline').classList.remove('show');
       try { render(JSON.parse(ev.data)); } catch(e) { console.error(e); }
     };
-    ws.onclose = function(){ document.body.classList.remove('online'); setTimeout(connect, 2000); };
+    ws.onclose = function(){
+      document.body.classList.remove('online');
+      // Thiet bi bi thu hoi tren PC: tai lai de hien thong bao
+      fetch('api/status', { cache: 'no-store' }).then(function(r){ if (r.status === 401) location.reload(); }).catch(function(){});
+      setTimeout(connect, 2000);
+    };
     ws.onerror = function(){ try { ws.close(); } catch(e) {} };
   }
   setInterval(function(){ if (Date.now() - lastMsg > 5000) { document.body.classList.remove('online'); $('offline').classList.add('show'); } }, 1000);

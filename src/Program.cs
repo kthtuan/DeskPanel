@@ -35,6 +35,7 @@ builder.Logging.SetMinimumLevel(LogLevel.Warning);
 bool lanOn = store.Current.LanEnabled;
 builder.WebHost.ConfigureKestrel(o => { if (lanOn) o.ListenAnyIP(port); else o.ListenLocalhost(port); });
 var lan = new LanAccess(baseDir);
+var devices = new LanDevices(baseDir);
 string? lanError = null;
 _ = Task.Run(() => { lanError = LanAccess.SetFirewall(lanOn, port); if (lanError != null) Log.Write(lanError); });
 
@@ -77,27 +78,51 @@ app.Use(async (ctx, next) =>
         bool apk = path.Equals("/deskpanel.apk", StringComparison.OrdinalIgnoreCase);
         if (!apk)
         {
+            var ip = ctx.Connection.RemoteIpAddress is { } ra ? (ra.IsIPv4MappedToIPv6 ? ra.MapToIPv4() : ra).ToString() : null;
             var qk = ctx.Request.Query["key"].ToString();
-            if (qk.Length > 0)
+            var ck = ctx.Request.Cookies[LanAccess.CookieName] ?? "";
+            var hk = ctx.Request.Headers["X-DeskPanel-Key"].ToString();
+            LanDevice? dev = null;
+            string? token = null;
+            foreach (var t in new[] { qk, ck, hk })
+                if (t.Length > 0 && devices.Check(t, ip) is { } d) { dev = d; token = t; break; }
+            // Chi cap ma moi khi mo trang (khong phai API/WebSocket), de mot lan mo khong tao ra nhieu thiet bi
+            bool nav = HttpMethods.IsGet(ctx.Request.Method) && !ctx.WebSockets.IsWebSocketRequest && (path == "/" || path.EndsWith(".html", StringComparison.OrdinalIgnoreCase));
+            if (dev == null && nav && (lan.Matches(qk) || (qk.Length == 0 && lan.Matches(ck))))
             {
-                if (!lan.Matches(qk)) { await Deny(ctx, "Mã ghép nối không đúng hoặc đã đổi. Hãy quét lại mã QR trong trang cài đặt DeskPanel trên PC.",
-                    "The pairing key is wrong or has changed. Scan the QR code again in DeskPanel settings on the PC."); return; }
-                ctx.Response.Cookies.Append(LanAccess.CookieName, qk, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Strict, MaxAge = TimeSpan.FromDays(400), Path = "/" });
-                // Giu ?key= tren dia chi (khong chuyen huong): iPhone "Them vao MH chinh" luu dung dia chi nay,
-                // ma app tren man hinh chinh cua iOS khong dung chung cookie voi Safari.
+                // Ma ghep noi trong QR: cap ma rieng cho thiet bi nay. Thiet bi da bi thu hoi thi khong tu ghep lai.
+                if (devices.IsRevoked(ck)) { await Deny(ctx, "Thiết bị này đã bị thu hồi quyền kết nối trên PC. Muốn dùng lại, hãy xóa nó khỏi danh sách thiết bị trong trang cài đặt DeskPanel rồi quét lại mã QR.",
+                    "This device's access was revoked on the PC. To use it again, remove it from the device list in DeskPanel settings, then scan the QR code again."); return; }
+                token = devices.Add(ctx.Request.Headers.UserAgent.ToString(), ip);
+                dev = devices.Check(token, ip);
             }
-            else if (!lan.Matches(ctx.Request.Cookies[LanAccess.CookieName]) && !lan.Matches(ctx.Request.Headers["X-DeskPanel-Key"]))
+            if (dev == null || token == null)
             {
-                await Deny(ctx, "Thiết bị này chưa được ghép nối. Hãy quét mã QR trong trang cài đặt DeskPanel trên PC (tab Chung → Wi-Fi).",
-                "This device is not paired yet. Scan the QR code in DeskPanel settings on the PC (General tab → Wi-Fi).");
+                if (qk.Length > 0 || ck.Length > 0 || hk.Length > 0)
+                    await Deny(ctx, "Mã ghép nối không đúng, đã đổi hoặc thiết bị đã bị thu hồi. Hãy quét lại mã QR trong trang cài đặt DeskPanel trên PC.",
+                        "The pairing key is wrong or has changed, or this device was revoked. Scan the QR code again in DeskPanel settings on the PC.");
+                else
+                    await Deny(ctx, "Thiết bị này chưa được ghép nối. Hãy quét mã QR trong trang cài đặt DeskPanel trên PC (tab Chung → Wi-Fi).",
+                        "This device is not paired yet. Scan the QR code in DeskPanel settings on the PC (General tab → Wi-Fi).");
                 return;
             }
+            if (ck != token)
+                ctx.Response.Cookies.Append(LanAccess.CookieName, token, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Strict, MaxAge = TimeSpan.FromDays(400), Path = "/" });
+            ctx.Items["lanDevice"] = dev.Id;
+            // Vao bang ma ghep noi: chuyen sang dia chi mang ma rieng. iPhone "Them vao MH chinh" luu dung dia chi nay,
+            // ma app tren man hinh chinh cua iOS khong dung chung cookie voi Safari.
+            if (qk.Length > 0 && qk != token && HttpMethods.IsGet(ctx.Request.Method) && !path.StartsWith("/api/") && !ctx.WebSockets.IsWebSocketRequest)
+            {
+                ctx.Response.Redirect(path + "?key=" + Uri.EscapeDataString(token));
+                return;
+            }
+            ctx.Items["lanToken"] = token;
             if (!LanAccess.Allowed(ctx.Request.Method, path)) { ctx.Response.StatusCode = 403; return; }
             if (path.Equals("/manifest.json", StringComparison.OrdinalIgnoreCase))
             {
                 // Bieu tuong cai len man hinh chinh mo kem ma ghep noi
                 var mf = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(baseDir, "wwwroot", "manifest.json")))!;
-                mf["start_url"] = "./?key=" + lan.Key;
+                mf["start_url"] = "./?key=" + Uri.EscapeDataString((string)ctx.Items["lanToken"]!);
                 ctx.Response.ContentType = "application/manifest+json; charset=utf-8";
                 ctx.Response.Headers.CacheControl = "no-store";
                 await ctx.Response.WriteAsync(mf.ToJsonString());
@@ -197,6 +222,18 @@ app.MapPost("/api/update/github", async (CancellationToken ct) =>
     return Results.Json(new { ok = r.Ok, message = r.Message, version = r.NewVersion }, Json.Opts, statusCode: r.Ok ? 200 : 400);
 });
 // --- Phan mem da cai va icon ---
+// Cac phan mem dang co cua so tren PC (de chon cho "tu chuyen trang"); chi goi tu PC
+app.MapGet("/api/windows", () =>
+{
+    var list = new List<object>();
+    foreach (var p in System.Diagnostics.Process.GetProcesses())
+    {
+        try { if (p.MainWindowHandle != IntPtr.Zero && p.MainWindowTitle.Length > 0 && p.Id != Environment.ProcessId) list.Add(new { name = p.ProcessName.ToLowerInvariant(), title = p.MainWindowTitle }); }
+        catch { }
+        finally { p.Dispose(); }
+    }
+    return Results.Json(list, Json.Opts);
+});
 app.MapGet("/api/apps", () => Results.Json(AppCatalog.List(), Json.Opts));
 app.MapGet("/api/icon", (string path, HttpContext ctx) => IconResult(AppCatalog.IconPng(path), ctx)); // chi tren PC (trang cai dat)
 app.MapGet("/api/icon/{id}", (string id, HttpContext ctx) =>
@@ -282,7 +319,19 @@ void SetAiWeb(string site, bool on)
     store.Save(cfg);
     Log.Write((on ? "Dang nhap web " : "Dang xuat web ") + site);
 }
-app.MapPost("/api/lan/rotate", () => { lan.Rotate(); Log.Write("Da doi ma ghep noi Wi-Fi"); return Results.Json(new { ok = true }); });
+app.MapPost("/api/lan/rotate", () => { lan.Rotate(); devices.Clear(); Log.Write("Da doi ma ghep noi Wi-Fi, bo het thiet bi"); return Results.Json(new { ok = true }); });
+app.MapGet("/api/lan/devices", () => Results.Json(devices.List().Select(d => new { d.Id, d.Name, d.Ip, d.Created, d.Seen, d.Revoked }), Json.Opts));
+app.MapPost("/api/lan/devices/{id}/{op}", async (string id, string op, HttpRequest req) =>
+{
+    bool ok = op switch
+    {
+        "revoke" => devices.Revoke(id),
+        "forget" => devices.Forget(id),
+        "rename" => devices.Rename(id, (await JsonSerializer.DeserializeAsync<Dictionary<string, string>>(req.Body, Json.Opts))?.GetValueOrDefault("name") ?? ""),
+        _ => false,
+    };
+    return Results.Json(new { ok }, Json.Opts, statusCode: ok ? 200 : 400);
+});
 app.MapPost("/api/restart", () =>
 {
     var e = Updater.ScheduleRestart(baseDir);
@@ -312,8 +361,10 @@ app.Map("/ws", async ctx =>
     if (remote != null && remote.IsIPv4MappedToIPv6) remote = remote.MapToIPv4();
     bool viaLan = remote != null && !System.Net.IPAddress.IsLoopback(remote);
     if (viaLan) Interlocked.Increment(ref lanPhones);
-    try { await hub.ServeAsync(ws, ctx.RequestAborted); }
-    finally { if (viaLan) Interlocked.Decrement(ref lanPhones); }
+    // Ket noi tu thiet bi Wi-Fi: thu hoi thiet bi thi ngat ngay
+    var live = ctx.Items["lanDevice"] is string devId ? devices.Track(devId, ctx.RequestAborted) : null;
+    try { await hub.ServeAsync(ws, live?.Token ?? ctx.RequestAborted); }
+    finally { if (viaLan) Interlocked.Decrement(ref lanPhones); if (live != null) devices.Untrack(live); }
 });
 
 Log.Write($"DeskPanel {typeof(Program).Assembly.GetName().Version?.ToString(3)} chay tai http://localhost:{port}");
@@ -380,6 +431,7 @@ sealed class StatsHub : BackgroundService
                 snap.Weather = _weather.Latest;
                 snap.Ai = _ai.Latest;
                 snap.Host = HostName;
+                snap.Fg = Foreground.Name();
                 Latest = snap;
                 Broadcast(JsonSerializer.SerializeToUtf8Bytes(snap, Json.Opts));
                 var req = Interlocked.Exchange(ref _dumpReq, null);

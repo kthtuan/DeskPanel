@@ -16,6 +16,8 @@ public sealed class PanelConfig
     public string? UpdateRepo { get; set; }
     /// <summary>Cho dien thoai vao qua Wi-Fi (mang LAN), can ma ghep noi. Tat = chi cap USB.</summary>
     public bool LanEnabled { get; set; }
+    /// <summary>Dien thoai tu chuyen sang trang gan voi phan mem dang dung tren PC.</summary>
+    public bool AutoPage { get; set; } = true;
     /// <summary>Widget AI lay % gioi han chinh thuc bang dang nhap san co cua Claude Code / Codex tren PC.</summary>
     public bool AiOnline { get; set; } = true;
     /// <summary>Da dang nhap Claude / ChatGPT tren web trong DeskPanel (cua so WebView2). Chi doi qua /api/ai/login.</summary>
@@ -39,6 +41,8 @@ public sealed class PageDef
     public ThemeDef? Theme { get; set; }
     /// <summary>So cot rieng cho widget Nhom nut tren trang nay; null = dung chung.</summary>
     public int? Columns { get; set; }
+    /// <summary>Ten tien trinh, cach nhau dau phay (vd "acad,acadlt"): dung phan mem nay tren PC thi dien thoai tu chuyen sang trang nay.</summary>
+    public string? Apps { get; set; }
     public List<WidgetDef> Widgets { get; set; } = new();
 }
 
@@ -210,6 +214,15 @@ public sealed class ConfigStore
         {
             if (p?.Theme != null && ValidateTheme(p.Theme) is { } pe) return $"Trang '{p.Name}': {pe}";
             if (p?.Columns is < 2 or > 8) return $"Trang '{p.Name}': số cột phải từ 2 đến 8";
+            if (p != null && !string.IsNullOrWhiteSpace(p.Apps))
+            {
+                var apps = p.Apps.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(a => (a.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? a[..^4] : a).ToLowerInvariant()).Distinct().ToList();
+                if (apps.Count > 10 || apps.Any(a => a.Length > 40 || !System.Text.RegularExpressions.Regex.IsMatch(a, @"^[a-z0-9_.\- ]+$")))
+                    return $"Trang '{p.Name}': danh sách phần mềm tự chuyển trang không hợp lệ (tên tiến trình, cách nhau dấu phẩy, tối đa 10)";
+                p.Apps = apps.Count == 0 ? null : string.Join(",", apps);
+            }
+            else if (p != null) p.Apps = null;
         }
         if (c.Pages.Count > 30) return "Tối đa 30 trang";
         var pids = new HashSet<string>();

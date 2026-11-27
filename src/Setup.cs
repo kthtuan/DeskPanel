@@ -62,7 +62,7 @@ public static class Setup
 
     // Cap nhat trong ung dung: ban moi (o thu muc tam) tu chep vao thu muc cai, giu du lieu nguoi dung, roi chay
     static readonly HashSet<string> Keep = new(StringComparer.OrdinalIgnoreCase)
-        { "config.json", "config.bad.json", "deskpanel.log", "deskpanel.log.old", "update.log", "lan-key.txt", "update-token.bin" };
+        { "config.json", "config.bad.json", "deskpanel.log", "deskpanel.log.old", "update.log", "lan-key.txt", "lan-devices.json", "update-token.bin" };
     static void ApplySelf(string dst)
     {
         var src = Path.GetDirectoryName(Environment.ProcessPath!)!;
@@ -344,7 +344,7 @@ public static class Setup
         LanAccess.SetFirewall(false, 0);
         if (OperatingSystem.IsWindows()) try { Microsoft.Win32.Registry.LocalMachine.DeleteSubKeyTree(UninstallKey, false); } catch { }
         // Chi xoa nhung gi DeskPanel tao ra, sau khi exe nay thoat
-        var files = new[] { "DeskPanel.exe", "config.json", "config.bad.json", "deskpanel.log", "deskpanel.log.old", "update.log", "lan-key.txt", "update-token.bin", "version.txt", "web.config", "HUONG-DAN.md",
+        var files = new[] { "DeskPanel.exe", "config.json", "config.bad.json", "deskpanel.log", "deskpanel.log.old", "update.log", "lan-key.txt", "lan-devices.json", "update-token.bin", "version.txt", "web.config", "HUONG-DAN.md",
                             "install.cmd", "install.ps1", "update.cmd", "update.ps1", "uninstall.cmd", "uninstall.ps1" };
         var dirs = new[] { "wwwroot", "platform-tools", "webview" };
         var sb = new StringBuilder("ping 127.0.0.1 -n 4 >nul");

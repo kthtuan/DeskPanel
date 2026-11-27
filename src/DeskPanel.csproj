@@ -9,7 +9,7 @@
     <AssemblyName>DeskPanel</AssemblyName>
     <RootNamespace>DeskPanel</RootNamespace>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <Version>0.13.6</Version>
+    <Version>0.14.0</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RuntimeIdentifier)'=='win-x64'">
     <OutputType>WinExe</OutputType>

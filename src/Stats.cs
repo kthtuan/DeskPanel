@@ -31,6 +31,8 @@ public sealed class Snapshot
     public double? RamTotal { get; set; }
     public List<DiskInfo> Disks { get; set; } = new();
     public string? Note { get; set; }
+    /// <summary>Ten tien trinh cua cua so dang dung tren PC (vd "acad"), de dien thoai tu chuyen trang.</summary>
+    public string? Fg { get; set; }
 }
 
 public sealed class DiskInfo
@@ -266,4 +268,29 @@ sealed class FakeSource : ISensorSource
 
     public object DumpAll() => Read();
     public void Dispose() { }
+}
+
+/// <summary>Phan mem dang o cua so truoc tren PC.</summary>
+public static class Foreground
+{
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+    static uint _pid; static string? _name;
+    static readonly string? FakeFile = Environment.GetEnvironmentVariable("DESKPANEL_FAKE_FG_FILE");
+
+    public static string? Name()
+    {
+        if (FakeFile != null) { try { return File.Exists(FakeFile) ? File.ReadAllText(FakeFile).Trim().ToLowerInvariant() : null; } catch { return null; } }
+        if (!OperatingSystem.IsWindows()) return null;
+        try
+        {
+            var h = GetForegroundWindow();
+            if (h == IntPtr.Zero) return _name;
+            GetWindowThreadProcessId(h, out var pid);
+            if (pid == 0) return _name;
+            if (pid != _pid) { _pid = pid; using var p = System.Diagnostics.Process.GetProcessById((int)pid); _name = p.ProcessName.ToLowerInvariant(); }
+            return _name;
+        }
+        catch { return _name; }
+    }
 }

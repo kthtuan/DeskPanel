@@ -117,7 +117,7 @@ Cả ba cách đều giữ nguyên `config.json` (nút, trang, giao diện), `pl
 ## Về an toàn
 
 - Mặc định DeskPanel chỉ nhận kết nối từ chính PC (localhost). Điện thoại vào được là nhờ `adb reverse` qua cáp USB.
-- Khi bật Wi-Fi: thiết bị trong mạng phải có mã ghép nối (24 ký tự ngẫu nhiên, nằm trong mã QR, lưu ở `lan-key.txt` trên PC). Từ Wi-Fi chỉ xem bảng và bấm nút; trang cài đặt, đổi cấu hình và cập nhật chỉ làm được trên chính PC. Cổng chỉ mở trên Windows Firewall cho mạng Private. Kết nối là `http` thường (không mã hóa), nên chỉ bật Wi-Fi ở mạng nhà/văn phòng bạn tin cậy.
+- Khi bật Wi-Fi: thiết bị trong mạng phải có mã ghép nối (24 ký tự ngẫu nhiên, nằm trong mã QR, lưu ở `lan-key.txt` trên PC). Ghép xong, mỗi thiết bị có mã riêng; xem và thu hồi trong Cài đặt → Chung → Wi-Fi. Từ Wi-Fi chỉ xem bảng và bấm nút; trang cài đặt, đổi cấu hình và cập nhật chỉ làm được trên chính PC. Cổng chỉ mở trên Windows Firewall cho mạng Private. Kết nối là `http` thường (không mã hóa), nên chỉ bật Wi-Fi ở mạng nhà/văn phòng bạn tin cậy.
 - Mọi lệnh được lưu trong `config.json` trên PC. Điện thoại chỉ gửi mã nút.
 - Trang web lạ mở trên PC không gọi được DeskPanel: mọi yêu cầu thay đổi phải kèm header riêng và đúng tên máy `localhost`.
 - DeskPanel chạy với quyền admin vì cần đọc nhiệt độ và SMART. Các chương trình nó mở (không kèm tham số) vẫn chạy với quyền thường.

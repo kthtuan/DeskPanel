@@ -40,7 +40,8 @@ Ngoài các địa chỉ trên, DeskPanel không gọi ra Internet.
 | File | Nội dung |
 |---|---|
 | `config.json` | Nút, trang, giao diện, thành phố thời tiết, ngôn ngữ. Không chứa mật khẩu hay mã đăng nhập. |
-| `lan-key.txt` | Mã ghép nối Wi-Fi. Đổi được bằng nút **Đổi mã ghép nối**. |
+| `lan-key.txt` | Mã ghép nối Wi-Fi (trong mã QR). Đổi được bằng nút **Đổi mã ghép nối**. |
+| `lan-devices.json` | Danh sách điện thoại đã ghép qua Wi-Fi: tên, địa chỉ IP, lần cuối kết nối và mã băm SHA-256 của mã riêng từng máy (không lưu mã gốc). |
 | `update-token.bin` | Token GitHub (nếu có), mã hóa theo tài khoản Windows (DPAPI). |
 | `webview\` | Phiên đăng nhập claude.ai / chatgpt.com nếu bạn đăng nhập trong cửa sổ của DeskPanel. Xóa bằng nút **Đăng xuất**. |
 | `deskpanel.log` | Nhật ký lỗi. Không ghi mã đăng nhập. |
@@ -50,7 +51,7 @@ Gỡ DeskPanel (Windows Settings → Apps → DeskPanel → Uninstall) xóa tấ
 ## Điện thoại và mạng nội bộ
 
 - **Cáp USB (mặc định):** DeskPanel chỉ nghe trên `localhost`; điện thoại vào qua `adb reverse`. Không mở cổng nào ra mạng.
-- **Wi-Fi (tự bật):** mở cổng cho mạng Private/Domain trên Windows Firewall. Thiết bị phải có mã ghép nối (trong mã QR). Từ mạng LAN chỉ xem bảng và bấm nút; không mở được trang cài đặt, không cập nhật, không đổi cấu hình.
+- **Wi-Fi (tự bật):** mở cổng cho mạng Private/Domain trên Windows Firewall. Thiết bị phải ghép nối bằng mã trong QR; sau đó mỗi thiết bị nhận một mã riêng và có thể bị thu hồi riêng trong trang cài đặt. Kết nối Wi-Fi là `http` thường, không mã hóa. Từ mạng LAN chỉ xem bảng và bấm nút; không mở được trang cài đặt, không cập nhật, không đổi cấu hình.
 - Trang web lạ trên PC không gọi được vào DeskPanel: DeskPanel chặn tên miền lạ (DNS rebinding) và yêu cầu header riêng cho mọi lệnh thay đổi.
 - Nút bấm chỉ chạy đúng những lệnh bạn đã tạo trong Cài đặt. Chương trình DeskPanel mở ra chạy bằng quyền thường, không mang quyền admin.
 
@@ -114,7 +115,8 @@ Apart from these, DeskPanel does not connect to the Internet.
 | File | Contents |
 |---|---|
 | `config.json` | Buttons, pages, appearance, weather city, language. No passwords or tokens. |
-| `lan-key.txt` | The Wi-Fi pairing key. Change it with **Change pairing key**. |
+| `lan-key.txt` | The Wi-Fi pairing key (in the QR code). Change it with **Change pairing key**. |
+| `lan-devices.json` | Phones paired over Wi-Fi: name, IP address, last seen and a SHA-256 hash of each device key (the key itself is not stored). |
 | `update-token.bin` | GitHub token (if any), encrypted for your Windows account (DPAPI). |
 | `webview\` | claude.ai / chatgpt.com sessions if you signed in through a DeskPanel window. Removed with **Sign out**. |
 | `deskpanel.log` | Error log. Never contains tokens. |
@@ -124,7 +126,7 @@ Uninstalling DeskPanel (Windows Settings → Apps → DeskPanel → Uninstall) r
 ## Phone and local network
 
 - **USB cable (default):** DeskPanel only listens on `localhost`; the phone connects through `adb reverse`. No port is opened to the network.
-- **Wi-Fi (opt-in):** opens a port for Private/Domain networks in Windows Firewall. Devices need the pairing key (in the QR code). From the LAN a device can only view the panel and press buttons; it cannot open settings, update or change the configuration.
+- **Wi-Fi (opt-in):** opens a port for Private/Domain networks in Windows Firewall. Devices pair with the key in the QR code; each device then gets its own key, which can be revoked on its own in settings. The Wi-Fi connection is plain `http`, not encrypted. From the LAN a device can only view the panel and press buttons; it cannot open settings, update or change the configuration.
 - Unknown web pages on the PC cannot call DeskPanel: it rejects unknown host names (DNS rebinding) and requires a custom header for every request that changes something.
 - Buttons only run the commands you created in Settings. Programs DeskPanel starts run with normal rights, not admin.
 

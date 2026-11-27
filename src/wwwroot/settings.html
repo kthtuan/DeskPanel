@@ -290,6 +290,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
             <div><div class="l">2. Ghép nối (Android và iPhone)</div><div class="qr" id="lanQr"></div><div class="help">Android: mở app DeskPanel → Quét mã QR. iPhone: quét bằng Camera, mở trong Safari, rồi Chia sẻ → Thêm vào MH chính. Hoặc nhập địa chỉ: <code id="lanUrl"></code></div></div>
           </div>
           <div class="row" style="margin-top:10px;flex-wrap:wrap"><button id="lanRotate">Đổi mã ghép nối</button><span class="help" style="margin:0">Đổi mã thì mọi điện thoại đã ghép phải quét lại. Dùng khi lỡ lộ mã.</span></div>
+          <div class="l" style="margin-top:14px">Thiết bị đã ghép nối</div><div id="lanDevs" class="help">Chưa có thiết bị nào.</div>
           <div class="help" id="lanIps"></div>
         </div>
         <div class="help">Nếu điện thoại không vào được: trên PC vào Settings → Network → Wi-Fi/Ethernet → chọn <b>Private network</b>. DeskPanel chỉ mở cổng cho mạng Private, không mở cho mạng công cộng.</div>
@@ -647,6 +648,33 @@ dialog h2{margin:0 0 12px;font-size:17px}
       cb.onchange = function(){ change(function(){ p.hidden = cb.checked; }); };
       hid.appendChild(cb); hid.appendChild(document.createTextNode('Ẩn trang này trên điện thoại'));
       box.appendChild(el('div', 'f')).appendChild(hid);
+      // Tu chuyen trang theo phan mem dang dung tren PC
+      var ar = el('div', 'row'); ar.style.flexWrap = 'wrap';
+      var ai_ = inp('text', p.apps, function(v){ change(function(){ p.apps = v.trim() || null; }); }, { maxlength: 200, placeholder: 'acad, revit, photoshop' });
+      ar.appendChild(ai_);
+      var pick = el('select'); pick.className = 'hide'; pick.style.flex = '1 1 100%';
+      pick.onchange = function(){
+        if (!pick.value) return;
+        var cur_ = (p.apps || '').split(',').map(function(x){ return x.trim(); }).filter(Boolean);
+        if (cur_.indexOf(pick.value) < 0) cur_.push(pick.value);
+        change(function(){ p.apps = cur_.join(','); });
+      };
+      ar.appendChild(btn('+ Phần mềm đang mở', function(){
+        api('GET', 'api/windows').then(function(list){
+          pick.innerHTML = ''; var o0 = el('option', null, T('Chọn phần mềm…')); o0.value = ''; pick.appendChild(o0);
+          var seen = {};
+          list.forEach(function(w){ if (seen[w.name]) return; seen[w.name] = 1; var o = el('option', null, w.name + ' · ' + w.title); o.value = w.name; o.setAttribute('translate', 'no'); pick.appendChild(o); });
+          pick.classList.remove('hide');
+        }).catch(function(e){ msg(e.message, 'err'); });
+      }));
+      var hasCad = p.widgets.some(function(w){ return w.type === 'buttons' && cfg.buttons.some(function(b){ return b.group === w.ref && b.type === 'cad'; }); });
+      if (hasCad && !p.apps) ar.appendChild(btn('Gợi ý: AutoCAD', function(){ change(function(){ p.apps = 'acad,acadlt'; }); }));
+      ar.appendChild(pick);
+      box.appendChild(field('Tự mở trang này khi dùng phần mềm', ar, 'Tên tiến trình trên PC, cách nhau dấu phẩy. Khi bạn chuyển sang phần mềm đó trên PC, điện thoại tự chuyển sang trang này.'));
+      var ap = el('label'); var acb = el('input'); acb.type = 'checkbox'; acb.checked = cfg.autoPage !== false;
+      acb.onchange = function(){ change(function(){ cfg.autoPage = acb.checked; }); };
+      ap.appendChild(acb); ap.appendChild(document.createTextNode('Bật tự chuyển trang (áp dụng mọi trang)'));
+      box.appendChild(el('div', 'f')).appendChild(ap);
       var acts = el('div', 'row'); acts.style.flexWrap = 'wrap';
       acts.appendChild(btn('Nhân bản trang', function(){ change(function(){
         var c = clone(p); c.id = pid(); c.name = (p.name + T(' (bản sao)')).slice(0, 30); cfg.pages.splice(cur + 1, 0, c); cur++; sel = null; }); }));
@@ -1107,10 +1135,42 @@ dialog h2{margin:0 0 12px;font-size:17px}
       if (show) {
         $('lanQr').innerHTML = l.qr; $('lanUrl').textContent = l.url;
         $('lanApkBox').classList.toggle('hide', !l.hasApk); if (l.hasApk) $('lanApkQr').innerHTML = l.apkQr;
+        loadDevs();
         $('lanIps').textContent = l.addresses.length > 1 ? T('PC có nhiều địa chỉ: {0}. Mã QR dùng {1}; nếu không vào được, thử thay bằng địa chỉ khác cùng dải với điện thoại.', l.addresses.join(', '), l.addresses[0]) : '';
       }
     }).catch(function(){});
   }
+  // Danh sach dien thoai da ghep: moi may mot ma rieng, thu hoi duoc tung may
+  function agoS(ms){
+    var m = Math.round((Date.now() - ms) / 60000);
+    return m < 2 ? T('vừa xong') : m < 60 ? T('{0} phút trước', m) : m < 2880 ? T('{0} giờ trước', Math.round(m / 60)) : T('{0} ngày trước', Math.round(m / 1440));
+  }
+  function loadDevs(){
+    return api('GET', 'api/lan/devices').then(function(list){
+      var box = $('lanDevs'); box.innerHTML = '';
+      if (!list.length) { box.textContent = T('Chưa có thiết bị nào.'); return; }
+      list.sort(function(a, b){ return (a.revoked - b.revoked) || (b.seen - a.seen); });
+      list.forEach(function(d){
+        var r = el('div', 'row'); r.style.cssText = 'align-items:center;flex-wrap:wrap;gap:8px;padding:6px 0;border-top:1px solid rgba(127,127,127,.2)';
+        var nm = el('b', null, d.name); nm.setAttribute('translate', 'no'); r.appendChild(nm);
+        r.appendChild(el('span', null, (d.ip || '') + ' · ' + T('lần cuối: {0}', agoS(d.seen)) + (d.revoked ? T(' · đã thu hồi') : '')));
+        var sp = el('span'); sp.style.flex = '1'; r.appendChild(sp);
+        r.appendChild(btn('Đổi tên', function(){
+          var v = prompt(T('Tên thiết bị'), d.name); if (!v) return;
+          api('POST', 'api/lan/devices/' + d.id + '/rename', { name: v }).then(loadDevs).catch(function(e){ lanMsg(e.message, 'err'); });
+        }));
+        if (!d.revoked) r.appendChild(btn('Thu hồi', function(){
+          if (!confirm(T('Thu hồi "{0}"? Thiết bị này bị ngắt ngay và không tự kết nối lại được.', d.name))) return;
+          api('POST', 'api/lan/devices/' + d.id + '/revoke').then(loadDevs).catch(function(e){ lanMsg(e.message, 'err'); });
+        }, 'sm danger'));
+        else r.appendChild(btn('Xóa khỏi danh sách', function(){
+          api('POST', 'api/lan/devices/' + d.id + '/forget').then(loadDevs).catch(function(e){ lanMsg(e.message, 'err'); });
+        }));
+        box.appendChild(r);
+      });
+    }).catch(function(){});
+  }
+  setInterval(function(){ if (!document.hidden && !$('lanPair').classList.contains('hide')) loadDevs(); }, 15000);
   $('lanOn').onchange = function(){
     var on = this.checked;
     if (dirty() && !confirm('Có thay đổi chưa lưu sẽ mất khi DeskPanel chạy lại. Vẫn tiếp tục?')) { this.checked = !on; return; }

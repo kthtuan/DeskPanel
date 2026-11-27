@@ -1,5 +1,10 @@
 # Nhật ký thay đổi
 
+## 0.14.0 (27/11/2026)
+- Mỗi điện thoại nối qua Wi-Fi có mã riêng. Mã trong QR chỉ dùng để ghép nối lần đầu. Trang cài đặt (tab Chung → Wi-Fi) có danh sách thiết bị đã ghép, lần cuối kết nối, nút đổi tên và **Thu hồi**. Thu hồi thì thiết bị bị ngắt ngay và không tự ghép lại bằng mã QR cũ. Đổi mã ghép nối thì bỏ hết thiết bị.
+- Nút mở phần mềm có tham số giờ cũng chạy bằng quyền thường (trước đây mang quyền admin của DeskPanel).
+- Tự chuyển trang: mỗi trang có thể gắn với phần mềm trên PC (ví dụ `acad` cho AutoCAD). Chuyển sang phần mềm đó trên PC thì điện thoại tự nhảy tới trang này. Chỉnh trong Cài đặt → bấm vào trang → **Tự mở trang này khi dùng phần mềm**.
+
 ## 0.13.6 (27/11/2026)
 - Màn hình dọc: đồng hồ, nhạc, widget AI và các widget rộng chiếm cả bề ngang thay vì bị ép còn nửa màn hình.
 

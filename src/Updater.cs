@@ -190,7 +190,7 @@ try {
     Start-Sleep -Seconds 1
     if ($Src) {
         Get-ChildItem -Path $Src -Recurse | Unblock-File -ErrorAction SilentlyContinue
-        robocopy $Src $Dst /E /XF config.json config.bad.json deskpanel.log deskpanel.log.old update.log lan-key.txt update-token.bin /XD platform-tools /R:5 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+        robocopy $Src $Dst /E /XF config.json config.bad.json deskpanel.log deskpanel.log.old update.log lan-key.txt lan-devices.json update-token.bin /XD platform-tools /R:5 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
         W "robocopy ma $LASTEXITCODE"
     }
 } catch { W ("Loi: " + $_) }
