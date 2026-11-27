@@ -347,7 +347,7 @@
     'Đã lưu nhưng chưa tự chạy lại được ({0}). Hãy tắt rồi mở lại DeskPanel.': 'Saved, but DeskPanel could not restart itself ({0}). Close and reopen DeskPanel.',
     'Đang chạy lại DeskPanel…': 'Restarting DeskPanel…',
     'Xong. Đang tải lại trang…': 'Done. Reloading the page…',
-    'Quá 1 phút chưa thấy DeskPanel chạy lại. Xem deskpanel.log và update.log trong thư mục cài.': 'DeskPanel has not come back after 1 minute. Check deskpanel.log and update.log in the install folder.',
+    'Quá 1 phút chưa thấy DeskPanel chạy lại. Mở DeskPanel từ Start Menu (gõ DeskPanel), hoặc chạy lại file cài. Chi tiết trong update.log ở thư mục cài.': 'DeskPanel has not come back after 1 minute. Open DeskPanel from the Start Menu (type DeskPanel), or run the installer again. Details are in update.log in the install folder.',
     'Đổi mã ghép nối? Các điện thoại đang nối qua Wi-Fi sẽ phải quét mã QR mới.': 'Change the pairing key? Phones connected over Wi-Fi will need to scan the new QR code.',
     'Đã đổi mã. Quét lại mã QR trên điện thoại.': 'Key changed. Scan the QR code again on the phone.',
     'Cập nhật DeskPanel': 'Update DeskPanel',

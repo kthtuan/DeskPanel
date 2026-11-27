@@ -10,7 +10,13 @@ AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write("LOI NGHIEM TR
 
 // Chi cho phep mot ban DeskPanel chay cung luc
 using var mutex = new Mutex(true, @"Global\DeskPanel_SingleInstance", out bool first);
-if (!first) { Log.Write("DeskPanel da dang chay, thoat ban moi."); return; }
+if (!first)
+{
+    // Mo tu Start Menu khi DeskPanel dang chay: chi mo trang cai dat
+    if (args.Contains("--open")) Setup.OpenSettings(Setup.ReadPort(AppContext.BaseDirectory));
+    else Log.Write("DeskPanel da dang chay, thoat ban moi.");
+    return;
+}
 
 var baseDir = AppContext.BaseDirectory;
 EmbeddedWeb.Extract(baseDir);
@@ -311,6 +317,7 @@ app.Map("/ws", async ctx =>
 });
 
 Log.Write($"DeskPanel {typeof(Program).Assembly.GetName().Version?.ToString(3)} chay tai http://localhost:{port}");
+if (args.Contains("--open")) app.Lifetime.ApplicationStarted.Register(() => Setup.OpenSettings(port));
 app.Run();
 
 static IResult IconResult(byte[]? png, HttpContext ctx)

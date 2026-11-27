@@ -1124,7 +1124,7 @@ dialog h2{margin:0 0 12px;font-size:17px}
         fetch('api/status', { cache: 'no-store' }).then(function(x){ return x.json(); }).then(function(s){
           if (s.lan === on || down) { clearInterval(iv); lanMsg('Xong. Đang tải lại trang…', 'ok'); setTimeout(function(){ location.reload(); }, 800); }
         }).catch(function(){ down = true; });
-        if (Date.now() - t0 > 60000) { clearInterval(iv); lanMsg('Quá 1 phút chưa thấy DeskPanel chạy lại. Xem deskpanel.log và update.log trong thư mục cài.', 'err'); }
+        if (Date.now() - t0 > 60000) { clearInterval(iv); lanMsg('Quá 1 phút chưa thấy DeskPanel chạy lại. Mở DeskPanel từ Start Menu (gõ DeskPanel), hoặc chạy lại file cài. Chi tiết trong update.log ở thư mục cài.', 'err'); }
       }, 1500);
     }).catch(function(e){ lanMsg(e.message, 'err'); lanBusy = false; $('lanOn').disabled = false; });
   };

@@ -96,8 +96,28 @@ public static class Updater
             var s2 = Path.Combine(scriptDir, fileName);
             File.Copy(script, s2, true); script = s2;
         }
-        Run("schtasks.exe", "/Create", "/F", "/TN", task, "/SC", "ONCE", "/ST", "00:00", "/RL", "HIGHEST", "/TR", Cmd());
-        Run("schtasks.exe", "/Run", "/TN", task);
+        try
+        {
+            Run("schtasks.exe", "/Create", "/F", "/TN", task, "/SC", "ONCE", "/ST", "00:00", "/RL", "HIGHEST", "/TR", Cmd());
+            Run("schtasks.exe", "/Run", "/TN", task);
+        }
+        catch (Exception ex)
+        {
+            // Task Scheduler loi tren may nay: chay script qua WMI (tien trinh doc lap, khong bi tat theo DeskPanel)
+            Log.Write("Khong tao duoc tac vu " + task + ", chay script truc tiep: " + ex.Message);
+            WmiStart(Cmd(), dst);
+        }
+    }
+
+    /// <summary>Chay mot lenh thanh tien trinh doc lap (cha la dich vu WMI), song tiep khi DeskPanel tat.</summary>
+    public static void WmiStart(string commandLine, string dir)
+    {
+        static string Q(string x) => "'" + x.Replace("'", "''") + "'";
+        var ps = $"Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{{ CommandLine = {Q(commandLine)}; CurrentDirectory = {Q(dir)} }} | Out-Null";
+        var psi = new ProcessStartInfo("powershell.exe") { UseShellExecute = false, CreateNoWindow = true };
+        foreach (var a in new[] { "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps }) psi.ArgumentList.Add(a);
+        using var p = Process.Start(psi)!;
+        p.WaitForExit(20000);
     }
 
     // Xoa thu muc tam cua cac lan cap nhat truoc (qua 1 ngay)
@@ -146,8 +166,20 @@ try {
     }
 } catch { W ("Loi: " + $_) }
 finally {
-    if (Get-ScheduledTask -TaskName 'DeskPanel' -ErrorAction SilentlyContinue) { Start-ScheduledTask -TaskName 'DeskPanel' }
-    else { Start-Process (Join-Path $Dst 'DeskPanel.exe') -ArgumentList '--serve' -WorkingDirectory $Dst }
+    $exe = Join-Path $Dst 'DeskPanel.exe'
+    $up = $false
+    if (Get-ScheduledTask -TaskName 'DeskPanel' -ErrorAction SilentlyContinue) {
+        Start-ScheduledTask -TaskName 'DeskPanel' -ErrorAction SilentlyContinue
+        for ($i = 0; $i -lt 20 -and -not $up; $i++) { Start-Sleep -Milliseconds 500; $up = [bool](Get-Process DeskPanel -ErrorAction SilentlyContinue) }
+        if (-not $up) { W "Tac vu DeskPanel khong chay DeskPanel, chay thang" }
+    }
+    if (-not $up) {
+        # Qua WMI de DeskPanel khong bi tat cung tac vu nay
+        try { Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = ('"' + $exe + '" --serve'); CurrentDirectory = $Dst } | Out-Null }
+        catch { Start-Process $exe -ArgumentList '--serve' -WorkingDirectory $Dst }
+        for ($i = 0; $i -lt 20 -and -not $up; $i++) { Start-Sleep -Milliseconds 500; $up = [bool](Get-Process DeskPanel -ErrorAction SilentlyContinue) }
+        if (-not $up) { Start-Process $exe -ArgumentList '--serve' -WorkingDirectory $Dst }
+    }
     W "Da chay lai DeskPanel"
     Unregister-ScheduledTask -TaskName $Task -Confirm:$false -ErrorAction SilentlyContinue
 }

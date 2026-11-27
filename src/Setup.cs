@@ -96,6 +96,7 @@ public static class Setup
 
         RegisterTask(exe, dir);
         RegisterApp(exe, dir);
+        CreateShortcut(exe, dir);
 
         // Chay DeskPanel va mo trinh duyet truoc; cai PawnIO (winget, co the mat vai phut) sau
         Run("schtasks.exe", "/Run", "/TN", TaskName);
@@ -137,6 +138,27 @@ public static class Setup
         }
     }
 
+    /// <summary>Mo trang cai dat trong trinh duyet mac dinh (qua explorer de trinh duyet khong mang quyen admin).</summary>
+    public static void OpenSettings(int port)
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        try { Process.Start("explorer.exe", $"http://localhost:{port}/settings.html"); } catch { }
+    }
+
+    // Loi tat "DeskPanel" trong Start Menu: mo DeskPanel (neu chua chay) va trang cai dat
+    static void CreateShortcut(string exe, string dir)
+    {
+        try
+        {
+            var lnk = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "DeskPanel.lnk");
+            static string Q(string x) => "'" + x.Replace("'", "''") + "'";
+            var ps = $"$s = (New-Object -ComObject WScript.Shell).CreateShortcut({Q(lnk)}); $s.TargetPath = {Q(exe)}; $s.Arguments = '--serve --open'; $s.WorkingDirectory = {Q(dir)}; $s.IconLocation = {Q(exe + ",0")}; $s.Description = 'DeskPanel'; $s.Save()";
+            var (code, o) = Run("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps);
+            if (code != 0) Log.Write("Khong tao duoc loi tat Start Menu: " + o.Trim());
+        }
+        catch (Exception ex) { Log.Write("Khong tao duoc loi tat Start Menu: " + ex.Message); }
+    }
+
     // Chay DeskPanel --serve truc tiep. null = da mo duoc cong; chuoi = loi/ket qua de hien cho nguoi dung.
     static string? TryDirect(string exe, string dir, int port)
     {
@@ -173,7 +195,7 @@ public static class Setup
         return "Task: " + (k.Count > 0 ? string.Join(" | ", k) : string.Join(" | ", o.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).Skip(2).Take(8)));
     }
 
-    static int ReadPort(string dir)
+    public static int ReadPort(string dir)
     {
         try
         {
@@ -260,6 +282,7 @@ public static class Setup
         Run("schtasks.exe", "/End", "/TN", TaskName);
         Run("schtasks.exe", "/Delete", "/TN", TaskName, "/F");
         Run("schtasks.exe", "/Delete", "/TN", "DeskPanelRestart", "/F");
+        try { File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "DeskPanel.lnk")); } catch { }
         foreach (var p in Process.GetProcessesByName("DeskPanel"))
             if (p.Id != Environment.ProcessId) { try { p.Kill(); p.WaitForExit(5000); } catch { } }
         LanAccess.SetFirewall(false, 0);

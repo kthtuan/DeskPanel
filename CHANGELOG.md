@@ -1,5 +1,9 @@
 # Nhật ký thay đổi
 
+## 0.13.4 (27/11/2026)
+- Bật Wi-Fi / cập nhật: nếu Task Scheduler trên máy không chạy được DeskPanel, DeskPanel tự chạy lại theo cách khác thay vì tắt luôn.
+- Có lối tắt **DeskPanel** trong Start Menu: mở DeskPanel (nếu chưa chạy) và trang cài đặt.
+
 ## 0.13.3 (27/11/2026)
 - Cài đặt: nếu tác vụ tự chạy không khởi động được DeskPanel, file cài thử chạy thẳng DeskPanel. Chạy được thì mở trang cài đặt luôn; không được thì hiện lỗi thật và trạng thái tác vụ để chẩn đoán.
 - DeskPanel ghi lỗi khởi động (ví dụ cổng bị chiếm) vào `deskpanel.log` thay vì tắt im lặng.

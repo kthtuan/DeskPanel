@@ -1,9 +1,11 @@
-**Sửa trong 0.13.2 – 0.13.3**
+**Sửa trong 0.13.4**
 
-- File cài mở trang cài đặt ngay, không chờ cài PawnIO. Hộp thoại cài luôn nổi trên cùng.
-- Nếu DeskPanel không tự chạy sau khi cài, file cài thử chạy thẳng và hiện lỗi cụ thể để chẩn đoán.
+- Bật Wi-Fi hoặc cập nhật không còn làm DeskPanel tắt luôn trên máy có Task Scheduler lỗi.
+- Lối tắt **DeskPanel** trong Start Menu để mở lại DeskPanel và trang cài đặt.
 
-**Fixed in 0.13.2 – 0.13.3**
+**Fixed in 0.13.4**
 
-- The installer opens the settings page right away. Setup dialogs stay on top.
-- If DeskPanel does not start after setup, the installer starts it directly and shows the actual error.
+- Turning on Wi-Fi or updating no longer leaves DeskPanel stopped on PCs where Task Scheduler fails.
+- **DeskPanel** shortcut in the Start Menu opens DeskPanel and its settings page.
+
+Máy đang bị tắt DeskPanel: chạy lại DeskPanel-Setup-0.13.4.exe. / If DeskPanel is stopped: run DeskPanel-Setup-0.13.4.exe again.
