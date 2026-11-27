@@ -117,14 +117,60 @@ public static class Setup
         }
         else
         {
+            // Thu chay thang (khong qua Task Scheduler) de lay loi that
+            var direct = TryDirect(exe, dir, port);
+            if (direct == null)
+            {
+                try { Process.Start("explorer.exe", $"http://localhost:{port}/settings.html"); } catch { }
+                Box(L("Đã cài xong DeskPanel ", "DeskPanel installed: ") + Ver + "." +
+                    L("\n\nTác vụ tự chạy chưa khởi động được nên DeskPanel được mở trực tiếp. Nếu lần sau bật máy DeskPanel không tự chạy, gửi ảnh thông báo này.\n\n", "\n\nThe startup task did not start, so DeskPanel was started directly. If it does not start by itself next time you sign in, send a screenshot of this message.\n\n") +
+                    TaskInfo(), 0x40);
+                return;
+            }
             var log = Path.Combine(dir, "deskpanel.log");
             var tail = File.Exists(log) ? string.Join("\n", File.ReadLines(log).TakeLast(8)) : L("(chưa có deskpanel.log)", "(no deskpanel.log yet)");
             bool running = Process.GetProcessesByName("DeskPanel").Any(p => p.Id != Environment.ProcessId);
             Box(L("Đã cài nhưng DeskPanel chưa chạy được sau 60 giây.\n\n", "Installed, but DeskPanel is not running after 60 seconds.\n\n") +
                 (running ? L("DeskPanel đang chạy nhưng chưa mở cổng ", "DeskPanel is running but has not opened port ") + port + L(" (cổng bị phần mềm khác chiếm?).", " (is another program using it?).")
                          : L("DeskPanel không chạy. Xem Windows Security → Protection history có chặn DeskPanel.exe không.", "DeskPanel is not running. Check Windows Security → Protection history to see if DeskPanel.exe was blocked.")) +
-                L("\n\nNhật ký:\n", "\n\nLog:\n") + tail + L("\n\nChụp màn hình thông báo này gửi lại để được hỗ trợ.", "\n\nSend a screenshot of this message to get help."), 0x30);
+                L("\n\nNhật ký:\n", "\n\nLog:\n") + tail + (direct.Length > 0 ? "\n\n" + L("Chạy thử:\n", "Test run:\n") + direct : "") + "\n\n" + TaskInfo() + L("\n\nChụp màn hình thông báo này gửi lại để được hỗ trợ.", "\n\nSend a screenshot of this message to get help."), 0x30);
         }
+    }
+
+    // Chay DeskPanel --serve truc tiep. null = da mo duoc cong; chuoi = loi/ket qua de hien cho nguoi dung.
+    static string? TryDirect(string exe, string dir, int port)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo(exe) { WorkingDirectory = dir, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            psi.ArgumentList.Add("--serve");
+            var p = Process.Start(psi)!;
+            var sb = new StringBuilder();
+            p.OutputDataReceived += (_, e) => { if (e.Data != null) lock (sb) sb.AppendLine(e.Data); };
+            p.ErrorDataReceived += (_, e) => { if (e.Data != null) lock (sb) sb.AppendLine(e.Data); };
+            p.BeginOutputReadLine(); p.BeginErrorReadLine();
+            for (int i = 0; i < 20; i++)
+            {
+                Thread.Sleep(1000);
+                try { using var c = new System.Net.Sockets.TcpClient(); c.Connect("127.0.0.1", port); return null; } catch { }
+                if (p.HasExited) break;
+            }
+            string o; lock (sb) o = sb.ToString().Trim();
+            var lines = o.Split('\n');
+            o = string.Join("\n", lines.Take(12)).Trim();
+            return (p.HasExited ? L("thoát với mã ", "exited with code ") + p.ExitCode : L("vẫn chạy nhưng chưa mở cổng", "still running but the port is not open")) + (o.Length > 0 ? "\n" + o : "");
+        }
+        catch (Exception ex) { return L("không chạy được: ", "could not start: ") + ex.Message; }
+    }
+
+    // Trang thai tac vu tu chay (lan chay cuoi, ma ket qua) de chan doan
+    static string TaskInfo()
+    {
+        var (code, o) = Run("schtasks.exe", "/Query", "/TN", TaskName, "/V", "/FO", "LIST");
+        if (code != 0) return "Task: " + o.Trim();
+        var keep = o.Split('\n').Select(l => l.Trim()).Where(l => l.StartsWith("Status") || l.StartsWith("Last Run Time") || l.StartsWith("Last Result") || l.StartsWith("Run As User") || l.StartsWith("Logon Mode"));
+        var k = keep.ToList();
+        return "Task: " + (k.Count > 0 ? string.Join(" | ", k) : string.Join(" | ", o.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).Skip(2).Take(8)));
     }
 
     static int ReadPort(string dir)
@@ -160,7 +206,7 @@ public static class Setup
                 <RestartOnFailure><Interval>PT1M</Interval><Count>3</Count></RestartOnFailure>
                 <Enabled>true</Enabled>
               </Settings>
-              <Actions Context="Author"><Exec><Command>{X(exe)}</Command><WorkingDirectory>{X(dir)}</WorkingDirectory></Exec></Actions>
+              <Actions Context="Author"><Exec><Command>{X(exe)}</Command><Arguments>--serve</Arguments><WorkingDirectory>{X(dir)}</WorkingDirectory></Exec></Actions>
             </Task>
             """;
         var tmp = Path.Combine(Path.GetTempPath(), "deskpanel-task.xml");

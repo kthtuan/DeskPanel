@@ -1,5 +1,9 @@
 # Nhật ký thay đổi
 
+## 0.13.3 (27/11/2026)
+- Cài đặt: nếu tác vụ tự chạy không khởi động được DeskPanel, file cài thử chạy thẳng DeskPanel. Chạy được thì mở trang cài đặt luôn; không được thì hiện lỗi thật và trạng thái tác vụ để chẩn đoán.
+- DeskPanel ghi lỗi khởi động (ví dụ cổng bị chiếm) vào `deskpanel.log` thay vì tắt im lặng.
+
 ## 0.13.2 (27/11/2026)
 - Cài đặt: chạy DeskPanel và mở trình duyệt ngay, rồi mới cài PawnIO (trước đây máy mới phải chờ winget tới 4 phút trong im lặng, trang báo "refused to connect").
 - Hộp thoại cài đặt luôn nổi trên cùng, không bị che sau cửa sổ khác.

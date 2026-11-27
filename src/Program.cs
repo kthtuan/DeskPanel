@@ -5,6 +5,8 @@ using DeskPanel;
 
 // File cai dat: chay tu ngoai thu muc da cai thi cai/cap nhat; --uninstall thi go
 if (Setup.TryRun(args)) return;
+// Loi khong bat duoc luc khoi dong (vd cong bi chiem): ghi lai de file cai va nguoi dung xem duoc
+AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write("LOI NGHIEM TRONG / crash: " + e.ExceptionObject);
 
 // Chi cho phep mot ban DeskPanel chay cung luc
 using var mutex = new Mutex(true, @"Global\DeskPanel_SingleInstance", out bool first);
