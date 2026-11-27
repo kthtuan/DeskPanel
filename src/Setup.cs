@@ -96,8 +96,8 @@ public static class Setup
 
         RegisterTask(exe, dir);
         RegisterApp(exe, dir);
-        bool pawnNew = EnsurePawnIO();
 
+        // Chay DeskPanel va mo trinh duyet truoc; cai PawnIO (winget, co the mat vai phut) sau
         Run("schtasks.exe", "/Run", "/TN", TaskName);
         int port = ReadPort(dir);
         bool up = false;
@@ -106,10 +106,11 @@ public static class Setup
             Thread.Sleep(1000);
             try { using var c = new System.Net.Sockets.TcpClient(); c.Connect("127.0.0.1", port); up = true; } catch { }
         }
+        // Mo qua explorer de trinh duyet khong chay bang quyen admin
+        if (up) try { Process.Start("explorer.exe", $"http://localhost:{port}/settings.html"); } catch { }
+        bool pawnNew = EnsurePawnIO();
         if (up)
         {
-            // Mo qua explorer de trinh duyet khong chay bang quyen admin
-            try { Process.Start("explorer.exe", $"http://localhost:{port}/settings.html"); } catch { }
             Box((update ? L("Đã cập nhật DeskPanel ", "DeskPanel updated to ") + Ver + "." : L("Đã cài xong DeskPanel ", "DeskPanel installed: ") + Ver + ".") +
                 L("\n\nTrang cài đặt đang mở trong trình duyệt.", "\n\nThe settings page is opening in your browser.") +
                 (pawnNew ? L("\n\nĐã cài PawnIO để đọc nhiệt độ CPU: khởi động lại máy một lần để có nhiệt độ.", "\n\nPawnIO was installed to read CPU temperature: restart the PC once to see it.") : ""), 0x40);
@@ -248,7 +249,7 @@ public static class Setup
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
-    static int Box(string text, uint type) => MessageBoxW(IntPtr.Zero, text, Title, type | 0x10000 /* SETFOREGROUND */);
+    static int Box(string text, uint type) => MessageBoxW(IntPtr.Zero, text, Title, type | 0x10000 /* SETFOREGROUND */ | 0x40000 /* TOPMOST */);
 }
 
 /// <summary>Giao dien dien thoai, trang cai dat va APK nam trong exe; chep ra thu muc wwwroot khi chay.</summary>

@@ -1,5 +1,9 @@
 # Nhật ký thay đổi
 
+## 0.13.2 (27/11/2026)
+- Cài đặt: chạy DeskPanel và mở trình duyệt ngay, rồi mới cài PawnIO (trước đây máy mới phải chờ winget tới 4 phút trong im lặng, trang báo "refused to connect").
+- Hộp thoại cài đặt luôn nổi trên cùng, không bị che sau cửa sổ khác.
+
 ## 0.13.1 (26/11/2026)
 - **Giao diện riêng từng trang**: Cài đặt → Giao diện → **Áp dụng cho** chọn một trang để chỉnh màu, nền, kiểu thẻ, bo góc, khoảng cách, cỡ chữ, số cột nút cho riêng trang đó. Nút **Dùng lại giao diện chung** để bỏ.
 - Trang cài đặt báo **Điện thoại đã nối qua Wi-Fi** khi điện thoại vào bằng mã QR (trước chỉ đếm cáp USB).
